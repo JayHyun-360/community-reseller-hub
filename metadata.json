@@ -1,0 +1,9 @@
+{
+  "name": "NearByt",
+  "description": "Discover local resellers and unique finds in your neighborhood with Pinterest-style discovery.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
