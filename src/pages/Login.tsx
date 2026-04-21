@@ -62,7 +62,7 @@ export const Login: React.FC = () => {
               type={method === 'email' ? 'email' : 'tel'}
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={method === 'email' ? 'atejess@nearbyt.com' : '0917 000 0000'}
+              placeholder={method === 'email' ? 'charldul@nearbyt.com' : '0917 000 0000'}
               className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300 font-medium"
             />
           </div>

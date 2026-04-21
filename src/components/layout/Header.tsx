@@ -58,12 +58,12 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             className="flex items-center gap-2 p-1.5 hover:bg-zinc-50 rounded-full transition-all group"
           >
             <img 
-              src="https://picsum.photos/seed/user-jess/100" 
+              src="https://picsum.photos/seed/user-charl/100" 
               alt="Profile" 
               className="w-10 h-10 rounded-full border-2 border-white shadow-sm group-hover:border-zinc-200 transition-all" 
             />
             <div className="hidden xl:block text-left mr-2">
-              <div className="text-[11px] font-black tracking-tight text-zinc-900 leading-none">Ate Jess</div>
+              <div className="text-[11px] font-black tracking-tight text-zinc-900 leading-none">Charl Dul</div>
               <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Elite Reseller</div>
             </div>
           </button>

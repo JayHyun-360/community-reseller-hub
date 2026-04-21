@@ -12,8 +12,8 @@ export const MOCK_SELLERS: Seller[] = [
   {
     id: 's1',
     username: 'keychainph',
-    displayName: 'Keychain PH by Ate Jess',
-    avatarUrl: 'https://picsum.photos/seed/jess-avatar/200',
+    displayName: 'Keychain PH by Charl Dul',
+    avatarUrl: 'https://picsum.photos/seed/charl-avatar/200',
     bio: 'Sanrio, anime, custom keychains! Shipping nationwide from QC.',
     messengerUrl: 'https://m.me/keychainph',
     whatsappNum: '639171234567',
