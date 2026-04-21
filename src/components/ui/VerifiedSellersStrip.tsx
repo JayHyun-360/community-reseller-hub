@@ -29,6 +29,7 @@ export const VerifiedSellersStrip: React.FC<VerifiedSellersStripProps> = ({ sell
                 src={seller.avatarUrl}
                 alt={seller.displayName}
                 className="w-full h-full rounded-full object-cover border-4 border-white"
+                referrerPolicy="no-referrer"
               />
               {seller.trustTier === 'elite' && (
                 <div className="absolute -bottom-1 -right-1 bg-zinc-900 p-1.5 rounded-full border-2 border-white shadow-md">

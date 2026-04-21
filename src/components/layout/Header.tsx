@@ -61,6 +61,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
               src="https://picsum.photos/seed/user-charl/100" 
               alt="Profile" 
               className="w-10 h-10 rounded-full border-2 border-white shadow-sm group-hover:border-zinc-200 transition-all" 
+              referrerPolicy="no-referrer"
             />
             <div className="hidden xl:block text-left mr-2">
               <div className="text-[11px] font-black tracking-tight text-zinc-900 leading-none">Charl Dul</div>

@@ -88,6 +88,7 @@ export const Login: React.FC = () => {
                 src={`https://picsum.photos/seed/nearby-user${i}/100`} 
                 alt="Seller" 
                 className="w-10 h-10 rounded-full border-4 border-white grayscale hover:grayscale-0 transition-all cursor-pointer shadow-sm" 
+                referrerPolicy="no-referrer"
               />
             ))}
           </div>
