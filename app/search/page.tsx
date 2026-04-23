@@ -23,7 +23,7 @@ export default function SearchPage() {
       let items = MOCK_PRODUCTS.filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q)
+          p.description.toLowerCase().includes(q),
       );
       if (selectedCat !== "cat1") {
         items = items.filter((p) => p.categoryId === selectedCat);
@@ -33,7 +33,7 @@ export default function SearchPage() {
       return MOCK_SELLERS.filter(
         (s) =>
           s.displayName.toLowerCase().includes(q) ||
-          s.username.toLowerCase().includes(q)
+          s.username.toLowerCase().includes(q),
       );
     }
   }, [query, tab, selectedCat]);
@@ -99,7 +99,7 @@ export default function SearchPage() {
 
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-              {results.length} results matching &quot;{query || &quot;everything&quot;}&quot;
+              {results.length} results matching "{query || "everything"}"
             </span>
             <button className="p-2.5 bg-white border border-zinc-200 rounded-xl text-zinc-500 hover:text-indigo-600 transition-all shadow-sm">
               <Filter className="w-5 h-5" />
@@ -127,19 +127,17 @@ export default function SearchPage() {
                 : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             }
           >
-            {tab === "products" ? (
-              (results as Product[]).map((p) => (
-                <ProductCard
-                  key={p.id}
-                  product={p}
-                  onNotifyMe={setNotifyProduct}
-                />
-              ))
-            ) : (
-              (results as any[]).map((s) => (
-                <SellerCard key={s.id} seller={s} />
-              ))
-            )}
+            {tab === "products"
+              ? (results as Product[]).map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    onNotifyMe={setNotifyProduct}
+                  />
+                ))
+              : (results as any[]).map((s) => (
+                  <SellerCard key={s.id} seller={s} />
+                ))}
           </div>
         ) : (
           <div className="py-40 text-center flex flex-col items-center gap-8">
