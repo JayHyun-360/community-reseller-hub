@@ -1,5 +1,79 @@
 import { Seller, Product, Category } from "./types";
 
+const IMAGE_MAP: Record<string, string[]> = {
+  keychain: [
+    "https://images.unsplash.com/photo-1606103920295-972888a6ce90?w=800",
+    "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800",
+    "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800",
+  ],
+  charm: [
+    "https://images.unsplash.com/photo-1566576721346-d4a3b4eaad55?w=800",
+    "https://images.unsplash.com/photo-1617038224558-28ad3fb558a7?w=800",
+  ],
+  jacket: [
+    "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800",
+    "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800",
+  ],
+  denim: ["https://images.unsplash.com/photo-1542272604-787c3835535d?w=800"],
+  clay: [
+    "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?w=800",
+    "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800",
+  ],
+  plushie: [
+    "https://images.unsplash.com/photo-1559563458-527298cb2b42?w=800",
+    "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800",
+  ],
+  tee: [
+    "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800",
+    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",
+  ],
+  beaded: [
+    "https://images.unsplash.com/photo-1627250682845-66708990a423?w=800",
+    "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=800",
+  ],
+  sticker: [
+    "https://images.unsplash.com/photo-1591522810850-58128c5fb089?w=800",
+    "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800",
+  ],
+  bag: [
+    "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800",
+    "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800",
+  ],
+  phone: [
+    "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=800",
+    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800",
+  ],
+  ring: [
+    "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800",
+    "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800",
+  ],
+  necklace: [
+    "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800",
+  ],
+  default: [
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800",
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
+    "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800",
+  ],
+};
+
+export function getImageForProduct(
+  title: string,
+  description: string,
+): string[] {
+  const text = `${title} ${description}`.toLowerCase();
+
+  for (const [keyword, images] of Object.entries(IMAGE_MAP)) {
+    if (keyword !== "default" && text.includes(keyword)) {
+      return [images[Math.floor(Math.random() * images.length)]];
+    }
+  }
+
+  return [
+    IMAGE_MAP.default[Math.floor(Math.random() * IMAGE_MAP.default.length)],
+  ];
+}
+
 export const MOCK_CATEGORIES: Category[] = [
   { id: "cat1", name: "All", emoji: "✨", productCount: 45 },
   { id: "cat2", name: "Keychains", emoji: "🔑", productCount: 12 },
@@ -62,9 +136,13 @@ export const MOCK_PRODUCTS: Product[] = [
     sellerId: "s1",
     categoryId: "cat2",
     title: "Sanrio Keychain Set (5pcs)",
-    description: "Cute pastel Sanrio characters. BPA-free acrylic. Perfect for bags!",
+    description:
+      "Cute pastel Sanrio characters. BPA-free acrylic. Perfect for bags!",
     price: 129,
-    images: ["https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800"],
+    images: getImageForProduct(
+      "Sanrio Keychain Set",
+      "Cute pastel Sanrio characters",
+    ),
     stockQty: 8,
     status: "available",
     isFeatured: true,
@@ -78,7 +156,10 @@ export const MOCK_PRODUCTS: Product[] = [
     title: "Hello Kitty Mini Charm",
     description: "Limited edition HK charm. Fits most phone cases and bags.",
     price: 89,
-    images: ["https://images.unsplash.com/photo-1566576721346-d4a3b4eaad55?auto=format&fit=crop&q=80&w=800"],
+    images: getImageForProduct(
+      "Hello Kitty Mini Charm",
+      "Limited edition HK charm",
+    ),
     stockQty: 2,
     status: "low",
     isFeatured: false,
@@ -92,7 +173,10 @@ export const MOCK_PRODUCTS: Product[] = [
     title: "Y2K Denim Cargo Jacket",
     description: "Authentic Y2K vibes, great condition. Oversized fit.",
     price: 320,
-    images: ["https://images.unsplash.com/photo-1591047139829-d91aecb6caea?auto=format&fit=crop&q=80&w=800"],
+    images: getImageForProduct(
+      "Y2K Denim Cargo Jacket",
+      "Authentic Y2K denim jacket",
+    ),
     stockQty: 0,
     status: "sold_out",
     isFeatured: true,
@@ -106,7 +190,10 @@ export const MOCK_PRODUCTS: Product[] = [
     title: "Custom Clay Bag Tag",
     description: "Personalized with your name. Choose your colors!",
     price: 150,
-    images: ["https://images.unsplash.com/photo-1621360841013-c7683c659ec6?auto=format&fit=crop&q=80&w=800"],
+    images: getImageForProduct(
+      "Custom Clay Bag Tag",
+      "Handmade clay personalized tag",
+    ),
     stockQty: 15,
     status: "available",
     isFeatured: false,
@@ -120,7 +207,10 @@ export const MOCK_PRODUCTS: Product[] = [
     title: "Cinnamoroll Plushie Clip",
     description: "Soft cinnamoroll clip for your backpack.",
     price: 199,
-    images: ["https://images.unsplash.com/photo-1559563458-527298cb2B42?auto=format&fit=crop&q=80&w=800"],
+    images: getImageForProduct(
+      "Cinnamoroll Plushie Clip",
+      "Soft cute plushie clip",
+    ),
     stockQty: 5,
     status: "available",
     isFeatured: false,
@@ -134,7 +224,10 @@ export const MOCK_PRODUCTS: Product[] = [
     title: "Vintage Nirvana Band Tee",
     description: "Distressed look, size L. One of a kind finds.",
     price: 450,
-    images: ["https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=800"],
+    images: getImageForProduct(
+      "Vintage Nirvana Band Tee",
+      "Distressed vintage band tee",
+    ),
     stockQty: 1,
     status: "low",
     isFeatured: true,
@@ -148,7 +241,10 @@ export const MOCK_PRODUCTS: Product[] = [
     title: "Handmade Beaded Phone Strap",
     description: "Colorful Y2K style beaded strap with star charms.",
     price: 120,
-    images: ["https://images.unsplash.com/photo-1627250682845-66708990a423?auto=format&fit=crop&q=80&w=800"],
+    images: getImageForProduct(
+      "Handmade Beaded Phone Strap",
+      "Colorful beaded phone strap",
+    ),
     stockQty: 10,
     status: "available",
     isFeatured: false,
@@ -162,7 +258,10 @@ export const MOCK_PRODUCTS: Product[] = [
     title: "Ghibli Inspired Sticker Pack",
     description: "10 waterproof stickers featuring your favorite characters.",
     price: 75,
-    images: ["https://images.unsplash.com/photo-1591522810850-58128c5fb089?auto=format&fit=crop&q=80&w=800"],
+    images: getImageForProduct(
+      "Ghibli Inspired Sticker Pack",
+      "Waterproof anime stickers",
+    ),
     stockQty: 25,
     status: "available",
     isFeatured: true,
