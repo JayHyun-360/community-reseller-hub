@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Bell, Menu, User } from "lucide-react";
+import { Search, Menu, User } from "lucide-react";
+import { NotificationBell } from "@/components/ui/NotificationBell";
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -44,10 +45,7 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="hidden sm:flex p-3 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 rounded-full transition-all relative">
-            <Bell className="w-6 h-6" />
-            <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
-          </button>
+          <NotificationBell />
 
           <div className="hidden lg:block h-6 w-px bg-zinc-100 mx-2" />
 
