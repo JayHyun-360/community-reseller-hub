@@ -1,15 +1,28 @@
 "use client";
 
+import { useRef } from "react";
 import { Seller } from "@/lib/types";
 import { motion } from "motion/react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface VerifiedSellersStripProps {
   sellers: Seller[];
 }
 
 export function VerifiedSellersStrip({ sellers }: VerifiedSellersStripProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scroll = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -200 : 200,
+        behavior: "smooth",
+      });
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-4 py-8">
+    <div className="flex flex-col gap-4 py-8 relative">
       <div className="flex items-center justify-between px-2">
         <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 font-sans">
           Top Neighborhood Resellers
@@ -19,7 +32,23 @@ export function VerifiedSellersStrip({ sellers }: VerifiedSellersStripProps) {
         </span>
       </div>
 
-      <div className="flex gap-6 overflow-x-auto px-2 pb-4 hide-scrollbar">
+      <button
+        onClick={() => scroll("left")}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-lg border border-zinc-100 flex items-center justify-center hover:bg-zinc-50 transition-colors"
+      >
+        <ChevronLeft className="w-4 h-4 text-zinc-900" />
+      </button>
+      <button
+        onClick={() => scroll("right")}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white rounded-full shadow-lg border border-zinc-100 flex items-center justify-center hover:bg-zinc-50 transition-colors"
+      >
+        <ChevronRight className="w-4 h-4 text-zinc-900" />
+      </button>
+
+      <div
+        ref={scrollRef}
+        className="flex gap-6 overflow-x-auto px-8 pb-4 hide-scrollbar"
+      >
         {sellers.map((seller) => (
           <motion.div
             key={seller.id}

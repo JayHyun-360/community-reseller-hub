@@ -1,22 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { VerifiedSellersStrip } from "@/components/ui/VerifiedSellersStrip";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
 import { MOCK_SELLERS, MOCK_PRODUCTS, MOCK_CATEGORIES } from "@/lib/mock-data";
 import { Product } from "@/lib/types";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Home page
 export default function HomePage() {
   const [selectedCat, setSelectedCat] = useState("cat1");
   const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
+  const trendingRef = useRef<HTMLDivElement>(null);
 
   const filteredProducts =
     selectedCat === "cat1"
       ? MOCK_PRODUCTS
       : MOCK_PRODUCTS.filter((p) => p.categoryId === selectedCat);
+
+  const scrollTrending = (direction: "left" | "right") => {
+    if (trendingRef.current) {
+      const scrollAmount = 300;
+      trendingRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   return (
     <div className="max-w-[1600px] mx-auto pb-24 md:pb-12 bg-white min-h-screen">
@@ -32,31 +44,48 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="mt-16 overflow-x-auto pb-8 hide-scrollbar scroll-smooth">
-          <div className="flex gap-8 px-2">
-            {MOCK_PRODUCTS.slice(0, 6).map((item, idx) => (
-              <div
-                key={idx}
-                className="flex-shrink-0 w-44 md:w-64 group cursor-pointer"
-              >
-                <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-100 mb-4 shadow-xl shadow-zinc-200/50 group-hover:scale-[1.02] transition-transform duration-500">
-                  <img
-                    src={item.images[0]}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                    referrerPolicy="no-referrer"
-                  />
+        <div className="mt-16 relative">
+          <button
+            onClick={() => scrollTrending("left")}
+            className="absolute left-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg border border-zinc-100 flex items-center justify-center hover:bg-zinc-50 transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-zinc-900" />
+          </button>
+          <button
+            onClick={() => scrollTrending("right")}
+            className="absolute right-2 top-1/2 -translate-y-1/2 z-10 w-10 h-10 bg-white rounded-full shadow-lg border border-zinc-100 flex items-center justify-center hover:bg-zinc-50 transition-colors"
+          >
+            <ChevronRight className="w-5 h-5 text-zinc-900" />
+          </button>
+          <div
+            ref={trendingRef}
+            className="overflow-x-auto pb-8 hide-scrollbar scroll-smooth px-8"
+          >
+            <div className="flex gap-8">
+              {MOCK_PRODUCTS.slice(0, 6).map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex-shrink-0 w-44 md:w-64 group cursor-pointer"
+                >
+                  <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-100 mb-4 shadow-xl shadow-zinc-200/50 group-hover:scale-[1.02] transition-transform duration-500">
+                    <img
+                      src={item.images[0]}
+                      alt={item.title}
+                      className="w-full h-full object-cover"
+                      referrerPolicy="no-referrer"
+                    />
+                  </div>
+                  <div className="px-2">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">
+                      Trending
+                    </p>
+                    <h4 className="text-sm font-bold text-zinc-900 truncate leading-none">
+                      {item.title}
+                    </h4>
+                  </div>
                 </div>
-                <div className="px-2">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">
-                    Trending
-                  </p>
-                  <h4 className="text-sm font-bold text-zinc-900 truncate leading-none">
-                    {item.title}
-                  </h4>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
       </section>
