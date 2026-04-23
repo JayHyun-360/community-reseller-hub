@@ -23,7 +23,7 @@ const useRealtimeStock = (initialProduct: Product) => {
         setProduct((prev) => {
           const newQty = Math.max(
             0,
-            prev.stockQty + (Math.random() > 0.5 ? 1 : -1)
+            prev.stockQty + (Math.random() > 0.5 ? 1 : -1),
           );
           let newStatus = prev.status;
           if (newQty === 0) newStatus = "sold_out";
@@ -48,13 +48,17 @@ export function ProductCard({
 }: ProductCardProps) {
   const product = useRealtimeStock(initialProduct);
   const seller = MOCK_SELLERS.find((s) => s.id === product.sellerId);
+  const [imgError, setImgError] = useState(false);
+
+  const fallbackImage =
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMessageSeller = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (!seller) return;
     const message = encodeURIComponent(
-      `Hi! Is ${product.title} at ₱${product.price} available?`
+      `Hi! Is ${product.title} at ₱${product.price} available?`,
     );
     const url = seller.messengerUrl
       ? `${seller.messengerUrl}?text=${message}`
@@ -71,10 +75,11 @@ export function ProductCard({
     >
       <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-100 group-hover:brightness-90 transition-all duration-300">
         <img
-          src={product.images[0]}
+          src={imgError ? fallbackImage : product.images[0]}
           alt={product.title}
           className="w-full h-auto block transform group-hover:scale-105 transition-transform duration-700"
           referrerPolicy="no-referrer"
+          onError={() => setImgError(true)}
         />
 
         <div
