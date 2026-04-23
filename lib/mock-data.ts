@@ -2,58 +2,95 @@ import { Seller, Product, Category } from "./types";
 
 const IMAGE_MAP: Record<string, string[]> = {
   keychain: [
-    "https://images.unsplash.com/photo-1606103920295-972888a6ce90?w=800",
-    "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800",
-    "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800",
+    "https://images.unsplash.com/photo-1606103920295-972888a6ce90?w=800&q=80",
+    "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80",
+    "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&q=80",
   ],
   charm: [
-    "https://images.unsplash.com/photo-1566576721346-d4a3b4eaad55?w=800",
-    "https://images.unsplash.com/photo-1617038224558-28ad3fb558a7?w=800",
+    "https://images.unsplash.com/photo-1566576721346-d4a3b4eaad55?w=800&q=80",
+    "https://images.unsplash.com/photo-1617038224558-28ad3fb558a7?w=800&q=80",
   ],
   jacket: [
-    "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800",
-    "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800",
+    "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80",
+    "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80",
   ],
-  denim: ["https://images.unsplash.com/photo-1542272604-787c3835535d?w=800"],
+  denim: [
+    "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=80",
+    "https://images.unsplash.com/photo-1475178626620-a4d074967452?w=800&q=80",
+  ],
   clay: [
-    "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?w=800",
-    "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800",
+    "https://images.unsplash.com/photo-1621360841013-c7683c659ec6?w=800&q=80",
+    "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?w=800&q=80",
   ],
-  plushie: [
-    "https://images.unsplash.com/photo-1559563458-527298cb2b42?w=800",
-    "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800",
+  plush: [
+    "https://images.unsplash.com/photo-1559563458-527298cb2b42?w=800&q=80",
+    "https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?w=800&q=80",
   ],
   tee: [
-    "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800",
-    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800",
+    "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80",
+    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
+  ],
+  tshirt: [
+    "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80",
+    "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
   ],
   beaded: [
-    "https://images.unsplash.com/photo-1627250682845-66708990a423?w=800",
-    "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=800",
+    "https://images.unsplash.com/photo-1627250682845-66708990a423?w=800&q=80",
+    "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=800&q=80",
+  ],
+  strap: [
+    "https://images.unsplash.com/photo-1627250682845-66708990a423?w=800&q=80",
+    "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=800&q=80",
   ],
   sticker: [
-    "https://images.unsplash.com/photo-1591522810850-58128c5fb089?w=800",
-    "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800",
+    "https://images.unsplash.com/photo-1591522810850-58128c5fb089?w=800&q=80",
+    "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800&q=80",
   ],
   bag: [
-    "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800",
-    "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800",
+    "https://images.unsplash.com/photo-1548036328-c9fa89d128fa?w=800&q=80",
+    "https://images.unsplash.com/photo-1590874103328-eac38a683ce7?w=800&q=80",
   ],
   phone: [
-    "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=800",
-    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800",
+    "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=800&q=80",
+    "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&q=80",
   ],
   ring: [
-    "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800",
-    "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800",
+    "https://images.unsplash.com/photo-1605100804763-247f67b3557e?w=800&q=80",
   ],
   necklace: [
-    "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800",
+    "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=800&q=80",
+  ],
+  sanrio: [
+    "https://images.unsplash.com/photo-1606103920295-972888a6ce90?w=800&q=80",
+    "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=800&q=80",
+  ],
+  "hello kitty": [
+    "https://images.unsplash.com/photo-1566576721346-d4a3b4eaad55?w=800&q=80",
+  ],
+  cinnamoroll: [
+    "https://images.unsplash.com/photo-1559563458-527298cb2b42?w=800&q=80",
+  ],
+  ghibli: [
+    "https://images.unsplash.com/photo-1591522810850-58128c5fb089?w=800&q=80",
+  ],
+  vintage: [
+    "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80",
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80",
+  ],
+  band: [
+    "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80",
+  ],
+  nirvana: [
+    "https://images.unsplash.com/photo-1576566588028-4147f3842f27?w=800&q=80",
+  ],
+  y2k: [
+    "https://images.unsplash.com/photo-1542272604-787c3835535d?w=800&q=80",
+    "https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800&q=80",
   ],
   default: [
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800",
-    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800",
-    "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800",
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80",
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80",
+    "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=800&q=80",
   ],
 };
 
@@ -63,9 +100,39 @@ export function getImageForProduct(
 ): string[] {
   const text = `${title} ${description}`.toLowerCase();
 
-  for (const [keyword, images] of Object.entries(IMAGE_MAP)) {
-    if (keyword !== "default" && text.includes(keyword)) {
-      return [images[Math.floor(Math.random() * images.length)]];
+  const keywordOrder = [
+    "sanrio",
+    "hello kitty",
+    "cinnamoroll",
+    "ghibli",
+    "keychain",
+    "charm",
+    "plush",
+    "plushie",
+    "jacket",
+    "denim",
+    "y2k",
+    "vintage",
+    "tee",
+    "tshirt",
+    "band",
+    "nirvana",
+    "clay",
+    "beaded",
+    "strap",
+    "sticker",
+    "bag",
+    "phone",
+    "ring",
+    "necklace",
+  ];
+
+  for (const keyword of keywordOrder) {
+    if (text.includes(keyword)) {
+      const images = IMAGE_MAP[keyword];
+      if (images && images.length > 0) {
+        return [images[Math.floor(Math.random() * images.length)]];
+      }
     }
   }
 
