@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Header } from "@/components/layout/Header";
-import { BottomNav } from "@/components/ui/BottomNav";
+import { AppLayout } from "@/components/AppLayout";
 
 export const metadata: Metadata = {
   title: "Community Seller Hub",
@@ -16,13 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen bg-white text-zinc-900 flex overflow-x-hidden font-sans">
-          <div className="flex-grow flex flex-col min-w-0">
-            <Header />
-            <main className="flex-grow">{children}</main>
-          </div>
-        </div>
-        <BottomNav />
+        <AppLayout>{children}</AppLayout>
       </body>
     </html>
   );

@@ -4,14 +4,21 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Bell, Menu, User } from "lucide-react";
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter();
 
   return (
     <header className="sticky top-0 w-full bg-white/80 backdrop-blur-md border-b border-zinc-50 z-50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <div className="flex items-center gap-4 lg:hidden">
-          <button className="p-2 text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors">
+          <button
+            onClick={onMenuClick}
+            className="p-2 text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors"
+          >
             <Menu className="w-6 h-6" />
           </button>
           <Link href="/" className="flex items-center gap-2 group">
@@ -43,7 +50,7 @@ export function Header() {
           </button>
 
           <div className="hidden lg:block h-6 w-px bg-zinc-100 mx-2" />
-          
+
           <button
             onClick={() => router.push("/login")}
             className="flex items-center gap-2 p-1.5 hover:bg-zinc-50 rounded-full transition-all group"
@@ -55,8 +62,12 @@ export function Header() {
               referrerPolicy="no-referrer"
             />
             <div className="hidden xl:block text-left mr-2">
-              <div className="text-[11px] font-black tracking-tight text-zinc-900 leading-none">Charl Dul</div>
-              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Elite Reseller</div>
+              <div className="text-[11px] font-black tracking-tight text-zinc-900 leading-none">
+                Charl Dul
+              </div>
+              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                Elite Reseller
+              </div>
             </div>
           </button>
         </div>
