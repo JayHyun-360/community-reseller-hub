@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { MOCK_CATEGORIES } from "@/lib/mock-data";
+import { MOCK_CATEGORIES, getImageForProduct } from "@/lib/mock-data";
 import { Product } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -30,9 +30,10 @@ export default function AddProductPage() {
     images:
       formData.images.length > 0
         ? formData.images
-        : [
-            "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=800",
-          ],
+        : getImageForProduct(
+            formData.title || "Product",
+            formData.description || "Product",
+          ),
     stockQty: Number(formData.stockQty) || 0,
     status: "available",
     isFeatured: formData.isFeatured,
