@@ -9,7 +9,7 @@ import { MOCK_SELLERS, MOCK_PRODUCTS, MOCK_CATEGORIES } from "@/lib/mock-data";
 import { Product } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-// Home page
+// Home page - NearByt
 export default function HomePage() {
   const [selectedCat, setSelectedCat] = useState("cat1");
   const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
