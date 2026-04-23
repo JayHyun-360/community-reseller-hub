@@ -8,6 +8,7 @@ import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
 import { MOCK_SELLERS, MOCK_PRODUCTS, MOCK_CATEGORIES } from "@/lib/mock-data";
 import { Product } from "@/lib/types";
 
+// Home page
 export default function HomePage() {
   const [selectedCat, setSelectedCat] = useState("cat1");
   const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
