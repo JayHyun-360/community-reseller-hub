@@ -24,6 +24,7 @@ export default function AddProductPage() {
     description: "",
     price: "",
     stockQty: "",
+    location: "",
     isFeatured: false,
     images: [] as string[],
   });
@@ -79,6 +80,7 @@ export default function AddProductPage() {
         description: formData.description,
         price: Number(formData.price),
         stock_qty: Number(formData.stockQty) || 0,
+        location: formData.location || null,
         status: asDraft ? "draft" : "available",
         is_featured: formData.isFeatured,
         images:
@@ -317,6 +319,21 @@ export default function AddProductPage() {
                   className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-900 outline-none transition-all"
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest pl-1">
+                Location <span className="text-zinc-300">(optional)</span>
+              </label>
+              <input
+                type="text"
+                value={formData.location}
+                onChange={(e) =>
+                  setFormData({ ...formData, location: e.target.value })
+                }
+                placeholder="e.g. Quezon City, Manila"
+                className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-900 outline-none transition-all"
+              />
             </div>
 
             <div className="flex items-center gap-3 py-2">
