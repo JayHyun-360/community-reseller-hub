@@ -11,17 +11,29 @@ export default function LoginPage() {
   const supabase = createClient();
 
   useEffect(() => {
-    // Check if already logged in
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    // Check if already logged in and redirect based on role
+    supabase.auth.getUser().then(async ({ data: { user } }) => {
       if (user) {
-        router.push("/dashboard");
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+
+        if (profile?.role === "seller") {
+          router.push("/dashboard");
+        } else if (profile?.role === "user") {
+          router.push("/");
+        } else {
+          router.push("/onboarding");
+        }
       }
     });
   }, []);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
-    const redirectUrl = `${window.location.origin}/dashboard`;
+    const redirectUrl = `${window.location.origin}/auth/callback`;
     console.log("Redirect URL:", redirectUrl);
 
     const { data, error } = await supabase.auth.signInWithOAuth({

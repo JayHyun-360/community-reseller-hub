@@ -24,6 +24,19 @@ export default function DashboardPage() {
         router.push("/login");
         return;
       }
+
+      // Check if user is a seller
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role !== "seller") {
+        router.push("/onboarding");
+        return;
+      }
+
       setUser(user);
 
       const { data: productsData } = await supabase
@@ -42,8 +55,6 @@ export default function DashboardPage() {
             description: p.description,
             price: p.price,
             images: p.images || [],
-            stockQty: p.stock_qty,
-            status: p.status,
             isFeatured: p.is_featured,
             viewCount: p.view_count,
             createdAt: p.created_at,
