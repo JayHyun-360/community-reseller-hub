@@ -85,7 +85,7 @@ export default function LoginPage() {
             onClick={() => router.push("/")}
             className="w-full bg-zinc-900 text-white rounded-2xl px-6 py-4 text-base font-black uppercase tracking-widest text-xs hover:bg-zinc-800 shadow-xl shadow-zinc-200 transition-all flex items-center justify-center gap-2"
           >
-            Continue as Guest
+            Explore as Guest
             <ArrowRight className="w-5 h-5" />
           </button>
         </div>

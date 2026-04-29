@@ -64,7 +64,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 Charl Dul
               </div>
               <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                Elite Reseller
+                Elite Seller
               </div>
             </div>
           </button>

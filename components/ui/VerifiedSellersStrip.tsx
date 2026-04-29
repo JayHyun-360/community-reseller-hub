@@ -25,7 +25,7 @@ export function VerifiedSellersStrip({ sellers }: VerifiedSellersStripProps) {
     <div className="flex flex-col gap-4 py-8 relative">
       <div className="flex items-center justify-between px-2">
         <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-zinc-400 font-sans">
-          Top Neighborhood Resellers
+          Top Neighborhood Sellers
         </h2>
         <span className="text-[10px] font-black text-zinc-900 border-b-2 border-zinc-900 cursor-pointer hover:opacity-70 transition-opacity">
           View Spotlight
