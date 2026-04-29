@@ -18,61 +18,71 @@ export default function SearchPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const supabase = createClient();
 
   useEffect(() => {
     async function fetchData() {
-      const [productsRes, sellersRes, categoriesRes] = await Promise.all([
-        supabase.from("products").select("*"),
-        supabase.from("profiles").select("*").eq("role", "seller"),
-        supabase.from("categories").select("*"),
-      ]);
+      setLoading(true);
+      try {
+        const [productsRes, profilesRes, categoriesRes] = await Promise.all([
+          supabase.from("products").select("*"),
+          supabase.from("profiles").select("*"),
+          supabase.from("categories").select("*"),
+        ]);
 
-      if (productsRes.data) {
-        setProducts(
-          productsRes.data.map((p) => ({
-            id: p.id,
-            sellerId: p.seller_id,
-            categoryId: p.category_id,
-            title: p.title,
-            description: p.description,
-            price: p.price,
-            images: p.images || [],
-            stockQty: p.stock_qty,
-            status: p.status,
-            isFeatured: p.is_featured,
-            viewCount: p.view_count,
-            createdAt: p.created_at,
-          })),
-        );
-      }
+        if (productsRes.data) {
+          setProducts(
+            productsRes.data.map((p) => ({
+              id: p.id,
+              sellerId: p.seller_id,
+              categoryId: p.category_id,
+              title: p.title,
+              description: p.description,
+              price: p.price,
+              images: p.images || [],
+              stockQty: p.stock_qty,
+              status: p.status,
+              isFeatured: p.is_featured,
+              viewCount: p.view_count,
+              createdAt: p.created_at,
+            })),
+          );
+        }
 
-      if (sellersRes.data) {
-        setSellers(
-          sellersRes.data.map((s) => ({
-            id: s.id,
-            username: s.username,
-            fullName: s.full_name,
-            avatarUrl: s.avatar_url,
-            role: s.role,
-            trustScore: s.trust_score,
-            trustTier: s.trust_tier,
-            whatsappNum: s.whatsapp_num,
-            messengerUrl: s.messenger_url,
-            primaryColor: s.primary_color,
-          })),
-        );
-      }
+        if (profilesRes.data) {
+          setSellers(
+            profilesRes.data
+              .filter((s) => s.role === "seller")
+              .map((s) => ({
+                id: s.id,
+                username: s.username,
+                fullName: s.full_name,
+                avatarUrl: s.avatar_url,
+                role: s.role,
+                trustScore: s.trust_score,
+                trustTier: s.trust_tier,
+                whatsappNum: s.whatsapp_num,
+                messengerUrl: s.messenger_url,
+                primaryColor: s.primary_color,
+              })),
+          );
+        }
 
-      if (categoriesRes.data) {
-        setCategories(
-          categoriesRes.data.map((c) => ({
-            id: c.id,
-            name: c.name,
-            emoji: c.emoji,
-            productCount: c.product_count,
-          })),
-        );
+        if (categoriesRes.data) {
+          setCategories(
+            categoriesRes.data.map((c) => ({
+              id: c.id,
+              name: c.name,
+              emoji: c.emoji,
+              productCount: c.product_count,
+            })),
+          );
+        }
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setLoading(false);
       }
     }
     fetchData();
