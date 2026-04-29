@@ -1,24 +1,97 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { VerifiedSellersStrip } from "@/components/ui/VerifiedSellersStrip";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
-import { MOCK_SELLERS, MOCK_PRODUCTS, MOCK_CATEGORIES } from "@/lib/mock-data";
-import { Product } from "@/lib/types";
+import { Product, Seller, Category } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Home page - NearByt
 export default function HomePage() {
   const [selectedCat, setSelectedCat] = useState("cat1");
   const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
   const trendingRef = useRef<HTMLDivElement>(null);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchData() {
+      const [productsRes, sellersRes, categoriesRes] = await Promise.all([
+        supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("role", "seller")
+          .order("trust_score", { ascending: false }),
+        supabase.from("categories").select("*"),
+      ]);
+
+      if (productsRes.data) {
+        setProducts(
+          productsRes.data.map((p) => ({
+            id: p.id,
+            sellerId: p.seller_id,
+            categoryId: p.category_id,
+            title: p.title,
+            description: p.description,
+            price: p.price,
+            images: p.images || [],
+            stockQty: p.stock_qty,
+            status: p.status,
+            isFeatured: p.is_featured,
+            viewCount: p.view_count,
+            createdAt: p.created_at,
+          })),
+        );
+      }
+
+      if (sellersRes.data) {
+        setSellers(
+          sellersRes.data.map((s) => ({
+            id: s.id,
+            username: s.username,
+            fullName: s.full_name,
+            avatarUrl: s.avatar_url,
+            role: s.role,
+            trustScore: s.trust_score,
+            trustTier: s.trust_tier,
+            whatsappNum: s.whatsapp_num,
+            messengerUrl: s.messenger_url,
+            primaryColor: s.primary_color,
+          })),
+        );
+      }
+
+      if (categoriesRes.data) {
+        setCategories(
+          categoriesRes.data.map((c) => ({
+            id: c.id,
+            name: c.name,
+            emoji: c.emoji,
+            productCount: c.product_count,
+          })),
+        );
+      }
+
+      setLoading(false);
+    }
+
+    fetchData();
+  }, []);
 
   const filteredProducts =
-    selectedCat === "cat1"
-      ? MOCK_PRODUCTS
-      : MOCK_PRODUCTS.filter((p) => p.categoryId === selectedCat);
+    selectedCat === "cat1" || !selectedCat
+      ? products
+      : products.filter((p) => p.categoryId === selectedCat);
 
   const scrollTrending = (direction: "left" | "right") => {
     if (trendingRef.current) {
@@ -62,7 +135,7 @@ export default function HomePage() {
             className="overflow-x-auto pb-8 hide-scrollbar scroll-smooth px-8"
           >
             <div className="flex gap-8">
-              {MOCK_PRODUCTS.slice(0, 6).map((item, idx) => (
+              {products.slice(0, 6).map((item, idx) => (
                 <div
                   key={idx}
                   className="flex-shrink-0 w-44 md:w-64 group cursor-pointer"
@@ -91,7 +164,7 @@ export default function HomePage() {
       </section>
 
       <div className="mt-8 px-6">
-        <VerifiedSellersStrip sellers={MOCK_SELLERS} />
+        <VerifiedSellersStrip sellers={sellers} />
       </div>
 
       <section className="px-6 py-12">
@@ -107,7 +180,7 @@ export default function HomePage() {
             </div>
             <div>
               <CategoryFilter
-                categories={MOCK_CATEGORIES}
+                categories={categories}
                 selectedId={selectedCat}
                 onSelect={setSelectedCat}
               />

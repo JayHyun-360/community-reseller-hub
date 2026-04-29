@@ -5,16 +5,18 @@ export type StockStatus = "available" | "low" | "sold_out";
 export interface Seller {
   id: string;
   username: string;
-  displayName: string;
-  avatarUrl: string;
-  bio: string;
-  messengerUrl: string;
-  whatsappNum: string | null;
-  trustScore: number;
-  trustTier: TrustTier;
-  idVerified: boolean;
-  tradesCount: number;
-  createdAt: string;
+  fullName?: string;
+  displayName?: string;
+  avatarUrl?: string;
+  bio?: string;
+  messengerUrl?: string;
+  whatsappNum?: string | null;
+  role?: string;
+  trustScore?: number;
+  trustTier?: string;
+  idVerified?: boolean;
+  tradesCount?: number;
+  createdAt?: string;
   primaryColor?: string;
 }
 
