@@ -3,52 +3,21 @@
 import { useState, useEffect } from "react";
 import { Product, Seller } from "@/lib/types";
 import { motion } from "motion/react";
-import { StockBadge } from "./StockBadge";
-import { Button } from "./Button";
 import { createClient } from "@/lib/supabase/client";
-import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
+import { MessageCircle, Share2, MoreHorizontal } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
-  onNotifyMe: (product: Product) => void;
+  onNotifyMe?: (product: Product) => void;
   showSeller?: boolean;
   sellerData?: Seller;
 }
 
-const useRealtimeStock = (initialProduct: Product) => {
-  const [product, setProduct] = useState(initialProduct);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (Math.random() > 0.9) {
-        setProduct((prev) => {
-          const newQty = Math.max(
-            0,
-            prev.stockQty + (Math.random() > 0.5 ? 1 : -1),
-          );
-          let newStatus = prev.status;
-          if (newQty === 0) newStatus = "sold_out";
-          else if (newQty <= 3) newStatus = "low";
-          else newStatus = "available";
-
-          return { ...prev, stockQty: newQty, status: newStatus as any };
-        });
-      }
-    }, 15000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return product;
-};
-
 export function ProductCard({
-  product: initialProduct,
-  onNotifyMe,
+  product,
   showSeller = true,
   sellerData,
 }: ProductCardProps) {
-  const product = useRealtimeStock(initialProduct);
   const [seller, setSeller] = useState<Seller | null>(sellerData || null);
   const [imgError, setImgError] = useState(false);
   const supabase = createClient();
@@ -70,11 +39,8 @@ export function ProductCard({
               fullName: data.full_name,
               avatarUrl: data.avatar_url,
               role: data.role,
-              trustScore: data.trust_score,
-              trustTier: data.trust_tier,
               whatsappNum: data.whatsapp_num,
               messengerUrl: data.messenger_url,
-              primaryColor: data.primary_color,
             });
           }
         });
@@ -141,20 +107,6 @@ export function ProductCard({
             </button>
           </div>
         </div>
-
-        {!isHovered && (
-          <div className="absolute top-3 right-3">
-            <StockBadge status={product.status} qty={product.stockQty} />
-          </div>
-        )}
-
-        {product.status === "sold_out" && (
-          <div className="absolute inset-0 bg-zinc-900/40 flex items-center justify-center backdrop-blur-[1px]">
-            <span className="text-white font-black text-[10px] tracking-widest uppercase bg-zinc-900/80 px-4 py-2 rounded-full border border-white/20">
-              Sold Out
-            </span>
-          </div>
-        )}
       </div>
 
       <div className="mt-2 px-2">

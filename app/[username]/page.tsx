@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
-import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
-import { TrustBadge } from "@/components/ui/TrustBadge";
 import { Button } from "@/components/ui/Button";
 import { Share2, MessageCircle, Phone as WhatsApp } from "lucide-react";
 import { Product, Seller, Category } from "@/lib/types";
@@ -19,7 +17,6 @@ export default function StorefrontPage({
   const { username } = use(params);
   const router = useRouter();
   const [selectedCat, setSelectedCat] = useState("cat1");
-  const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
   const [seller, setSeller] = useState<Seller | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -41,11 +38,8 @@ export default function StorefrontPage({
           avatarUrl: sellerRes.data.avatar_url,
           bio: sellerRes.data.bio,
           role: sellerRes.data.role,
-          trustScore: sellerRes.data.trust_score,
-          trustTier: sellerRes.data.trust_tier,
           whatsappNum: sellerRes.data.whatsapp_num,
           messengerUrl: sellerRes.data.messenger_url,
-          primaryColor: sellerRes.data.primary_color,
         });
       }
 
@@ -61,8 +55,6 @@ export default function StorefrontPage({
               description: p.description,
               price: p.price,
               images: p.images || [],
-              stockQty: p.stock_qty,
-              status: p.status,
               isFeatured: p.is_featured,
               viewCount: p.view_count,
               createdAt: p.created_at,
@@ -121,29 +113,8 @@ export default function StorefrontPage({
               <img
                 src={seller.avatarUrl || "https://picsum.photos/200"}
                 alt={seller.fullName || seller.username}
-                className={`w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-8 ${
-                  seller.trustTier === "Elite"
-                    ? "border-amber-400"
-                    : "border-white"
-                } object-cover shadow-2xl transition-transform group-hover:scale-105`}
+                className="w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-8 border-white object-cover shadow-2xl transition-transform group-hover:scale-105"
               />
-              {seller.idVerified && (
-                <div className="absolute bottom-2 right-2 bg-indigo-600 p-2 rounded-2xl border-4 border-white shadow-lg">
-                  <svg
-                    className="w-4 h-4 text-white"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={4}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                </div>
-              )}
             </div>
 
             <div className="mt-6 space-y-2">
@@ -153,9 +124,6 @@ export default function StorefrontPage({
               <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest italic">
                 @{seller.username}
               </p>
-              <div className="flex justify-center mt-4">
-                <TrustBadge tier={seller.trustTier} />
-              </div>
             </div>
 
             <p className="mt-8 text-base text-zinc-500 max-w-lg leading-relaxed font-medium">
@@ -188,7 +156,7 @@ export default function StorefrontPage({
               )}
             </div>
 
-            <div className="mt-12 grid grid-cols-3 gap-1 w-full max-w-xl mx-auto rounded-3xl overflow-hidden border border-zinc-100 bg-zinc-50">
+            <div className="mt-12 grid grid-cols-2 gap-1 w-full max-w-xl mx-auto rounded-3xl overflow-hidden border border-zinc-100 bg-zinc-50">
               <div className="bg-white p-6">
                 <div className="text-2xl font-black text-zinc-900">
                   {products.length}
@@ -197,20 +165,12 @@ export default function StorefrontPage({
                   Products
                 </div>
               </div>
-              <div className="bg-white p-6 border-x border-zinc-100">
+              <div className="bg-white p-6 border-l border-zinc-100">
                 <div className="text-2xl font-black text-indigo-600">
-                  {seller.trustScore || 0}%
+                  {products.reduce((sum, p) => sum + (p.viewCount || 0), 0)}
                 </div>
                 <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                  Trust Score
-                </div>
-              </div>
-              <div className="bg-white p-6">
-                <div className="text-2xl font-black text-zinc-900">
-                  {seller.tradesCount || 0}
-                </div>
-                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                  Trades
+                  Total Views
                 </div>
               </div>
             </div>
@@ -242,12 +202,7 @@ export default function StorefrontPage({
 
         <div className="columns-2 md:columns-3 gap-6 px-4">
           {filteredProducts.map((p) => (
-            <ProductCard
-              key={p.id}
-              product={p}
-              onNotifyMe={setNotifyProduct}
-              showSeller={false}
-            />
+            <ProductCard key={p.id} product={p} showSeller={false} />
           ))}
         </div>
 
@@ -257,12 +212,6 @@ export default function StorefrontPage({
           </div>
         )}
       </div>
-
-      <NotifyMeSheet
-        product={notifyProduct}
-        isOpen={!!notifyProduct}
-        onClose={() => setNotifyProduct(null)}
-      />
     </div>
   );
 }

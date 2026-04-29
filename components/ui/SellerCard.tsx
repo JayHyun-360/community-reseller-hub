@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Seller } from "@/lib/types";
-import { TrustBadge } from "./TrustBadge";
 import { motion } from "motion/react";
 
 interface SellerCardProps {
@@ -25,15 +24,7 @@ export function SellerCard({ seller, className = "" }: SellerCardProps) {
             <img
               src={avatarUrl}
               alt={displayName}
-              className={`w-14 h-14 rounded-2xl p-0.5 border-2 ${
-                seller.trustTier === "Elite"
-                  ? "border-amber-500"
-                  : seller.trustTier === "Verified"
-                    ? "border-green-500"
-                    : seller.trustTier === "Rising"
-                      ? "border-blue-500"
-                      : "border-zinc-200"
-              }`}
+              className="w-14 h-14 rounded-2xl border-2 border-zinc-200"
             />
           </div>
           <div className="flex flex-col">
@@ -43,9 +34,6 @@ export function SellerCard({ seller, className = "" }: SellerCardProps) {
             <span className="text-xs font-bold text-zinc-400 uppercase tracking-tighter">
               @{seller.username}
             </span>
-            <div className="mt-2">
-              <TrustBadge tier={seller.trustTier} />
-            </div>
           </div>
         </div>
 
@@ -54,20 +42,14 @@ export function SellerCard({ seller, className = "" }: SellerCardProps) {
         </p>
 
         <div className="pt-4 border-t border-zinc-100 flex justify-between items-center">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-              Trades
-            </span>
-            <span className="text-xs font-black text-zinc-900">
-              {seller.tradesCount}
-            </span>
-          </div>
           <div className="flex flex-col text-right">
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-              Since
+              Joined
             </span>
             <span className="text-xs font-black text-zinc-900">
-              {new Date(seller.createdAt).getFullYear()}
+              {seller.createdAt
+                ? new Date(seller.createdAt).getFullYear()
+                : "-"}
             </span>
           </div>
         </div>
