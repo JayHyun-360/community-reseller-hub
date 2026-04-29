@@ -13,11 +13,14 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [isSeller, setIsSeller] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
     async function fetchData() {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         router.push("/login");
         return;
@@ -32,6 +35,7 @@ export default function AccountPage() {
 
       if (data) {
         setProfile(data);
+        setIsSeller(data.role === "seller");
       }
       setLoading(false);
     }
@@ -69,15 +73,39 @@ export default function AccountPage() {
     router.refresh();
   };
 
+  const handleBecomeSeller = async () => {
+    if (!user) return;
+    setSaving(true);
+
+    const { error } = await supabase
+      .from("profiles")
+      .update({ role: "seller" })
+      .eq("id", user.id);
+
+    if (error) {
+      setMessage("Error: " + error.message);
+    } else {
+      setIsSeller(true);
+      setMessage("You're now a seller! You can now add products.");
+    }
+    setSaving(false);
+  };
+
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-12">
       <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-8 shadow-xl">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-black text-zinc-900">Account Settings</h1>
+          <h1 className="text-2xl font-black text-zinc-900">
+            Account Settings
+          </h1>
           <Button
             variant="outline"
             size="sm"
@@ -88,6 +116,25 @@ export default function AccountPage() {
             Logout
           </Button>
         </div>
+
+        {!isSeller && (
+          <div className="mb-8 p-6 bg-indigo-50 border border-indigo-100 rounded-[2rem]">
+            <h2 className="text-lg font-black text-indigo-600 mb-2">
+              Become a Seller
+            </h2>
+            <p className="text-sm text-indigo-500 mb-4">
+              Complete your profile below to start selling. Add your contact
+              info so buyers can reach you!
+            </p>
+            <Button
+              onClick={handleBecomeSeller}
+              disabled={saving}
+              className="bg-indigo-600 text-white hover:bg-indigo-700 rounded-full"
+            >
+              {saving ? "Processing..." : "Activate Seller Account"}
+            </Button>
+          </div>
+        )}
 
         <div className="space-y-6">
           {/* Avatar */}
@@ -103,7 +150,9 @@ export default function AccountPage() {
               </button>
             </div>
             <div>
-              <p className="text-sm font-bold text-zinc-900">{profile?.full_name}</p>
+              <p className="text-sm font-bold text-zinc-900">
+                {profile?.full_name}
+              </p>
               <p className="text-xs text-zinc-400">@{profile?.username}</p>
             </div>
           </div>
@@ -116,7 +165,9 @@ export default function AccountPage() {
             <input
               type="text"
               value={profile?.username || ""}
-              onChange={(e) => setProfile({ ...profile, username: e.target.value })}
+              onChange={(e) =>
+                setProfile({ ...profile, username: e.target.value })
+              }
               className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all"
             />
           </div>
@@ -129,7 +180,9 @@ export default function AccountPage() {
             <input
               type="text"
               value={profile?.full_name || ""}
-              onChange={(e) => setProfile({ ...profile, full_name: e.target.value })}
+              onChange={(e) =>
+                setProfile({ ...profile, full_name: e.target.value })
+              }
               className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all"
             />
           </div>
@@ -156,7 +209,9 @@ export default function AccountPage() {
             <input
               type="tel"
               value={profile?.whatsapp_num || ""}
-              onChange={(e) => setProfile({ ...profile, whatsapp_num: e.target.value })}
+              onChange={(e) =>
+                setProfile({ ...profile, whatsapp_num: e.target.value })
+              }
               placeholder="Add your phone number so anyone can contact you"
               className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
             />
@@ -170,7 +225,9 @@ export default function AccountPage() {
             <input
               type="url"
               value={profile?.messenger_url || ""}
-              onChange={(e) => setProfile({ ...profile, messenger_url: e.target.value })}
+              onChange={(e) =>
+                setProfile({ ...profile, messenger_url: e.target.value })
+              }
               placeholder="https://m.me/yourusername"
               className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
             />
@@ -189,7 +246,9 @@ export default function AccountPage() {
               {saving ? "Saving..." : "Save Changes"}
             </Button>
             {message && (
-              <p className={`text-center mt-4 text-sm font-bold ${message.includes("Error") ? "text-red-500" : "text-green-500"}`}>
+              <p
+                className={`text-center mt-4 text-sm font-bold ${message.includes("Error") ? "text-red-500" : "text-green-500"}`}
+              >
                 {message}
               </p>
             )}
