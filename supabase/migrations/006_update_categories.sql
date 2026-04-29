@@ -12,6 +12,14 @@ INSERT INTO public.categories (name, emoji, product_count) VALUES
   ('Books & Stationery', '&#128218;', 0),
   ('Sports & Outdoors', '&#127950;', 0),
   ('Pet Supplies', '&#128054;', 0),
+  ('Livestock', '&#128004;', 0),
+  ('Plants & Garden', '&#127793;', 0),
   ('Vintage', '&#128220;', 0),
-  ('Digital', '&#128190;', 0)
+  ('Digital', '&#128190;', 0),
+  ('Custom Made', '&#128736;', 0),
+  ('Toys & Games', '&#127918;', 0),
+  ('Music & Instruments', '&#127928;', 0),
+  ('Jewelry', '&#128141;', 0),
+  ('Bags & Bags', '&#128092;', 0),
+  ('Other', '&#128196;', 0)
 ON CONFLICT DO NOTHING;
