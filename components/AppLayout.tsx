@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { BottomNav } from "@/components/ui/BottomNav";
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -15,7 +14,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <Header onMenuClick={() => setIsSidebarOpen(true)} />
         <main className="flex-grow">{children}</main>
       </div>
-      <BottomNav />
     </div>
   );
 }
