@@ -3,39 +3,40 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { createClient } from "@/lib/supabase/client";
 
-const mockNotifications = [
-  {
-    id: 1,
-    title: "New order received",
-    message: "Someone purchased your Vintage Camera",
-    time: "2 min ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    title: "Item restocked",
-    message: "Your requested item is now available",
-    time: "1 hour ago",
-    unread: true,
-  },
-  {
-    id: 3,
-    title: "New message",
-    message: "John D. sent you a message",
-    time: "3 hours ago",
-    unread: false,
-  },
-];
+interface NotificationBellProps {
+  userId: string;
+}
 
-export function NotificationBell() {
+export function NotificationBell({ userId }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<any[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const unreadCount = mockNotifications.filter((n) => n.unread).length;
+  const supabase = createClient();
+
+  useEffect(() => {
+    if (userId) {
+      supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(10)
+        .then(({ data }) => {
+          if (data) setNotifications(data);
+        });
+    }
+  }, [userId]);
+
+  const unreadCount = notifications.filter((n) => !n.is_read).length;
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -82,7 +83,7 @@ export function NotificationBell() {
               </div>
 
               <div className="max-h-80 overflow-y-auto">
-                {mockNotifications.map((notif) => (
+                {notifications.map((notif) => (
                   <div
                     key={notif.id}
                     className={`p-4 border-b border-zinc-50 hover:bg-zinc-50 transition-colors cursor-pointer ${
@@ -91,9 +92,15 @@ export function NotificationBell() {
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <p className="text-xs font-bold text-zinc-900">{notif.title}</p>
-                        <p className="text-[11px] text-zinc-500 mt-0.5">{notif.message}</p>
-                        <p className="text-[10px] text-zinc-400 mt-1">{notif.time}</p>
+                        <p className="text-xs font-bold text-zinc-900">
+                          {notif.title}
+                        </p>
+                        <p className="text-[11px] text-zinc-500 mt-0.5">
+                          {notif.message}
+                        </p>
+                        <p className="text-[10px] text-zinc-400 mt-1">
+                          {notif.time}
+                        </p>
                       </div>
                       {notif.unread && (
                         <div className="w-2 h-2 bg-indigo-600 rounded-full flex-shrink-0 mt-1" />

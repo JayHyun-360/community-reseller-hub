@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Search, Menu, User } from "lucide-react";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import { Search, Menu } from "lucide-react";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 
 interface HeaderProps {
@@ -11,6 +13,27 @@ interface HeaderProps {
 
 export function Header({ onMenuClick }: HeaderProps) {
   const router = useRouter();
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchUser() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", user.id)
+          .single();
+        setProfile(data);
+      }
+    }
+    fetchUser();
+  }, []);
 
   return (
     <header className="sticky top-0 w-full bg-white/80 backdrop-blur-md border-b border-zinc-50 z-50 transition-all duration-300">
@@ -45,29 +68,38 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
-          <NotificationBell />
+          {user && <NotificationBell userId={user.id} />}
 
           <div className="hidden lg:block h-6 w-px bg-zinc-100 mx-2" />
 
-          <button
-            onClick={() => router.push("/login")}
-            className="flex items-center gap-2 p-1.5 hover:bg-zinc-50 rounded-full transition-all group"
-          >
-            <img
-              src="https://picsum.photos/seed/user-charl/100"
-              alt="Profile"
-              className="w-10 h-10 rounded-full border-2 border-white shadow-sm group-hover:border-zinc-200 transition-all"
-              referrerPolicy="no-referrer"
-            />
-            <div className="hidden xl:block text-left mr-2">
-              <div className="text-[11px] font-black tracking-tight text-zinc-900 leading-none">
-                Charl Dul
+          {user ? (
+            <button
+              onClick={() => router.push(`/${profile?.username}`)}
+              className="flex items-center gap-2 p-1.5 hover:bg-zinc-50 rounded-full transition-all group"
+            >
+              <img
+                src={profile?.avatar_url || "https://picsum.photos/200"}
+                alt="Profile"
+                className="w-10 h-10 rounded-full border-2 border-white shadow-sm group-hover:border-zinc-200 transition-all"
+                referrerPolicy="no-referrer"
+              />
+              <div className="hidden xl:block text-left mr-2">
+                <div className="text-[11px] font-black tracking-tight text-zinc-900 leading-none">
+                  {profile?.full_name || profile?.username || "Seller"}
+                </div>
+                <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                  {profile?.trust_tier || "New"} Seller
+                </div>
               </div>
-              <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                Elite Seller
-              </div>
-            </div>
-          </button>
+            </button>
+          ) : (
+            <button
+              onClick={() => router.push("/login")}
+              className="flex items-center gap-2 px-4 py-2 bg-zinc-900 text-white rounded-full text-sm font-black uppercase tracking-wider hover:bg-zinc-800 transition-all"
+            >
+              Login
+            </button>
+          )}
         </div>
       </div>
     </header>
