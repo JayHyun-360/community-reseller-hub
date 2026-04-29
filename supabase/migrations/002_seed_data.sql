@@ -1,18 +1,24 @@
 -- Seed Data for Community Seller Hub
-
 -- Note: Run this after 001_initial_schema.sql
--- The profiles will be created automatically via trigger when users sign up
--- Here we insert sample products for testing
 
--- First, let's create test seller profiles manually (for demo purposes)
--- In production, these would be created via signup
+-- First, let's create test seller profiles manually using auth.users
+-- We'll use a workaround: insert directly without auth.users for demo
+-- In production, profiles are created via the trigger when users sign up
 
+-- Option 1: Disable FK temporarily for seeding (run as superuser)
+ALTER TABLE public.profiles DROP CONSTRAINT profiles_id_fkey;
+
+-- Now insert profiles
 INSERT INTO public.profiles (id, username, full_name, avatar_url, role, trust_score, trust_tier, whatsapp_num, messenger_url, primary_color)
 VALUES 
   ('11111111-1111-1111-1111-111111111111', 'kawaii_seller', 'Mika', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200', 'seller', 95, 'Verified', '+639123456789', NULL, '#E86FAA'),
   ('22222222-2222-2222-2222-222222222222', 'thrift_queen', 'Ana', 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200', 'seller', 78, 'Rising', '+639987654321', NULL, '#8B5CF6'),
   ('33333333-3333-3333-3333-333333333333', 'crafty_mae', 'Mae', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200', 'seller', 62, 'Rising', '+639555555555', NULL, '#10B981')
 ON CONFLICT (id) DO NOTHING;
+
+-- Re-enable FK
+ALTER TABLE public.profiles ADD CONSTRAINT profiles_id_fkey 
+  FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE;
 
 -- Insert sample products
 INSERT INTO public.products (seller_id, category_id, title, description, price, images, stock_qty, status, is_featured, view_count)
