@@ -1,17 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Product } from "@/lib/types";
+import { Product, Seller } from "@/lib/types";
 import { motion } from "motion/react";
 import { StockBadge } from "./StockBadge";
 import { Button } from "./Button";
-import { MOCK_SELLERS } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
 import { Heart, MessageCircle, Share2, MoreHorizontal } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
   onNotifyMe: (product: Product) => void;
   showSeller?: boolean;
+  sellerData?: Seller;
 }
 
 const useRealtimeStock = (initialProduct: Product) => {
@@ -45,10 +46,40 @@ export function ProductCard({
   product: initialProduct,
   onNotifyMe,
   showSeller = true,
+  sellerData,
 }: ProductCardProps) {
   const product = useRealtimeStock(initialProduct);
-  const seller = MOCK_SELLERS.find((s) => s.id === product.sellerId);
+  const [seller, setSeller] = useState<Seller | null>(sellerData || null);
   const [imgError, setImgError] = useState(false);
+  const supabase = createClient();
+
+  useEffect(() => {
+    if (sellerData) {
+      setSeller(sellerData);
+    } else if (product.sellerId) {
+      supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", product.sellerId)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setSeller({
+              id: data.id,
+              username: data.username,
+              fullName: data.full_name,
+              avatarUrl: data.avatar_url,
+              role: data.role,
+              trustScore: data.trust_score,
+              trustTier: data.trust_tier,
+              whatsappNum: data.whatsapp_num,
+              messengerUrl: data.messenger_url,
+              primaryColor: data.primary_color,
+            });
+          }
+        });
+    }
+  }, [product.sellerId, sellerData]);
 
   const fallbackImage =
     "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";

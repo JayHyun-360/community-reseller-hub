@@ -1,26 +1,88 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Search as SearchIcon, X, Filter } from "lucide-react";
 import { motion } from "motion/react";
-import { MOCK_PRODUCTS, MOCK_SELLERS, MOCK_CATEGORIES } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { SellerCard } from "@/components/ui/SellerCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
-import { Product } from "@/lib/types";
+import { Product, Seller, Category } from "@/lib/types";
 
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"products" | "sellers">("products");
   const [selectedCat, setSelectedCat] = useState("cat1");
   const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchData() {
+      const [productsRes, sellersRes, categoriesRes] = await Promise.all([
+        supabase.from("products").select("*"),
+        supabase.from("profiles").select("*").eq("role", "seller"),
+        supabase.from("categories").select("*"),
+      ]);
+
+      if (productsRes.data) {
+        setProducts(
+          productsRes.data.map((p) => ({
+            id: p.id,
+            sellerId: p.seller_id,
+            categoryId: p.category_id,
+            title: p.title,
+            description: p.description,
+            price: p.price,
+            images: p.images || [],
+            stockQty: p.stock_qty,
+            status: p.status,
+            isFeatured: p.is_featured,
+            viewCount: p.view_count,
+            createdAt: p.created_at,
+          })),
+        );
+      }
+
+      if (sellersRes.data) {
+        setSellers(
+          sellersRes.data.map((s) => ({
+            id: s.id,
+            username: s.username,
+            fullName: s.full_name,
+            avatarUrl: s.avatar_url,
+            role: s.role,
+            trustScore: s.trust_score,
+            trustTier: s.trust_tier,
+            whatsappNum: s.whatsapp_num,
+            messengerUrl: s.messenger_url,
+            primaryColor: s.primary_color,
+          })),
+        );
+      }
+
+      if (categoriesRes.data) {
+        setCategories(
+          categoriesRes.data.map((c) => ({
+            id: c.id,
+            name: c.name,
+            emoji: c.emoji,
+            productCount: c.product_count,
+          })),
+        );
+      }
+    }
+    fetchData();
+  }, []);
 
   const results = useMemo(() => {
     const q = query.toLowerCase();
 
     if (tab === "products") {
-      let items = MOCK_PRODUCTS.filter(
+      let items = products.filter(
         (p) =>
           p.title.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q),
@@ -30,13 +92,13 @@ export default function SearchPage() {
       }
       return items;
     } else {
-      return MOCK_SELLERS.filter(
+      return sellers.filter(
         (s) =>
-          s.displayName.toLowerCase().includes(q) ||
+          (s.fullName || s.username).toLowerCase().includes(q) ||
           s.username.toLowerCase().includes(q),
       );
     }
-  }, [query, tab, selectedCat]);
+  }, [query, tab, selectedCat, products, sellers]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 pb-24 md:pb-12 pt-8">
@@ -71,7 +133,7 @@ export default function SearchPage() {
                   : "text-zinc-400 hover:text-zinc-600"
               }`}
             >
-              Products ({MOCK_PRODUCTS.length})
+              Products ({products.length})
               {tab === "products" && (
                 <motion.div
                   layoutId="activeSearchTab"
@@ -87,7 +149,7 @@ export default function SearchPage() {
                   : "text-zinc-400 hover:text-zinc-600"
               }`}
             >
-              Sellers ({MOCK_SELLERS.length})
+              Sellers ({sellers.length})
               {tab === "sellers" && (
                 <motion.div
                   layoutId="activeSearchTab"
@@ -110,7 +172,7 @@ export default function SearchPage() {
         {tab === "products" && (
           <div className="pt-2">
             <CategoryFilter
-              categories={MOCK_CATEGORIES}
+              categories={categories}
               selectedId={selectedCat}
               onSelect={setSelectedCat}
             />

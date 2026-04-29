@@ -1,25 +1,101 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MOCK_SELLERS, MOCK_PRODUCTS, MOCK_CATEGORIES } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
 import { TrustBadge } from "@/components/ui/TrustBadge";
 import { Button } from "@/components/ui/Button";
 import { Share2, MessageCircle, Phone as WhatsApp } from "lucide-react";
-import { Product } from "@/lib/types";
+import { Product, Seller, Category } from "@/lib/types";
 
-export default function StorefrontPage({ params }: { params: Promise<{ username: string }> }) {
+export default function StorefrontPage({
+  params,
+}: {
+  params: Promise<{ username: string }>;
+}) {
   const { username } = use(params);
   const router = useRouter();
   const [selectedCat, setSelectedCat] = useState("cat1");
   const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
+  const [seller, setSeller] = useState<Seller | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const supabase = createClient();
 
-  const seller = MOCK_SELLERS.find((s) => s.username === username) || MOCK_SELLERS[0];
-  const products = MOCK_PRODUCTS.filter((p) => p.sellerId === seller.id);
-  const filteredProducts = selectedCat === "cat1" ? products : products.filter((p) => p.categoryId === selectedCat);
+  useEffect(() => {
+    async function fetchData() {
+      const [sellerRes, productsRes, categoriesRes] = await Promise.all([
+        supabase.from("profiles").select("*").eq("username", username).single(),
+        supabase.from("products").select("*"),
+        supabase.from("categories").select("*"),
+      ]);
+
+      if (sellerRes.data) {
+        setSeller({
+          id: sellerRes.data.id,
+          username: sellerRes.data.username,
+          fullName: sellerRes.data.full_name,
+          avatarUrl: sellerRes.data.avatar_url,
+          bio: sellerRes.data.bio,
+          role: sellerRes.data.role,
+          trustScore: sellerRes.data.trust_score,
+          trustTier: sellerRes.data.trust_tier,
+          whatsappNum: sellerRes.data.whatsapp_num,
+          messengerUrl: sellerRes.data.messenger_url,
+          primaryColor: sellerRes.data.primary_color,
+        });
+      }
+
+      if (productsRes.data) {
+        setProducts(
+          productsRes.data
+            .filter((p) => p.seller_id === sellerRes.data?.id)
+            .map((p) => ({
+              id: p.id,
+              sellerId: p.seller_id,
+              categoryId: p.category_id,
+              title: p.title,
+              description: p.description,
+              price: p.price,
+              images: p.images || [],
+              stockQty: p.stock_qty,
+              status: p.status,
+              isFeatured: p.is_featured,
+              viewCount: p.view_count,
+              createdAt: p.created_at,
+            })),
+        );
+      }
+
+      if (categoriesRes.data) {
+        setCategories(
+          categoriesRes.data.map((c) => ({
+            id: c.id,
+            name: c.name,
+            emoji: c.emoji,
+            productCount: c.product_count,
+          })),
+        );
+      }
+    }
+    fetchData();
+  }, [username]);
+
+  if (!seller) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
+
+  const filteredProducts =
+    selectedCat === "cat1"
+      ? products
+      : products.filter((p) => p.categoryId === selectedCat);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -33,41 +109,62 @@ export default function StorefrontPage({ params }: { params: Promise<{ username:
           <div className="h-40 md:h-56 w-full bg-zinc-900 flex items-center justify-center overflow-hidden relative">
             <div className="absolute inset-0 opacity-20 flex flex-wrap gap-4 p-4 overflow-hidden pointer-events-none">
               {[...Array(20)].map((_, i) => (
-                <div key={i} className="w-12 h-12 rounded-lg bg-white/20 border border-white/10" />
+                <div
+                  key={i}
+                  className="w-12 h-12 rounded-lg bg-white/20 border border-white/10"
+                />
               ))}
             </div>
             <h2 className="text-6xl font-black text-white/10 tracking-tighter uppercase whitespace-nowrap select-none">
-              {seller.displayName}
+              {seller.fullName || seller.username}
             </h2>
           </div>
 
           <div className="px-6 -mt-16 md:-mt-20 flex flex-col items-center text-center pb-8">
             <div className="relative group">
               <img
-                src={seller.avatarUrl}
-                alt={seller.displayName}
+                src={seller.avatarUrl || "https://picsum.photos/200"}
+                alt={seller.fullName || seller.username}
                 className={`w-32 h-32 md:w-40 md:h-40 rounded-[2.5rem] border-8 ${
-                  seller.trustTier === "elite" ? "border-amber-400" : "border-white"
+                  seller.trustTier === "Elite"
+                    ? "border-amber-400"
+                    : "border-white"
                 } object-cover shadow-2xl transition-transform group-hover:scale-105`}
               />
               {seller.idVerified && (
                 <div className="absolute bottom-2 right-2 bg-indigo-600 p-2 rounded-2xl border-4 border-white shadow-lg">
-                  <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-4 h-4 text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={4}
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                 </div>
               )}
             </div>
 
             <div className="mt-6 space-y-2">
-              <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-zinc-900">{seller.displayName}</h1>
-              <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest italic">@{seller.username}</p>
+              <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-zinc-900">
+                {seller.fullName || seller.username}
+              </h1>
+              <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest italic">
+                @{seller.username}
+              </p>
               <div className="flex justify-center mt-4">
                 <TrustBadge tier={seller.trustTier} />
               </div>
             </div>
 
-            <p className="mt-8 text-base text-zinc-500 max-w-lg leading-relaxed font-medium">{seller.bio}</p>
+            <p className="mt-8 text-base text-zinc-500 max-w-lg leading-relaxed font-medium">
+              {seller.bio || "No bio yet."}
+            </p>
 
             <div className="mt-10 flex flex-wrap justify-center gap-4 w-full max-w-md">
               <Button
@@ -86,7 +183,9 @@ export default function StorefrontPage({ params }: { params: Promise<{ username:
                   variant="outline"
                   leftIcon={<WhatsApp className="w-5 h-5 text-[#25D366]" />}
                   className="rounded-3xl border-zinc-200 text-zinc-600"
-                  onClick={() => window.open(`https://wa.me/${seller.whatsappNum}`, "_blank")}
+                  onClick={() =>
+                    window.open(`https://wa.me/${seller.whatsappNum}`, "_blank")
+                  }
                 >
                   Chat on WhatsApp
                 </Button>
@@ -95,16 +194,28 @@ export default function StorefrontPage({ params }: { params: Promise<{ username:
 
             <div className="mt-12 grid grid-cols-3 gap-1 w-full max-w-xl mx-auto rounded-3xl overflow-hidden border border-zinc-100 bg-zinc-50">
               <div className="bg-white p-6">
-                <div className="text-2xl font-black text-zinc-900">{products.length}</div>
-                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Products</div>
+                <div className="text-2xl font-black text-zinc-900">
+                  {products.length}
+                </div>
+                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                  Products
+                </div>
               </div>
               <div className="bg-white p-6 border-x border-zinc-100">
-                <div className="text-2xl font-black text-indigo-600">{seller.trustScore}%</div>
-                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Trust Score</div>
+                <div className="text-2xl font-black text-indigo-600">
+                  {seller.trustScore || 0}%
+                </div>
+                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                  Trust Score
+                </div>
               </div>
               <div className="bg-white p-6">
-                <div className="text-2xl font-black text-zinc-900">{seller.tradesCount}</div>
-                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">Trades</div>
+                <div className="text-2xl font-black text-zinc-900">
+                  {seller.tradesCount || 0}
+                </div>
+                <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                  Trades
+                </div>
               </div>
             </div>
           </div>
@@ -120,16 +231,27 @@ export default function StorefrontPage({ params }: { params: Promise<{ username:
 
       <div className="mt-16 px-4">
         <div className="flex items-center justify-between mb-8 px-4">
-          <h2 className="text-2xl font-black tracking-tighter text-zinc-900">Inventory</h2>
+          <h2 className="text-2xl font-black tracking-tighter text-zinc-900">
+            Inventory
+          </h2>
         </div>
 
         <div className="px-4 mb-8">
-          <CategoryFilter categories={MOCK_CATEGORIES} selectedId={selectedCat} onSelect={setSelectedCat} />
+          <CategoryFilter
+            categories={categories}
+            selectedId={selectedCat}
+            onSelect={setSelectedCat}
+          />
         </div>
 
         <div className="columns-2 md:columns-3 gap-6 px-4">
           {filteredProducts.map((p) => (
-            <ProductCard key={p.id} product={p} onNotifyMe={setNotifyProduct} showSeller={false} />
+            <ProductCard
+              key={p.id}
+              product={p}
+              onNotifyMe={setNotifyProduct}
+              showSeller={false}
+            />
           ))}
         </div>
 
@@ -140,7 +262,11 @@ export default function StorefrontPage({ params }: { params: Promise<{ username:
         )}
       </div>
 
-      <NotifyMeSheet product={notifyProduct} isOpen={!!notifyProduct} onClose={() => setNotifyProduct(null)} />
+      <NotifyMeSheet
+        product={notifyProduct}
+        isOpen={!!notifyProduct}
+        onClose={() => setNotifyProduct(null)}
+      />
     </div>
   );
 }

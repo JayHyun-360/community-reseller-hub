@@ -1,24 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MOCK_CATEGORIES, getImageForProduct } from "@/lib/mock-data";
-import { Product } from "@/lib/types";
+import { createClient } from "@/lib/supabase/client";
+import { getImageForProduct } from "@/lib/mock-data";
+import { Product, Category } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { Camera, ChevronDown, Upload } from "lucide-react";
 
 export default function AddProductPage() {
   const router = useRouter();
+  const supabase = createClient();
+  const [categories, setCategories] = useState<Category[]>([]);
   const [formData, setFormData] = useState({
     title: "",
-    categoryId: "cat2",
+    categoryId: "",
     description: "",
     price: "",
     stockQty: "",
     isFeatured: false,
     images: [] as string[],
   });
+
+  useEffect(() => {
+    supabase
+      .from("categories")
+      .select("*")
+      .then(({ data }) => {
+        if (data) {
+          setCategories(
+            data.map((c) => ({
+              id: c.id,
+              name: c.name,
+              emoji: c.emoji,
+              productCount: c.product_count,
+            })),
+          );
+          if (data.length > 1)
+            setFormData((f) => ({ ...f, categoryId: data[1].id }));
+        }
+      });
+  }, []);
 
   const previewProduct: Product = {
     id: "preview",
@@ -96,7 +119,7 @@ export default function AddProductPage() {
                     }
                     className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-900 outline-none transition-all appearance-none"
                   >
-                    {MOCK_CATEGORIES.slice(1).map((cat) => (
+                    {categories.slice(1).map((cat: Category) => (
                       <option key={cat.id} value={cat.id}>
                         {cat.emoji} {cat.name}
                       </option>

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { MOCK_PRODUCTS, MOCK_SELLERS } from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { StockBadge } from "@/components/ui/StockBadge";
 import {
@@ -18,10 +18,50 @@ import { Product } from "@/lib/types";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const seller = MOCK_SELLERS[0];
-  const [products, setProducts] = useState(
-    MOCK_PRODUCTS.filter((p) => p.sellerId === seller.id)
-  );
+  const supabase = createClient();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+        return;
+      }
+      setUser(user);
+
+      const { data: productsData } = await supabase
+        .from("products")
+        .select("*")
+        .eq("seller_id", user.id)
+        .order("created_at", { ascending: false });
+
+      if (productsData) {
+        setProducts(
+          productsData.map((p) => ({
+            id: p.id,
+            sellerId: p.seller_id,
+            categoryId: p.category_id,
+            title: p.title,
+            description: p.description,
+            price: p.price,
+            images: p.images || [],
+            stockQty: p.stock_qty,
+            status: p.status,
+            isFeatured: p.is_featured,
+            viewCount: p.view_count,
+            createdAt: p.created_at,
+          })),
+        );
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, []);
 
   const stats = [
     {
@@ -42,8 +82,16 @@ export default function DashboardPage() {
       icon: AlertCircle,
       color: "text-red-500",
     },
-    { label: "Notify Queue", value: 28, icon: Users, color: "text-zinc-900" },
+    { label: "Notify Queue", value: 0, icon: Users, color: "text-zinc-900" },
   ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  }
 
   const updateQty = (id: string, delta: number) => {
     setProducts((prev) =>
@@ -54,10 +102,14 @@ export default function DashboardPage() {
           if (newQty === 0) newStatus = "sold_out";
           else if (newQty <= 3) newStatus = "low";
           else newStatus = "available";
-          return { ...p, stockQty: newQty, status: newStatus as Product["status"] };
+          return {
+            ...p,
+            stockQty: newQty,
+            status: newStatus as Product["status"],
+          };
         }
         return p;
-      })
+      }),
     );
   };
 
@@ -182,7 +234,11 @@ export default function DashboardPage() {
               </p>
               <div className="space-y-8">
                 {[
-                  { name: "Y2K Denim Jacket", count: 18, color: "bg-indigo-500" },
+                  {
+                    name: "Y2K Denim Jacket",
+                    count: 18,
+                    color: "bg-indigo-500",
+                  },
                   { name: "Sanrio Charm", count: 12, color: "bg-fuchsia-500" },
                   { name: "Vintage Band Tee", count: 5, color: "bg-amber-500" },
                 ].map((signal, i) => (
