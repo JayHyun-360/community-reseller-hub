@@ -12,6 +12,7 @@ import {
   Users,
   ShoppingBag,
   AlertCircle,
+  Trash2,
 } from "lucide-react";
 import { motion } from "motion/react";
 import { Product } from "@/lib/types";
@@ -141,6 +142,17 @@ export default function DashboardPage() {
     );
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    try {
+      const { error } = await supabase.from("products").delete().eq("id", id);
+      if (error) throw error;
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (err: any) {
+      alert(err.message || "Failed to delete product");
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 pb-24 md:pb-12 pt-12 bg-white min-h-screen">
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 pl-4">
@@ -243,6 +255,13 @@ export default function DashboardPage() {
                       className="w-10 h-10 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 hover:border-indigo-400 hover:text-indigo-600 transition-all active:scale-90"
                     >
                       <Plus className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      className="w-10 h-10 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 hover:border-red-400 hover:text-red-500 transition-all"
+                      title="Delete product"
+                    >
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
