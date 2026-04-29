@@ -8,28 +8,33 @@ interface TrustBadgeProps {
 }
 
 export function TrustBadge({ tier, className = "" }: TrustBadgeProps) {
+  const normalizedTier = (tier || "").toLowerCase() as TrustTier;
   const config = {
     new: {
-      emoji: "🆕",
+      emoji: "&#127999;",
       label: "New",
       color: "text-zinc-400 border-zinc-100 bg-zinc-50",
     },
     rising: {
-      emoji: "⭐",
+      emoji: "&#11088;",
       label: "Rising",
       color: "text-sky-600 border-sky-100 bg-sky-50",
     },
     verified: {
-      emoji: "✅",
+      emoji: "&#9989;",
       label: "Verified",
       color: "text-indigo-600 border-indigo-100 bg-indigo-50",
     },
     elite: {
-      emoji: "🏅",
+      emoji: "&#127942;",
       label: "Elite",
       color: "text-amber-600 border-amber-100 bg-amber-50 shadow-sm",
     },
-  }[tier];
+  }[normalizedTier] || {
+    emoji: "&#127999;",
+    label: "New",
+    color: "text-zinc-400 border-zinc-100 bg-zinc-50",
+  };
 
   return (
     <div
