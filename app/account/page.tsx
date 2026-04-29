@@ -56,6 +56,7 @@ export default function AccountPage() {
         whatsapp_num: profile.whatsapp_num,
         messenger_url: profile.messenger_url,
         avatar_url: profile.avatar_url,
+        location: profile.location,
       })
       .eq("id", user.id);
 
@@ -229,6 +230,22 @@ export default function AccountPage() {
                 setProfile({ ...profile, messenger_url: e.target.value })
               }
               placeholder="https://m.me/yourusername"
+              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
+            />
+          </div>
+
+          {/* Location */}
+          <div>
+            <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+              Location
+            </label>
+            <input
+              type="text"
+              value={profile?.location || ""}
+              onChange={(e) =>
+                setProfile({ ...profile, location: e.target.value })
+              }
+              placeholder="Add your location so buyers can find you"
               className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
             />
           </div>
