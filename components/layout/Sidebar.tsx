@@ -146,7 +146,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
         <div className="flex items-center justify-between px-4 text-zinc-300">
           <span className="text-[10px] font-bold uppercase tracking-widest">
-            © 2024 NearByt
+            © {new Date().getFullYear()} NearByt
           </span>
           <div className="flex gap-4">
             <Github className="w-4 h-4 cursor-pointer hover:text-zinc-900 transition-colors" />
