@@ -35,9 +35,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { href: "/search", icon: Compass, label: "Explore" },
     ...(user
       ? [{ href: "/dashboard", icon: LayoutDashboard, label: "Shop Manager" }]
-      : [{ href: "/login", icon: Store, label: "Become a Seller" }]),
+      : [
+          {
+            href: "/login",
+            icon: Store,
+            label: "Become a Seller",
+            isCta: true,
+          },
+        ]),
     {
-      href: user ? "/login" : "/login",
+      href: "/login",
       icon: LogIn,
       label: user ? "Account" : "Login",
     },
@@ -68,7 +75,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
       <nav className="flex-grow space-y-1">
         {navItems.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href && !(item as any).isCta;
           return (
             <Link
               key={item.href}
