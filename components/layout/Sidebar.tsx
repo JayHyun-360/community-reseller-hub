@@ -61,7 +61,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
     { href: "/", icon: Home, label: "Home" },
     { href: "/search", icon: Compass, label: "Explore" },
     ...(user && isSeller
-      ? [{ href: "/dashboard", icon: LayoutDashboard, label: "Shop Manager" }]
+      ? [
+          { href: "/dashboard", icon: LayoutDashboard, label: "Shop Manager" },
+          { href: "/account", icon: LogIn, label: "Account" },
+        ]
       : user
         ? [
             {
@@ -79,7 +82,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               isCta: true,
             },
           ]),
-    ...(user ? [{ href: "/account", icon: LogIn, label: "Account" }] : []),
   ];
 
   const sidebarContent = (
