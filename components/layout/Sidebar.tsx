@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -23,16 +23,35 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
+  const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    async function fetchAuth() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+
+      if (user) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", user.id)
+          .single();
+        setIsSeller(profile?.role === "seller");
+      }
+    }
+    fetchAuth();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user || null);
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      if (!currentUser) setIsSeller(false);
     });
 
     return () => subscription.unsubscribe();
@@ -41,18 +60,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/search", icon: Compass, label: "Explore" },
-    ...(user
+    ...(user && isSeller
       ? [{ href: "/dashboard", icon: LayoutDashboard, label: "Shop Manager" }]
-      : [
-          {
-            href: "/login",
-            icon: Store,
-            label: "Become a Seller",
-            isCta: true,
-          },
-        ]),
+      : []),
     {
       href: user ? "/account" : "/login",
+      icon: user && isSeller ? LayoutDashboard : Store,
+      label:
+        user && isSeller
+          ? "Shop Manager"
+          : user
+            ? "Account"
+            : "Become a Seller",
+      isCta: !user,
+    },
+    {
+      href: "/login",
       icon: LogIn,
       label: user ? "Account" : "Login",
     },
@@ -110,8 +133,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           <h4 className="text-sm font-black text-zinc-900 mb-4 leading-tight">
             Support local sellers nearby.
           </h4>
-          <button className="w-full py-3 bg-zinc-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all shadow-md">
-            Join Us
+          <button
+            onClick={() => router.push("/")}
+            className="w-full py-3 bg-zinc-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all shadow-md"
+          >
+            Explore
           </button>
         </div>
 
