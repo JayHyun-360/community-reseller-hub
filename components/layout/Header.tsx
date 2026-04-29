@@ -74,7 +74,7 @@ export function Header({ onMenuClick }: HeaderProps) {
 
           {user ? (
             <button
-              onClick={() => router.push(`/${profile?.username}`)}
+              onClick={() => router.push("/account")}
               className="flex items-center gap-2 p-1.5 hover:bg-zinc-50 rounded-full transition-all group"
             >
               <img
