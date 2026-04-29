@@ -22,6 +22,8 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [notifyQueue, setNotifyQueue] = useState<any[]>([]);
+  const [newSubscribers, setNewSubscribers] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
@@ -34,15 +36,21 @@ export default function DashboardPage() {
       }
       setUser(user);
 
-      const { data: productsData } = await supabase
-        .from("products")
-        .select("*")
-        .eq("seller_id", user.id)
-        .order("created_at", { ascending: false });
+      const [productsRes, notifyRes] = await Promise.all([
+        supabase
+          .from("products")
+          .select("*")
+          .eq("seller_id", user.id)
+          .order("created_at", { ascending: false }),
+        supabase
+          .from("notify_queue")
+          .select("product_id, products(title)")
+          .eq("seller_id", user.id),
+      ]);
 
-      if (productsData) {
+      if (productsRes.data) {
         setProducts(
-          productsData.map((p) => ({
+          productsRes.data.map((p) => ({
             id: p.id,
             sellerId: p.seller_id,
             categoryId: p.category_id,
@@ -58,6 +66,21 @@ export default function DashboardPage() {
           })),
         );
       }
+
+      if (notifyRes.data) {
+        const grouped = notifyRes.data.reduce((acc: any, item: any) => {
+          const title = item.products?.title || "Unknown";
+          acc[title] = (acc[title] || 0) + 1;
+          return acc;
+        }, {});
+        const queue = Object.entries(grouped)
+          .map(([name, count]: [string, any]) => ({ name, count }))
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 5);
+        setNotifyQueue(queue);
+      }
+
+      setNewSubscribers(0);
       setLoading(false);
     }
     fetchData();
@@ -82,7 +105,12 @@ export default function DashboardPage() {
       icon: AlertCircle,
       color: "text-red-500",
     },
-    { label: "Notify Queue", value: 0, icon: Users, color: "text-zinc-900" },
+    {
+      label: "Notify Queue",
+      value: notifyQueue.reduce((sum, q) => sum + q.count, 0),
+      icon: Users,
+      color: "text-zinc-900",
+    },
   ];
 
   if (loading) {
@@ -233,32 +261,40 @@ export default function DashboardPage() {
                 Queue Status
               </p>
               <div className="space-y-8">
-                {[
-                  {
-                    name: "Y2K Denim Jacket",
-                    count: 18,
-                    color: "bg-indigo-500",
-                  },
-                  { name: "Sanrio Charm", count: 12, color: "bg-fuchsia-500" },
-                  { name: "Vintage Band Tee", count: 5, color: "bg-amber-500" },
-                ].map((signal, i) => (
-                  <div key={i} className="space-y-4">
-                    <div className="flex justify-between items-end">
-                      <span className="text-sm font-bold truncate pr-4">
-                        {signal.name}
-                      </span>
-                      <span className="text-xl font-black">{signal.count}</span>
+                {notifyQueue.length > 0 ? (
+                  notifyQueue.map((signal, i) => (
+                    <div key={i} className="space-y-4">
+                      <div className="flex justify-between items-end">
+                        <span className="text-sm font-bold truncate pr-4">
+                          {signal.name}
+                        </span>
+                        <span className="text-xl font-black">
+                          {signal.count}
+                        </span>
+                      </div>
+                      <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{
+                            width: `${Math.min((signal.count / (notifyQueue[0]?.count || 1)) * 100, 100)}%`,
+                          }}
+                          transition={{ duration: 1, delay: i * 0.1 }}
+                          className={`h-full ${
+                            i === 0
+                              ? "bg-indigo-500"
+                              : i === 1
+                                ? "bg-fuchsia-500"
+                                : "bg-amber-500"
+                          }`}
+                        />
+                      </div>
                     </div>
-                    <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${(signal.count / 20) * 100}%` }}
-                        transition={{ duration: 1, delay: i * 0.1 }}
-                        className={`h-full ${signal.color}`}
-                      />
-                    </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="text-zinc-500 text-sm">
+                    No notify requests yet
+                  </p>
+                )}
               </div>
             </div>
             <Button
@@ -279,7 +315,9 @@ export default function DashboardPage() {
                 New Subscriptions
               </h4>
               <p className="text-xs text-zinc-400 font-medium leading-relaxed">
-                4 more buyers just subscribed to your shop updates!
+                {newSubscribers > 0
+                  ? `${newSubscribers} more buyers just subscribed to your shop updates!`
+                  : "No new subscriptions yet. Share your shop to get more!"}
               </p>
             </div>
             <div className="flex gap-1">
