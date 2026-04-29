@@ -1,6 +1,6 @@
 -- Create products storage bucket
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_extensions)
-VALUES ('products', 'products', true, 5242880, ARRAY['jpg', 'jpeg', 'png', 'gif', 'webp']);
+INSERT INTO storage.buckets (id, name, public, file_size_limit)
+VALUES ('products', 'products', true, 5242880);
 
 -- Allow public read access to product images
 CREATE POLICY "Public access to product images"
