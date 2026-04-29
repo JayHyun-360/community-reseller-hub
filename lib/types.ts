@@ -1,4 +1,4 @@
-export type TrustTier = "new" | "rising" | "verified" | "elite";
+export type TrustTier = "New" | "Rising" | "Verified" | "Elite";
 
 export type StockStatus = "available" | "low" | "sold_out";
 

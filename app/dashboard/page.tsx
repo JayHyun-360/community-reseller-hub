@@ -4,17 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { StockBadge } from "@/components/ui/StockBadge";
-import {
-  Plus,
-  Minus,
-  TrendingUp,
-  Users,
-  ShoppingBag,
-  AlertCircle,
-  Trash2,
-} from "lucide-react";
-import { motion } from "motion/react";
+import { TrendingUp, ShoppingBag, Eye, Plus } from "lucide-react";
 import { Product } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -23,8 +13,7 @@ export default function DashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
-  const [notifyQueue, setNotifyQueue] = useState<any[]>([]);
-  const [newSubscribers, setNewSubscribers] = useState(0);
+  const [totalViews, setTotalViews] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
@@ -37,21 +26,15 @@ export default function DashboardPage() {
       }
       setUser(user);
 
-      const [productsRes, notifyRes] = await Promise.all([
-        supabase
-          .from("products")
-          .select("*")
-          .eq("seller_id", user.id)
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("notify_queue")
-          .select("product_id, products(title)")
-          .eq("seller_id", user.id),
-      ]);
+      const { data: productsData } = await supabase
+        .from("products")
+        .select("*")
+        .eq("seller_id", user.id)
+        .order("created_at", { ascending: false });
 
-      if (productsRes.data) {
+      if (productsData) {
         setProducts(
-          productsRes.data.map((p) => ({
+          productsData.map((p) => ({
             id: p.id,
             sellerId: p.seller_id,
             categoryId: p.category_id,
@@ -66,22 +49,13 @@ export default function DashboardPage() {
             createdAt: p.created_at,
           })),
         );
+        const views = productsData.reduce(
+          (sum, p) => sum + (p.view_count || 0),
+          0,
+        );
+        setTotalViews(views);
       }
 
-      if (notifyRes.data) {
-        const grouped = notifyRes.data.reduce((acc: any, item: any) => {
-          const title = item.products?.title || "Unknown";
-          acc[title] = (acc[title] || 0) + 1;
-          return acc;
-        }, {});
-        const queue = Object.entries(grouped)
-          .map(([name, count]: [string, any]) => ({ name, count }))
-          .sort((a, b) => b.count - a.count)
-          .slice(0, 5);
-        setNotifyQueue(queue);
-      }
-
-      setNewSubscribers(0);
       setLoading(false);
     }
     fetchData();
@@ -89,65 +63,22 @@ export default function DashboardPage() {
 
   const stats = [
     {
-      label: "Total Products",
+      label: "Total Listings",
       value: products.length,
       icon: ShoppingBag,
       color: "text-zinc-400",
     },
     {
-      label: "Active Listings",
-      value: products.filter((p) => p.status !== "sold_out").length,
-      icon: TrendingUp,
+      label: "Total Views",
+      value: totalViews,
+      icon: Eye,
       color: "text-indigo-600",
-    },
-    {
-      label: "Sold Out Items",
-      value: products.filter((p) => p.status === "sold_out").length,
-      icon: AlertCircle,
-      color: "text-red-500",
-    },
-    {
-      label: "Notify Queue",
-      value: notifyQueue.reduce((sum, q) => sum + q.count, 0),
-      icon: Users,
-      color: "text-zinc-900",
     },
   ];
 
   if (loading) {
     return null;
   }
-
-  const updateQty = (id: string, delta: number) => {
-    setProducts((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          const newQty = Math.max(0, p.stockQty + delta);
-          let newStatus = p.status;
-          if (newQty === 0) newStatus = "sold_out";
-          else if (newQty <= 3) newStatus = "low";
-          else newStatus = "available";
-          return {
-            ...p,
-            stockQty: newQty,
-            status: newStatus as Product["status"],
-          };
-        }
-        return p;
-      }),
-    );
-  };
-
-  const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this product?")) return;
-    try {
-      const { error } = await supabase.from("products").delete().eq("id", id);
-      if (error) throw error;
-      setProducts((prev) => prev.filter((p) => p.id !== id));
-    } catch (err: any) {
-      alert(err.message || "Failed to delete product");
-    }
-  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 pb-24 md:pb-12 pt-12 bg-white min-h-screen">
@@ -157,7 +88,7 @@ export default function DashboardPage() {
             Seller Dashboard
           </h1>
           <p className="text-zinc-500 font-medium">
-            Manage your inventory and see demand signals.
+            Track your listings and engagement metrics.
           </p>
         </div>
         <Button
@@ -199,18 +130,15 @@ export default function DashboardPage() {
         <div className="lg:col-span-2 space-y-6">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-xl font-bold tracking-tight text-zinc-900">
-              Live Inventory
+              Your Listings
             </h2>
-            <span className="text-xs text-indigo-600 font-bold uppercase tracking-widest cursor-pointer hover:underline">
-              View History
-            </span>
           </div>
           <div className="bg-white border border-zinc-200 rounded-[2rem] shadow-sm overflow-hidden">
             <div className="divide-y divide-zinc-100">
               {products.map((p) => (
                 <div
                   key={p.id}
-                  className="flex items-center gap-6 p-6 hover:bg-zinc-50 transition-colors group"
+                  className="flex items-center gap-6 p-6 hover:bg-zinc-50 transition-colors"
                 >
                   <img
                     src={p.images[0]}
@@ -225,40 +153,11 @@ export default function DashboardPage() {
                       <span className="text-sm font-bold text-indigo-600">
                         ₱{p.price}
                       </span>
-                      <StockBadge
-                        status={p.status}
-                        qty={p.stockQty}
-                        className="scale-90 origin-left"
-                      />
+                      <span className="text-xs text-zinc-400 flex items-center gap-1">
+                        <Eye className="w-3 h-3" />
+                        {p.viewCount}
+                      </span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={() => updateQty(p.id, -1)}
-                      className="w-10 h-10 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 hover:border-red-400 hover:text-red-500 transition-all active:scale-90"
-                    >
-                      <Minus className="w-5 h-5" />
-                    </button>
-                    <span
-                      className={`w-8 text-center font-black text-lg ${
-                        p.stockQty === 0 ? "text-red-500" : "text-zinc-900"
-                      }`}
-                    >
-                      {p.stockQty}
-                    </span>
-                    <button
-                      onClick={() => updateQty(p.id, 1)}
-                      className="w-10 h-10 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 hover:border-indigo-400 hover:text-indigo-600 transition-all active:scale-90"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(p.id)}
-                      className="w-10 h-10 rounded-xl bg-zinc-50 border border-zinc-200 flex items-center justify-center text-zinc-400 hover:border-red-400 hover:text-red-500 transition-all"
-                      title="Delete product"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
                 </div>
               ))}
@@ -268,77 +167,40 @@ export default function DashboardPage() {
 
         <div className="space-y-6">
           <h2 className="text-xl font-bold tracking-tight text-zinc-900 px-2">
-            Demand Signals
+            Engagement
           </h2>
-          <div className="bg-zinc-900 rounded-[2.5rem] p-8 text-white shadow-xl flex flex-col justify-between">
-            <div>
-              <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-8">
-                Queue Status
-              </p>
-              <div className="space-y-8">
-                {notifyQueue.length > 0 ? (
-                  notifyQueue.map((signal, i) => (
-                    <div key={i} className="space-y-4">
-                      <div className="flex justify-between items-end">
-                        <span className="text-sm font-bold truncate pr-4">
-                          {signal.name}
-                        </span>
-                        <span className="text-xl font-black">
-                          {signal.count}
-                        </span>
-                      </div>
-                      <div className="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{
-                            width: `${Math.min((signal.count / (notifyQueue[0]?.count || 1)) * 100, 100)}%`,
-                          }}
-                          transition={{ duration: 1, delay: i * 0.1 }}
-                          className={`h-full ${
-                            i === 0
-                              ? "bg-indigo-500"
-                              : i === 1
-                                ? "bg-fuchsia-500"
-                                : "bg-amber-500"
-                          }`}
-                        />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-zinc-500 text-sm">
-                    No notify requests yet
-                  </p>
-                )}
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              fullWidth
-              className="mt-12 border-white/20 text-white hover:bg-white/10 rounded-2xl py-6"
-            >
-              Restock All
-            </Button>
-          </div>
-
           <div className="bg-white border border-zinc-200 rounded-[2rem] p-8 flex flex-col items-center gap-6 text-center shadow-sm">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100 transition-transform hover:rotate-12">
-              <Users className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100">
+              <TrendingUp className="w-8 h-8" />
             </div>
             <div className="space-y-2">
               <h4 className="text-base font-bold text-zinc-900">
-                New Subscriptions
+                Total Profile Views
               </h4>
               <p className="text-xs text-zinc-400 font-medium leading-relaxed">
-                {newSubscribers > 0
-                  ? `${newSubscribers} more buyers just subscribed to your shop updates!`
-                  : "No new subscriptions yet. Share your shop to get more!"}
+                Share your shop link to get more visibility!
               </p>
             </div>
-            <div className="flex gap-1">
-              <div className="h-1.5 w-8 bg-indigo-600 rounded-full"></div>
-              <div className="h-1.5 w-2 bg-zinc-100 rounded-full"></div>
-              <div className="h-1.5 w-2 bg-zinc-100 rounded-full"></div>
+          </div>
+
+          <div className="bg-zinc-900 rounded-[2.5rem] p-8 text-white shadow-xl">
+            <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-6">
+              Top Products
+            </p>
+            <div className="space-y-4">
+              {products.slice(0, 3).map((p, i) => (
+                <div key={p.id} className="flex justify-between items-center">
+                  <span className="text-sm font-medium truncate pr-4">
+                    {p.title}
+                  </span>
+                  <span className="text-sm font-bold text-zinc-400">
+                    {p.viewCount} views
+                  </span>
+                </div>
+              ))}
+              {products.length === 0 && (
+                <p className="text-zinc-500 text-sm">No listings yet</p>
+              )}
             </div>
           </div>
         </div>

@@ -58,7 +58,7 @@ export function VerifiedSellersStrip({ sellers }: VerifiedSellersStripProps) {
           >
             <div
               className={`relative w-20 h-20 rounded-full p-1 border-2 ${
-                seller.trustTier === "elite"
+                seller.trustTier === "Elite"
                   ? "border-zinc-900"
                   : "border-zinc-100"
               }`}
