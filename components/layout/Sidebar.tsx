@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import {
   Home,
   Search,
@@ -10,6 +12,7 @@ import {
   Github,
   Compass,
   X,
+  Store,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -20,11 +23,24 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const supabase = createClient();
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
+
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/search", icon: Compass, label: "Explore" },
-    { href: "/dashboard", icon: LayoutDashboard, label: "Shop Manager" },
-    { href: "/login", icon: LogIn, label: "Account" },
+    ...(user
+      ? [{ href: "/dashboard", icon: LayoutDashboard, label: "Shop Manager" }]
+      : [{ href: "/login", icon: Store, label: "Become a Seller" }]),
+    {
+      href: user ? "/login" : "/login",
+      icon: LogIn,
+      label: user ? "Account" : "Login",
+    },
   ];
 
   const sidebarContent = (

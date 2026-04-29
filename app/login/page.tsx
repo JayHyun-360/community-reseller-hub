@@ -69,25 +69,6 @@ export default function LoginPage() {
             </svg>
             {isLoading ? "Signing in..." : "Continue with Google"}
           </button>
-
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-zinc-100"></div>
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-4 text-zinc-400 font-black tracking-wider">
-                or
-              </span>
-            </div>
-          </div>
-
-          <button
-            onClick={() => router.push("/")}
-            className="w-full bg-zinc-900 text-white rounded-2xl px-6 py-4 text-base font-black uppercase tracking-widest text-xs hover:bg-zinc-800 shadow-xl shadow-zinc-200 transition-all flex items-center justify-center gap-2"
-          >
-            Explore as Guest
-            <ArrowRight className="w-5 h-5" />
-          </button>
         </div>
 
         <div className="mt-12 text-center relative border-t border-zinc-100 pt-8">

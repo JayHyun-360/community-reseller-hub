@@ -1,9 +1,9 @@
 {
   "/_not-found/page": "/_not-found",
   "/[username]/page": "/[username]",
-  "/dashboard/products/new/page": "/dashboard/products/new",
+  "/login/page": "/login",
   "/dashboard/page": "/dashboard",
-  "/search/page": "/search",
+  "/dashboard/products/new/page": "/dashboard/products/new",
   "/page": "/",
-  "/login/page": "/login"
+  "/search/page": "/search"
 }
