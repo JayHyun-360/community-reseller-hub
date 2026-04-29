@@ -93,11 +93,7 @@ export default function AccountPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
+    return null;
   }
 
   return (
