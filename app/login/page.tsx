@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ArrowRight, ShoppingBag } from "lucide-react";
@@ -9,6 +9,15 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    // Check if already logged in
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
+        router.push("/dashboard");
+      }
+    });
+  }, []);
 
   const handleGoogleLogin = async () => {
     setIsLoading(true);
