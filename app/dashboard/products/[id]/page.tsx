@@ -120,28 +120,44 @@ export default function EditProductPage() {
 
     setSaving(true);
     try {
-      const { error } = await supabase
-        .from("products")
-        .update({
-          category_id: formData.categoryId,
-          title: formData.title,
-          description: formData.description,
-          price: Number(formData.price),
-          stock_qty: Number(formData.stockQty) || 0,
-          location: formData.location || null,
-          available_from: formData.availableFrom || null,
-          is_featured: formData.isFeatured,
-          images:
-            formData.images.length > 0
-              ? formData.images
-              : getImageForProduct(formData.title, formData.description),
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", productId);
+      const updates = {
+        category_id: formData.categoryId,
+        title: formData.title,
+        description: formData.description,
+        price: Number(formData.price),
+        stock_qty: Number(formData.stockQty) || 0,
+        location: formData.location || null,
+        available_from: formData.availableFrom || null,
+        is_featured: formData.isFeatured,
+        images:
+          formData.images.length > 0
+            ? formData.images
+            : getImageForProduct(formData.title, formData.description),
+        updated_at: new Date().toISOString(),
+      };
 
-      if (error) throw error;
+      const { data, error } = await supabase
+        .from("products")
+        .update(updates)
+        .eq("id", productId)
+        .eq("seller_id", user.id)
+        .select();
+
+      if (error) {
+        console.error("Save error:", error);
+        throw error;
+      }
+
+      if (!data || data.length === 0) {
+        throw new Error(
+          "Product not found or you don't have permission to edit it",
+        );
+      }
+
+      alert("Changes saved successfully!");
       router.push("/dashboard");
     } catch (err: any) {
+      console.error(err);
       alert(err.message || "Failed to save product");
     } finally {
       setSaving(false);
