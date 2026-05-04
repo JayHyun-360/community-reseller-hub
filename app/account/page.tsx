@@ -276,100 +276,100 @@ export default function AccountPage() {
           </div>
         </div>
       </div>
-    </div>
 
-    {/* Policy Modal */}
-    {showPolicy && (
-      <div className="fixed inset-0 bg-zinc-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-[2.5rem] max-w-lg w-full max-h-[80vh] overflow-hidden">
-          <div className="p-8 border-b border-zinc-100 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-zinc-900">
-              Seller Agreement
-            </h2>
-            <button
-              onClick={() => setShowPolicy(false)}
-              className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:bg-zinc-200 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-          </div>
-
-          <div className="p-8 overflow-y-auto max-h-[40vh]">
-            <div className="space-y-4 text-sm text-zinc-600 font-medium leading-relaxed">
-              <p>
-                By becoming a seller on Community Seller Hub, you agree to the
-                following:
-              </p>
-
-              <div className="bg-zinc-50 rounded-2xl p-6 space-y-4">
-                <div className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p>List only authentic products that you actually have</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p>Provide accurate descriptions and real photos</p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p>
-                    Respond to buyer inquiries promptly and professionally
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p>
-                    Honor your listings - don't cancel orders without valid
-                    reason
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p>
-                    No prohibited items (weapons, drugs, counterfeit goods)
-                  </p>
-                </div>
-                <div className="flex items-start gap-3">
-                  <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
-                  <p>
-                    Transactions happen outside the platform - you're
-                    responsible for delivery
-                  </p>
-                </div>
-              </div>
-
-              <p className="text-xs text-zinc-400">
-                We reserve the right to remove sellers who violate these terms
-                or receive repeated complaints from buyers.
-              </p>
+      {/* Policy Modal */}
+      {showPolicy && (
+        <div className="fixed inset-0 bg-zinc-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-[2.5rem] max-w-lg w-full max-h-[80vh] overflow-hidden">
+            <div className="p-8 border-b border-zinc-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-zinc-900">
+                Seller Agreement
+              </h2>
+              <button
+                onClick={() => setShowPolicy(false)}
+                className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-500 hover:bg-zinc-200 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <label className="mt-6 flex items-center gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={policyAccepted}
-                onChange={(e) => setPolicyAccepted(e.target.checked)}
-                className="w-5 h-5 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
-              />
-              <span className="text-sm font-medium text-zinc-700">
-                I have read and agree to the seller terms above
-              </span>
-            </label>
-          </div>
+            <div className="p-8 overflow-y-auto max-h-[40vh]">
+              <div className="space-y-4 text-sm text-zinc-600 font-medium leading-relaxed">
+                <p>
+                  By becoming a seller on Community Seller Hub, you agree to the
+                  following:
+                </p>
 
-          <div className="p-8 border-t border-zinc-100">
-            <Button
-              fullWidth
-              size="lg"
-              onClick={handleSellerConfirm}
-              disabled={!policyAccepted || saving}
-              className="rounded-2xl"
-            >
-              {saving ? "Setting up..." : "Confirm & Continue"}
-            </Button>
+                <div className="bg-zinc-50 rounded-2xl p-6 space-y-4">
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <p>List only authentic products that you actually have</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <p>Provide accurate descriptions and real photos</p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <p>
+                      Respond to buyer inquiries promptly and professionally
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <p>
+                      Honor your listings - don't cancel orders without valid
+                      reason
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <p>
+                      No prohibited items (weapons, drugs, counterfeit goods)
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                    <p>
+                      Transactions happen outside the platform - you're
+                      responsible for delivery
+                    </p>
+                  </div>
+                </div>
+
+                <p className="text-xs text-zinc-400">
+                  We reserve the right to remove sellers who violate these terms
+                  or receive repeated complaints from buyers.
+                </p>
+              </div>
+
+              <label className="mt-6 flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={policyAccepted}
+                  onChange={(e) => setPolicyAccepted(e.target.checked)}
+                  className="w-5 h-5 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900"
+                />
+                <span className="text-sm font-medium text-zinc-700">
+                  I have read and agree to the seller terms above
+                </span>
+              </label>
+            </div>
+
+            <div className="p-8 border-t border-zinc-100">
+              <Button
+                fullWidth
+                size="lg"
+                onClick={handleSellerConfirm}
+                disabled={!policyAccepted || saving}
+                className="rounded-2xl"
+              >
+                {saving ? "Setting up..." : "Confirm & Continue"}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
+      )}
+    </div>
   );
 }
