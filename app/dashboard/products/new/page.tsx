@@ -39,6 +39,18 @@ export default function AddProductPage() {
         router.push("/login");
         return;
       }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profile?.role !== "seller") {
+        router.push("/account");
+        return;
+      }
+
       setUser(user);
 
       const { data: cats } = await supabase.from("categories").select("*");
