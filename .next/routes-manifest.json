@@ -20,6 +20,14 @@
   },
   "dynamicRoutes": [
     {
+      "page": "/dashboard/products/[id]",
+      "regex": "^/dashboard/products/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/dashboard/products/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/[username]",
       "regex": "^/([^/]+?)(?:/)?$",
       "routeKeys": {

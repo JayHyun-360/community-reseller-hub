@@ -56,7 +56,7 @@ export default function StorefrontPage({
               price: p.price,
               images: p.images || [],
               isFeatured: p.is_featured,
-              viewCount: p.view_count,
+              likeCount: p.like_count || 0,
               createdAt: p.created_at,
             })),
         );
@@ -166,11 +166,11 @@ export default function StorefrontPage({
                 </div>
               </div>
               <div className="bg-white p-6 border-l border-zinc-100">
-                <div className="text-2xl font-black text-indigo-600">
-                  {products.reduce((sum, p) => sum + (p.viewCount || 0), 0)}
+                <div className="text-2xl font-black text-rose-500">
+                  {products.reduce((sum, p) => sum + (p.likeCount || 0), 0)}
                 </div>
                 <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                  Total Views
+                  Total Likes
                 </div>
               </div>
             </div>

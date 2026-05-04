@@ -48,7 +48,7 @@ export default function SearchPage() {
               stockQty: p.stock_qty,
               status: p.status,
               isFeatured: p.is_featured,
-              viewCount: p.view_count,
+              likeCount: p.like_count || 0,
               createdAt: p.created_at,
             })),
           );

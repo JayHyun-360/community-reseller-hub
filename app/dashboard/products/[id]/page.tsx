@@ -217,7 +217,7 @@ export default function EditProductPage() {
     stockQty: Number(formData.stockQty) || 0,
     status: "available",
     isFeatured: formData.isFeatured,
-    viewCount: 0,
+    likeCount: 0,
     createdAt: new Date().toISOString(),
   };
 

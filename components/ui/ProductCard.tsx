@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
-import { MessageCircle, Share2, MoreHorizontal } from "lucide-react";
+import { MessageCircle, Share2, MoreHorizontal, Heart } from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
@@ -20,7 +21,56 @@ export function ProductCard({
 }: ProductCardProps) {
   const [seller, setSeller] = useState<Seller | null>(sellerData || null);
   const [imgError, setImgError] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(product.likeCount || 0);
+  const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    async function checkLike() {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from("favorites")
+          .select("id")
+          .eq("user_id", user.id)
+          .eq("product_id", product.id)
+          .single();
+        if (data) {
+          setIsLiked(true);
+        }
+      }
+    }
+    checkLike();
+  }, [product.id]);
+
+  const handleLike = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+
+    if (isLiked) {
+      await supabase
+        .from("favorites")
+        .delete()
+        .match({ user_id: user.id, product_id: product.id });
+      setIsLiked(false);
+      setLikeCount((c) => c - 1);
+    } else {
+      await supabase
+        .from("favorites")
+        .insert({ user_id: user.id, product_id: product.id });
+      setIsLiked(true);
+      setLikeCount((c) => c + 1);
+    }
+  };
 
   useEffect(() => {
     if (sellerData) {
@@ -86,9 +136,17 @@ export function ProductCard({
             isHovered ? "opacity-100" : "opacity-0"
           }`}
         >
-          <div className="flex justify-end">
-            <button className="bg-red-600 text-white px-5 py-2.5 rounded-full font-black text-sm hover:bg-red-700 transition-colors shadow-lg">
-              Save
+          <div className="flex justify-between items-center">
+            <button
+              onClick={handleLike}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-sm transition-colors shadow-lg ${
+                isLiked
+                  ? "bg-rose-500 text-white hover:bg-rose-600"
+                  : "bg-white/90 text-zinc-900 hover:bg-white"
+              }`}
+            >
+              <Heart className={`w-4 h-4 ${isLiked ? "fill-white" : ""}`} />
+              {likeCount}
             </button>
           </div>
 

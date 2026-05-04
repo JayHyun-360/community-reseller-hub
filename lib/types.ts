@@ -29,6 +29,6 @@ export interface Product {
   stockQty?: number;
   status?: string;
   isFeatured: boolean;
-  viewCount: number;
+  likeCount: number;
   createdAt: string;
 }

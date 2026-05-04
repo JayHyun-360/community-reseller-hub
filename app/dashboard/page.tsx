@@ -8,6 +8,7 @@ import {
   TrendingUp,
   ShoppingBag,
   Eye,
+  Heart,
   Plus,
   Pencil,
   Trash2,
@@ -65,15 +66,15 @@ export default function DashboardPage() {
             stockQty: p.stock_qty,
             status: p.status,
             isFeatured: p.is_featured,
-            viewCount: p.view_count,
+            likeCount: p.like_count || 0,
             createdAt: p.created_at,
           })),
         );
-        const views = productsData.reduce(
-          (sum, p) => sum + (p.view_count || 0),
+        const likes = productsData.reduce(
+          (sum, p) => sum + (p.like_count || 0),
           0,
         );
-        setTotalViews(views);
+        setTotalViews(likes);
       }
 
       setLoading(false);
@@ -104,10 +105,10 @@ export default function DashboardPage() {
       color: "text-zinc-400",
     },
     {
-      label: "Total Views",
+      label: "Total Likes",
       value: totalViews,
-      icon: Eye,
-      color: "text-indigo-600",
+      icon: Heart,
+      color: "text-rose-500",
     },
   ];
 
@@ -188,9 +189,9 @@ export default function DashboardPage() {
                       <span className="text-sm font-bold text-indigo-600">
                         ₱{p.price}
                       </span>
-                      <span className="text-xs text-zinc-400 flex items-center gap-1">
-                        <Eye className="w-3 h-3" />
-                        {p.viewCount}
+                      <span className="text-xs text-rose-500 flex items-center gap-1">
+                        <Heart className="w-3 h-3" />
+                        {p.likeCount}
                       </span>
                     </div>
                   </div>
@@ -242,8 +243,8 @@ export default function DashboardPage() {
                   <span className="text-sm font-medium truncate pr-4">
                     {p.title}
                   </span>
-                  <span className="text-sm font-bold text-zinc-400">
-                    {p.viewCount} views
+                  <span className="text-sm font-bold text-rose-400">
+                    {p.likeCount} likes
                   </span>
                 </div>
               ))}
