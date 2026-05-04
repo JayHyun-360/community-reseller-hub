@@ -60,26 +60,20 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/search", icon: Compass, label: "Explore" },
-    ...(user && isSeller
+    ...(user
       ? [
-          { href: "/dashboard", icon: LayoutDashboard, label: "Shop Manager" },
-          { href: "/account", icon: LogIn, label: "Account" },
+          { href: "/account", icon: Store, label: "Account" },
+          ...(isSeller
+            ? [
+                {
+                  href: "/dashboard",
+                  icon: LayoutDashboard,
+                  label: "Shop Manager",
+                },
+              ]
+            : [{ href: "/account", icon: LogIn, label: "Become a Seller" }]),
         ]
-      : user
-        ? [
-            {
-              href: "/account",
-              icon: Store,
-              label: "Become a Seller",
-            },
-          ]
-        : [
-            {
-              href: "/login",
-              icon: Store,
-              label: "Become a Seller",
-            },
-          ]),
+      : [{ href: "/login", icon: Store, label: "Become a Seller" }]),
   ];
 
   const sidebarContent = (
