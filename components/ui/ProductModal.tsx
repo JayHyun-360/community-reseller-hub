@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
-import { MessageCircle, Share2, MoreHorizontal, Heart, X, ExternalLink } from "lucide-react";
+import {
+  MessageCircle,
+  Share2,
+  MoreHorizontal,
+  Heart,
+  X,
+  ExternalLink,
+} from "lucide-react";
 
 interface ProductModalProps {
   product: Product | null;
@@ -66,8 +73,10 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
           .eq("user_id", user.id)
           .eq("product_id", product.id)
           .single()
-          .then(({ data }) => {
-            setIsLiked(!!data);
+          .then(({ data, error }) => {
+            if (!error) {
+              setIsLiked(!!data);
+            }
           });
       }
     });
@@ -166,13 +175,21 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
             {hasMultipleImages && (
               <>
                 <button
-                  onClick={() => setCurrentImageIndex((i) => (i > 0 ? i - 1 : images.length - 1))}
+                  onClick={() =>
+                    setCurrentImageIndex((i) =>
+                      i > 0 ? i - 1 : images.length - 1,
+                    )
+                  }
                   className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg"
                 >
                   <span className="text-lg">‹</span>
                 </button>
                 <button
-                  onClick={() => setCurrentImageIndex((i) => (i < images.length - 1 ? i + 1 : 0))}
+                  onClick={() =>
+                    setCurrentImageIndex((i) =>
+                      i < images.length - 1 ? i + 1 : 0,
+                    )
+                  }
                   className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg"
                 >
                   <span className="text-lg">›</span>
@@ -183,7 +200,9 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
                       key={idx}
                       onClick={() => setCurrentImageIndex(idx)}
                       className={`w-2 h-2 rounded-full transition-all ${
-                        idx === currentImageIndex ? "bg-white w-4" : "bg-white/50"
+                        idx === currentImageIndex
+                          ? "bg-white w-4"
+                          : "bg-white/50"
                       }`}
                     />
                   ))}
