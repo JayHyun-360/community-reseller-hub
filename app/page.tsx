@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { VerifiedSellersStrip } from "@/components/ui/VerifiedSellersStrip";
+import { LatestProductsStrip } from "@/components/ui/LatestProductsStrip";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
@@ -192,7 +192,7 @@ export default function HomePage() {
       </section>
 
       <div className="mt-8 px-6">
-        <VerifiedSellersStrip sellers={sellers} />
+        <LatestProductsStrip products={products} />
       </div>
 
       <section className="px-6 py-12">
