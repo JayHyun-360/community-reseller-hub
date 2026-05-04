@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { ShoppingBag, Store, ArrowRight, X, Check } from "lucide-react";
+import { Store, ArrowRight, X, Check } from "lucide-react";
 import { motion } from "motion/react";
 
 export default function OnboardingPage() {
@@ -77,78 +77,64 @@ export default function OnboardingPage() {
     return null;
   }
 
+  const handleBrowseFirst = async () => {
+    if (!user) return;
+    await supabase
+      .from("profiles")
+      .update({ onboarding_completed: true })
+      .eq("id", user.id);
+    router.push("/");
+  };
+
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-md">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-black tracking-tighter text-zinc-900 mb-4">
-            Welcome!
+            Start Selling
           </h1>
           <p className="text-lg text-zinc-500 font-medium">
-            How would you like to use Community Seller Hub?
+            Set up your seller account to list products and connect with buyers
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            onClick={() => handleSelectRole("user")}
-            disabled={!!loading}
-            className="group relative bg-white border-2 border-zinc-200 rounded-[2.5rem] p-8 text-left hover:border-zinc-300 hover:shadow-xl transition-all disabled:opacity-50"
-          >
-            <div className="w-16 h-16 rounded-[1.5rem] bg-zinc-100 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <ShoppingBag className="w-8 h-8 text-zinc-600" />
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          onClick={() => handleSelectRole("seller")}
+          disabled={!!loading}
+          className="group relative w-full bg-zinc-900 border-2 border-zinc-900 rounded-[2.5rem] p-8 text-left hover:shadow-2xl transition-all disabled:opacity-50"
+        >
+          <div className="w-16 h-16 rounded-[1.5rem] bg-zinc-800 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <Store className="w-8 h-8 text-white" />
+          </div>
+          <h2 className="text-xl font-bold text-white mb-2">Start Selling</h2>
+          <p className="text-sm text-zinc-400 font-medium leading-relaxed mb-6">
+            Create your shop, list products, and connect with buyers. Manage
+            your listings and track engagement.
+          </p>
+          <div className="flex items-center text-sm font-bold text-white">
+            Continue as Seller
+            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+          </div>
+          {loading === "seller" && (
+            <div className="absolute inset-0 bg-zinc-900/80 flex items-center justify-center rounded-[2.5rem]">
+              <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
             </div>
-            <h2 className="text-xl font-bold text-zinc-900 mb-2">
-              Browse & Buy
-            </h2>
-            <p className="text-sm text-zinc-500 font-medium leading-relaxed mb-6">
-              Discover local sellers and their products. Contact sellers
-              directly through WhatsApp or Messenger.
-            </p>
-            <div className="flex items-center text-sm font-bold text-zinc-900">
-              Continue as Buyer
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </div>
-            {loading === "user" && (
-              <div className="absolute inset-0 bg-white/80 flex items-center justify-center rounded-[2.5rem]">
-                <div className="w-6 h-6 border-2 border-zinc-900 border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-          </motion.button>
+          )}
+        </motion.button>
 
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            onClick={() => handleSelectRole("seller")}
-            disabled={!!loading}
-            className="group relative bg-zinc-900 border-2 border-zinc-900 rounded-[2.5rem] p-8 text-left hover:shadow-2xl transition-all disabled:opacity-50"
+        <div className="mt-8 text-center">
+          <button
+            onClick={handleBrowseFirst}
+            className="text-sm text-zinc-500 hover:text-zinc-900 underline underline-offset-4"
           >
-            <div className="w-16 h-16 rounded-[1.5rem] bg-zinc-800 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-              <Store className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-xl font-bold text-white mb-2">Start Selling</h2>
-            <p className="text-sm text-zinc-400 font-medium leading-relaxed mb-6">
-              Create your shop, list products, and connect with buyers. Manage
-              your listings and track engagement.
-            </p>
-            <div className="flex items-center text-sm font-bold text-white">
-              Continue as Seller
-              <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-            </div>
-            {loading === "seller" && (
-              <div className="absolute inset-0 bg-zinc-900/80 flex items-center justify-center rounded-[2.5rem]">
-                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              </div>
-            )}
-          </motion.button>
+            Browse first, become a seller later
+          </button>
         </div>
 
         <p className="text-center text-xs text-zinc-400 mt-8">
-          You can change this anytime in your account settings
+          You can become a seller anytime from your account settings
         </p>
       </div>
 
