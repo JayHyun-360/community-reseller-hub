@@ -349,11 +349,11 @@ export function ProductModal({
                 <h3 className="text-xs font-black text-zinc-400 uppercase tracking-wider mb-4">
                   More like this
                 </h3>
-                <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+                <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
                   {relatedProducts.map((p) => (
                     <div
                       key={p.id}
-                      className="flex-shrink-0 w-32 cursor-pointer"
+                      className="flex-shrink-0 w-44 md:w-48 cursor-pointer"
                       onClick={() => {
                         onClose();
                         onProductClick?.(p);
