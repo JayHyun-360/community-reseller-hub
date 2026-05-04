@@ -21,23 +21,43 @@ export default function HomePage() {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [likedProductIds, setLikedProductIds] = useState<Set<string>>(
+    new Set(),
+  );
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
   useEffect(() => {
     async function fetchData() {
-      const [productsRes, sellersRes, categoriesRes] = await Promise.all([
-        supabase
-          .from("products")
-          .select("*")
-          .order("created_at", { ascending: false }),
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("role", "seller")
-          .order("trust_score", { ascending: false }),
-        supabase.from("categories").select("*"),
-      ]);
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const [productsRes, sellersRes, categoriesRes, favoritesRes] =
+        await Promise.all([
+          supabase
+            .from("products")
+            .select("*")
+            .order("created_at", { ascending: false }),
+          supabase
+            .from("profiles")
+            .select("*")
+            .eq("role", "seller")
+            .order("trust_score", { ascending: false }),
+          supabase.from("categories").select("*"),
+          user
+            ? supabase
+                .from("favorites")
+                .select("product_id")
+                .eq("user_id", user.id)
+            : Promise.resolve({ data: [] }),
+        ]);
+
+      if (favoritesRes.data) {
+        setLikedProductIds(
+          new Set(favoritesRes.data.map((f: any) => f.product_id)),
+        );
+      }
 
       if (productsRes.data) {
         setProducts(
@@ -205,6 +225,7 @@ export default function HomePage() {
                     key={p.id}
                     product={p}
                     onNotifyMe={setNotifyProduct}
+                    isLiked={likedProductIds.has(p.id)}
                   />
                 ))}
           </div>

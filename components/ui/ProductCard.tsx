@@ -12,39 +12,21 @@ interface ProductCardProps {
   onNotifyMe?: (product: Product) => void;
   showSeller?: boolean;
   sellerData?: Seller;
+  isLiked?: boolean;
 }
 
 export function ProductCard({
   product,
   showSeller = true,
   sellerData,
+  isLiked: initialLiked = false,
 }: ProductCardProps) {
   const [seller, setSeller] = useState<Seller | null>(sellerData || null);
   const [imgError, setImgError] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(product.likeCount || 0);
   const router = useRouter();
   const supabase = createClient();
-
-  useEffect(() => {
-    async function checkLike() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (user) {
-        const { data } = await supabase
-          .from("favorites")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("product_id", product.id)
-          .single();
-        if (data) {
-          setIsLiked(true);
-        }
-      }
-    }
-    checkLike();
-  }, [product.id]);
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();

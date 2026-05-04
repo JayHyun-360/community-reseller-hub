@@ -2,12 +2,12 @@
   "/_not-found/page": "/_not-found",
   "/auth/callback/route": "/auth/callback",
   "/[username]/page": "/[username]",
-  "/dashboard/page": "/dashboard",
   "/account/page": "/account",
-  "/dashboard/products/new/page": "/dashboard/products/new",
+  "/dashboard/page": "/dashboard",
   "/login/page": "/login",
-  "/dashboard/products/[id]/page": "/dashboard/products/[id]",
   "/search/page": "/search",
+  "/dashboard/products/new/page": "/dashboard/products/new",
+  "/dashboard/products/[id]/page": "/dashboard/products/[id]",
   "/page": "/",
   "/onboarding/page": "/onboarding"
 }
