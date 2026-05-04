@@ -1,13 +1,13 @@
 {
   "/_not-found/page": "/_not-found",
   "/auth/callback/route": "/auth/callback",
-  "/[username]/page": "/[username]",
   "/account/page": "/account",
   "/dashboard/page": "/dashboard",
-  "/page": "/",
+  "/[username]/page": "/[username]",
+  "/dashboard/products/new/page": "/dashboard/products/new",
+  "/dashboard/products/[id]/page": "/dashboard/products/[id]",
   "/login/page": "/login",
   "/onboarding/page": "/onboarding",
-  "/dashboard/products/new/page": "/dashboard/products/new",
-  "/search/page": "/search",
-  "/dashboard/products/[id]/page": "/dashboard/products/[id]"
+  "/page": "/",
+  "/search/page": "/search"
 }
