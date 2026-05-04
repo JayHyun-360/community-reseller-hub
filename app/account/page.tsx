@@ -187,67 +187,73 @@ export default function AccountPage() {
             />
           </div>
 
-          {/* Bio */}
-          <div>
-            <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-              Bio
-            </label>
-            <textarea
-              value={profile?.bio || ""}
-              onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
-              placeholder="Tell customers about yourself..."
-              rows={3}
-              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all resize-none"
-            />
-          </div>
+          {isSeller && (
+            <>
+              {/* Bio */}
+              <div>
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  Bio
+                </label>
+                <textarea
+                  value={profile?.bio || ""}
+                  onChange={(e) =>
+                    setProfile({ ...profile, bio: e.target.value })
+                  }
+                  placeholder="Tell customers about yourself..."
+                  rows={3}
+                  className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all resize-none"
+                />
+              </div>
 
-          {/* WhatsApp */}
-          <div>
-            <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-              WhatsApp Number
-            </label>
-            <input
-              type="tel"
-              value={profile?.whatsapp_num || ""}
-              onChange={(e) =>
-                setProfile({ ...profile, whatsapp_num: e.target.value })
-              }
-              placeholder="Add your phone number so anyone can contact you"
-              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
-            />
-          </div>
+              {/* WhatsApp */}
+              <div>
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  WhatsApp Number
+                </label>
+                <input
+                  type="tel"
+                  value={profile?.whatsapp_num || ""}
+                  onChange={(e) =>
+                    setProfile({ ...profile, whatsapp_num: e.target.value })
+                  }
+                  placeholder="Add your phone number so anyone can contact you"
+                  className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
+                />
+              </div>
 
-          {/* Messenger */}
-          <div>
-            <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-              Messenger Link
-            </label>
-            <input
-              type="url"
-              value={profile?.messenger_url || ""}
-              onChange={(e) =>
-                setProfile({ ...profile, messenger_url: e.target.value })
-              }
-              placeholder="https://m.me/yourusername"
-              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
-            />
-          </div>
+              {/* Messenger */}
+              <div>
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  Messenger Link
+                </label>
+                <input
+                  type="url"
+                  value={profile?.messenger_url || ""}
+                  onChange={(e) =>
+                    setProfile({ ...profile, messenger_url: e.target.value })
+                  }
+                  placeholder="https://m.me/yourusername"
+                  className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
+                />
+              </div>
 
-          {/* Location */}
-          <div>
-            <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-              Location
-            </label>
-            <input
-              type="text"
-              value={profile?.location || ""}
-              onChange={(e) =>
-                setProfile({ ...profile, location: e.target.value })
-              }
-              placeholder="Add your location so buyers can find you"
-              className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
-            />
-          </div>
+              {/* Location */}
+              <div>
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  Location
+                </label>
+                <input
+                  type="text"
+                  value={profile?.location || ""}
+                  onChange={(e) =>
+                    setProfile({ ...profile, location: e.target.value })
+                  }
+                  placeholder="Add your location so buyers can find you"
+                  className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
+                />
+              </div>
+            </>
+          )}
 
           {/* Save Button */}
           <div className="pt-4">
