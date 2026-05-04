@@ -45,10 +45,14 @@ export function ProductModal({
   const supabase = createClient();
   const [seller, setSeller] = useState<Seller | null>(null);
   const [isLiked, setIsLiked] = useState(false);
-  const [likeCount, setLikeCount] = useState(product?.likeCount || 0);
+  const [likeCount, setLikeCount] = useState(0);
   const [imgError, setImgError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    setLikeCount(product?.likeCount || 0);
+  }, [product?.likeCount]);
 
   useEffect(() => {
     if (!product) return;
