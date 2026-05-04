@@ -105,7 +105,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </button>
       </div>
 
-      <nav className="flex-grow space-y-1">
+      <nav className="flex-grow grid grid-cols-1 gap-1">
         {navItems.map((item) => {
           const isActive = pathname === item.href && !(item as any).isCta;
           return (
@@ -113,7 +113,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               key={item.href}
               href={item.href}
               onClick={onClose}
-              className={`flex items-center gap-4 px-5 rounded-full transition-all duration-300 font-bold w-full h-12 box-border ${
+              className={`flex items-center gap-4 px-5 py-3 rounded-full transition-all duration-300 font-bold h-12 box-border ${
                 isActive
                   ? "bg-zinc-900 text-white shadow-xl shadow-zinc-200"
                   : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
