@@ -1,5 +1,6 @@
 "use client";
 
+// Trigger redeploy
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { X, Search } from "lucide-react";
@@ -21,7 +22,7 @@ export function BrowseMoreSheet({
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredCategories = categories.filter((cat) =>
-    cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+    cat.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleSelect = (categoryId: string) => {
@@ -50,7 +51,9 @@ export function BrowseMoreSheet({
             <div className="w-12 h-1.5 bg-zinc-200 rounded-full mx-auto mt-4 mb-2" />
 
             <div className="flex justify-between items-center px-6 py-4">
-              <h2 className="text-xl font-black tracking-tight">Browse Categories</h2>
+              <h2 className="text-xl font-black tracking-tight">
+                Browse Categories
+              </h2>
               <button
                 onClick={onClose}
                 className="p-2 hover:bg-zinc-100 rounded-full"
@@ -97,7 +100,9 @@ export function BrowseMoreSheet({
 
               {filteredCategories.length === 0 && (
                 <div className="py-12 text-center">
-                  <p className="text-zinc-400 font-medium">No categories found</p>
+                  <p className="text-zinc-400 font-medium">
+                    No categories found
+                  </p>
                 </div>
               )}
             </div>
