@@ -26,6 +26,8 @@ export interface Product {
   description: string;
   price: number;
   images: string[];
+  stockQty?: number;
+  status?: string;
   isFeatured: boolean;
   viewCount: number;
   createdAt: string;

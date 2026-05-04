@@ -4,7 +4,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import { TrendingUp, ShoppingBag, Eye, Plus } from "lucide-react";
+import {
+  TrendingUp,
+  ShoppingBag,
+  Eye,
+  Plus,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Product } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -41,7 +48,7 @@ export default function DashboardPage() {
 
       const { data: productsData } = await supabase
         .from("products")
-        .select("*")
+        .select("*, categories(name, emoji)")
         .eq("seller_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -55,6 +62,8 @@ export default function DashboardPage() {
             description: p.description,
             price: p.price,
             images: p.images || [],
+            stockQty: p.stock_qty,
+            status: p.status,
             isFeatured: p.is_featured,
             viewCount: p.view_count,
             createdAt: p.created_at,
@@ -71,6 +80,21 @@ export default function DashboardPage() {
     }
     fetchData();
   }, []);
+
+  const handleDelete = async (productId: string) => {
+    if (!confirm("Are you sure you want to delete this listing?")) return;
+
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", productId);
+
+    if (error) {
+      alert("Failed to delete listing");
+    } else {
+      setProducts(products.filter((p) => p.id !== productId));
+    }
+  };
 
   const stats = [
     {
@@ -169,6 +193,20 @@ export default function DashboardPage() {
                         {p.viewCount}
                       </span>
                     </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => router.push(`/dashboard/products/${p.id}`)}
+                      className="p-2 rounded-xl hover:bg-zinc-100 text-zinc-400 hover:text-zinc-600 transition-colors"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(p.id)}
+                      className="p-2 rounded-xl hover:bg-red-50 text-zinc-400 hover:text-red-500 transition-colors"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
               ))}
