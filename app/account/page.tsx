@@ -100,23 +100,6 @@ export default function AccountPage() {
           </Button>
         </div>
 
-        {isSeller && (
-          <div className="mb-8 p-6 bg-zinc-900 border border-zinc-900 rounded-[2rem]">
-            <h2 className="text-lg font-black text-white mb-2">
-              Seller Dashboard
-            </h2>
-            <p className="text-sm text-zinc-400 mb-4">
-              Manage your products, view engagement, and track your shop.
-            </p>
-            <Button
-              onClick={() => router.push("/dashboard")}
-              className="bg-white text-zinc-900 hover:bg-zinc-100 rounded-full"
-            >
-              Go to Dashboard
-            </Button>
-          </div>
-        )}
-
         {!isSeller && (
           <div className="mb-8 p-6 bg-indigo-50 border border-indigo-100 rounded-[2rem]">
             <h2 className="text-lg font-black text-indigo-600 mb-2">
