@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { LatestProductsStrip } from "@/components/ui/LatestProductsStrip";
 import { ProductCard } from "@/components/ui/ProductCard";
+import { ProductModal } from "@/components/ui/ProductModal";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
 import {
@@ -24,6 +25,7 @@ export default function HomePage() {
   const [likedProductIds, setLikedProductIds] = useState<Set<string>>(
     new Set(),
   );
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -221,12 +223,13 @@ export default function HomePage() {
                   <ProductCardSkeleton key={i} />
                 ))
               : filteredProducts.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    product={p}
-                    onNotifyMe={setNotifyProduct}
-                    isLiked={likedProductIds.has(p.id)}
-                  />
+                  <div key={p.id} onClick={() => setSelectedProduct(p)}>
+                    <ProductCard
+                      product={p}
+                      onNotifyMe={setNotifyProduct}
+                      isLiked={likedProductIds.has(p.id)}
+                    />
+                  </div>
                 ))}
           </div>
 
@@ -257,6 +260,11 @@ export default function HomePage() {
         product={notifyProduct}
         isOpen={!!notifyProduct}
         onClose={() => setNotifyProduct(null)}
+      />
+
+      <ProductModal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
       />
     </div>
   );

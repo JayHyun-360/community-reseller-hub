@@ -5,6 +5,7 @@ import { Search as SearchIcon, X, Filter } from "lucide-react";
 import { motion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
+import { ProductModal } from "@/components/ui/ProductModal";
 import { SellerCard } from "@/components/ui/SellerCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
@@ -26,6 +27,7 @@ export default function SearchPage() {
   const [likedProductIds, setLikedProductIds] = useState<Set<string>>(
     new Set(),
   );
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -231,12 +233,13 @@ export default function SearchPage() {
           >
             {tab === "products"
               ? (results as Product[]).map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    product={p}
-                    onNotifyMe={setNotifyProduct}
-                    isLiked={likedProductIds.has(p.id)}
-                  />
+                  <div key={p.id} onClick={() => setSelectedProduct(p)}>
+                    <ProductCard
+                      product={p}
+                      onNotifyMe={setNotifyProduct}
+                      isLiked={likedProductIds.has(p.id)}
+                    />
+                  </div>
                 ))
               : (results as any[]).map((s) => (
                   <SellerCard key={s.id} seller={s} />
@@ -273,6 +276,11 @@ export default function SearchPage() {
         product={notifyProduct}
         isOpen={!!notifyProduct}
         onClose={() => setNotifyProduct(null)}
+      />
+
+      <ProductModal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
       />
     </div>
   );
