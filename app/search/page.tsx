@@ -23,17 +23,37 @@ export default function SearchPage() {
   const [sellers, setSellers] = useState<Seller[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [likedProductIds, setLikedProductIds] = useState<Set<string>>(
+    new Set(),
+  );
   const supabase = createClient();
 
   useEffect(() => {
     async function fetchData() {
       setLoading(true);
       try {
-        const [productsRes, profilesRes, categoriesRes] = await Promise.all([
-          supabase.from("products").select("*"),
-          supabase.from("profiles").select("*"),
-          supabase.from("categories").select("*"),
-        ]);
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        const [productsRes, profilesRes, categoriesRes, favoritesRes] =
+          await Promise.all([
+            supabase.from("products").select("*"),
+            supabase.from("profiles").select("*"),
+            supabase.from("categories").select("*"),
+            user
+              ? supabase
+                  .from("favorites")
+                  .select("product_id")
+                  .eq("user_id", user.id)
+              : Promise.resolve({ data: [] }),
+          ]);
+
+        if (favoritesRes.data) {
+          setLikedProductIds(
+            new Set(favoritesRes.data.map((f: any) => f.product_id)),
+          );
+        }
 
         if (productsRes.data) {
           setProducts(
@@ -215,6 +235,7 @@ export default function SearchPage() {
                     key={p.id}
                     product={p}
                     onNotifyMe={setNotifyProduct}
+                    isLiked={likedProductIds.has(p.id)}
                   />
                 ))
               : (results as any[]).map((s) => (

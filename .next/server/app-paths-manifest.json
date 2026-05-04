@@ -1,13 +1,13 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/auth/callback/route": "app/auth/callback/route.js",
-  "/[username]/page": "app/[username]/page.js",
   "/account/page": "app/account/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/login/page": "app/login/page.js",
+  "/onboarding/page": "app/onboarding/page.js",
   "/search/page": "app/search/page.js",
-  "/dashboard/products/new/page": "app/dashboard/products/new/page.js",
-  "/dashboard/products/[id]/page": "app/dashboard/products/[id]/page.js",
   "/page": "app/page.js",
-  "/onboarding/page": "app/onboarding/page.js"
+  "/dashboard/products/[id]/page": "app/dashboard/products/[id]/page.js",
+  "/dashboard/products/new/page": "app/dashboard/products/new/page.js",
+  "/[username]/page": "app/[username]/page.js",
+  "/login/page": "app/login/page.js"
 }
