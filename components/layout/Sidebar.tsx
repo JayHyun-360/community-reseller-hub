@@ -113,14 +113,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               key={item.href}
               href={item.href}
               onClick={onClose}
-              className={`flex items-center justify-center gap-4 px-5 rounded-full transition-all duration-300 font-bold w-full h-12 box-border ${
+              className={`flex items-center gap-4 px-5 rounded-full transition-all duration-300 font-bold w-full h-12 box-border ${
                 isActive
                   ? "bg-zinc-900 text-white shadow-xl shadow-zinc-200"
                   : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
               }`}
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
-              <span className="text-[13px] tracking-wide truncate text-center">
+              <span className="text-[13px] tracking-wide truncate">
                 {item.label}
               </span>
             </Link>
