@@ -102,7 +102,7 @@ export function ProductCard({
       onMouseLeave={() => setIsHovered(false)}
       className="break-inside-avoid mb-3 md:mb-4 lg:mb-6 flex flex-col group cursor-zoom-in"
     >
-      <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-100 group-hover:brightness-90 transition-all duration-300">
+      <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-50 group-hover:brightness-90 transition-all duration-300">
         <img
           src={imgError ? fallbackImage : product.images[0]}
           alt={product.title}
