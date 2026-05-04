@@ -3,11 +3,11 @@
   "/auth/callback/route": "/auth/callback",
   "/[username]/page": "/[username]",
   "/dashboard/page": "/dashboard",
-  "/dashboard/products/new/page": "/dashboard/products/new",
   "/account/page": "/account",
-  "/dashboard/products/[id]/page": "/dashboard/products/[id]",
-  "/page": "/",
+  "/dashboard/products/new/page": "/dashboard/products/new",
   "/login/page": "/login",
+  "/dashboard/products/[id]/page": "/dashboard/products/[id]",
   "/search/page": "/search",
+  "/page": "/",
   "/onboarding/page": "/onboarding"
 }

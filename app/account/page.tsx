@@ -40,7 +40,7 @@ export default function AccountPage() {
       setLoading(false);
     }
     fetchData();
-  }, []);
+  }, [router, supabase]);
 
   const handleSave = async () => {
     if (!user || !profile) return;
