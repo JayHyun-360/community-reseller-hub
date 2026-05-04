@@ -24,7 +24,7 @@ export default function EditProductPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [user, setUser] = useState<any>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
