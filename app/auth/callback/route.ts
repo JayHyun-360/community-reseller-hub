@@ -24,27 +24,31 @@ export async function GET(request: Request) {
             cookieStore.set({ name, value: "", ...options });
           },
         },
-      }
+      },
     );
 
-    const { data: { user }, error } = await supabase.auth.exchangeCodeForSession(code);
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && user) {
-      // Check if user has a profile with role
+      // Check if user has a profile with onboarding_completed
       const { data: profile } = await supabase
         .from("profiles")
-        .select("role")
+        .select("role, onboarding_completed")
         .eq("id", user.id)
         .single();
 
-      // Redirect based on role
-      if (profile?.role === "seller") {
-        return NextResponse.redirect(`${origin}/dashboard`);
-      } else if (profile?.role === "user") {
-        return NextResponse.redirect(`${origin}/`);
-      } else {
+      // Redirect based on onboarding_completed
+      if (profile?.onboarding_completed === false) {
         // New user - go to onboarding
         return NextResponse.redirect(`${origin}/onboarding`);
+      } else if (profile?.role === "seller") {
+        return NextResponse.redirect(`${origin}/dashboard`);
+      } else {
+        // Customer user - go to home
+        return NextResponse.redirect(`${origin}/`);
       }
     }
   }

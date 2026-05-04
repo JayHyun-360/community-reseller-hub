@@ -36,7 +36,7 @@ export default function OnboardingPage() {
     setLoading(role);
     const { error } = await supabase
       .from("profiles")
-      .update({ role })
+      .update({ role, onboarding_completed: true })
       .eq("id", user.id);
 
     if (error) {
@@ -55,7 +55,7 @@ export default function OnboardingPage() {
 
     const { error } = await supabase
       .from("profiles")
-      .update({ role: "seller" })
+      .update({ role: "seller", onboarding_completed: true })
       .eq("id", user.id);
 
     if (error) {
