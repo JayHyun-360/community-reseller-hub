@@ -6,6 +6,10 @@ import { VerifiedSellersStrip } from "@/components/ui/VerifiedSellersStrip";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
+import {
+  ProductCardSkeleton,
+  TrendingCardSkeleton,
+} from "@/components/ui/Skeleton";
 import { Product, Seller, Category } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -135,29 +139,33 @@ export default function HomePage() {
             className="overflow-x-auto pb-8 hide-scrollbar scroll-smooth px-8"
           >
             <div className="flex gap-8">
-              {products.slice(0, 6).map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex-shrink-0 w-44 md:w-64 group cursor-pointer"
-                >
-                  <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-100 mb-4 shadow-xl shadow-zinc-200/50 group-hover:scale-[1.02] transition-transform duration-500">
-                    <img
-                      src={item.images[0]}
-                      alt={item.title}
-                      className="w-full h-full object-cover"
-                      referrerPolicy="no-referrer"
-                    />
-                  </div>
-                  <div className="px-2">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">
-                      Trending
-                    </p>
-                    <h4 className="text-sm font-bold text-zinc-900 truncate leading-none">
-                      {item.title}
-                    </h4>
-                  </div>
-                </div>
-              ))}
+              {loading
+                ? Array.from({ length: 4 }).map((_, i) => (
+                    <TrendingCardSkeleton key={i} />
+                  ))
+                : products.slice(0, 6).map((item, idx) => (
+                    <div
+                      key={idx}
+                      className="flex-shrink-0 w-44 md:w-64 group cursor-pointer"
+                    >
+                      <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-100 mb-4 shadow-xl shadow-zinc-200/50 group-hover:scale-[1.02] transition-transform duration-500">
+                        <img
+                          src={item.images[0]}
+                          alt={item.title}
+                          className="w-full h-full object-cover"
+                          referrerPolicy="no-referrer"
+                        />
+                      </div>
+                      <div className="px-2">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400 mb-1">
+                          Trending
+                        </p>
+                        <h4 className="text-sm font-bold text-zinc-900 truncate leading-none">
+                          {item.title}
+                        </h4>
+                      </div>
+                    </div>
+                  ))}
             </div>
           </div>
         </div>
@@ -187,14 +195,18 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-8 xl:gap-10 px-2 space-y-8">
-            {filteredProducts.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                onNotifyMe={setNotifyProduct}
-              />
-            ))}
+          <div className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-8 xl:gap-10 px-2 space-y-8">
+            {loading
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <ProductCardSkeleton key={i} />
+                ))
+              : filteredProducts.map((p) => (
+                  <ProductCard
+                    key={p.id}
+                    product={p}
+                    onNotifyMe={setNotifyProduct}
+                  />
+                ))}
           </div>
 
           {filteredProducts.length === 0 && (

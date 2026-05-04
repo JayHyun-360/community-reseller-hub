@@ -15,7 +15,7 @@ export function Skeleton({ className = "" }: SkeletonProps) {
 export function ProductCardSkeleton() {
   return (
     <div className="space-y-3">
-      <div className="aspect-[3/4] rounded-[1.5rem] overflow-hidden">
+      <div className="aspect-[4/5] rounded-[1.5rem] overflow-hidden">
         <Skeleton className="w-full h-full rounded-[1.5rem]" />
       </div>
       <div className="space-y-2 px-1">
@@ -98,6 +98,20 @@ export function FormFieldSkeleton() {
     <div className="space-y-2">
       <Skeleton className="h-3 w-24 rounded-full" />
       <Skeleton className="h-12 w-full rounded-xl" />
+    </div>
+  );
+}
+
+export function TrendingCardSkeleton() {
+  return (
+    <div className="flex-shrink-0 w-44 md:w-64">
+      <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-100 mb-4">
+        <Skeleton className="w-full h-full rounded-[2rem]" />
+      </div>
+      <div className="px-2 space-y-2">
+        <Skeleton className="h-2 w-12 rounded-full" />
+        <Skeleton className="h-3 w-3/4 rounded-full" />
+      </div>
     </div>
   );
 }

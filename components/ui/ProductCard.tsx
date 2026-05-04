@@ -70,13 +70,15 @@ export function ProductCard({
       onMouseLeave={() => setIsHovered(false)}
       className="break-inside-avoid mb-6 flex flex-col group cursor-zoom-in"
     >
-      <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-100 group-hover:brightness-90 transition-all duration-300">
+      <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-100 group-hover:brightness-90 transition-all duration-300 aspect-[4/5]">
         <img
           src={imgError ? fallbackImage : product.images[0]}
           alt={product.title}
-          className="w-full h-auto block transform group-hover:scale-105 transition-transform duration-700"
+          className="w-full h-full object-cover block transform group-hover:scale-105 transition-transform duration-700"
           referrerPolicy="no-referrer"
           onError={() => setImgError(true)}
+          loading="lazy"
+          decoding="async"
         />
 
         <div

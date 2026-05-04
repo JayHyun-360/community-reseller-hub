@@ -8,6 +8,10 @@ import { ProductCard } from "@/components/ui/ProductCard";
 import { SellerCard } from "@/components/ui/SellerCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
+import {
+  ProductCardSkeleton,
+  SellerCardSkeleton,
+} from "@/components/ui/Skeleton";
 import { Product, Seller, Category } from "@/lib/types";
 
 export default function SearchPage() {
@@ -190,8 +194,14 @@ export default function SearchPage() {
         )}
       </div>
 
-      <div className="mt-8">
-        {results.length > 0 ? (
+      <div className="mt-8 min-h-[40vh]">
+        {loading ? (
+          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-6 space-y-6">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <ProductCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : results.length > 0 ? (
           <div
             className={
               tab === "products"

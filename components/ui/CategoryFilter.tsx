@@ -17,7 +17,7 @@ export function CategoryFilter({
 }: CategoryFilterProps) {
   return (
     <div
-      className={`flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar ${className}`}
+      className={`flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar min-h-[44px] ${className}`}
     >
       {categories.map((cat) => (
         <button
