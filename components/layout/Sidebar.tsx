@@ -113,18 +113,16 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               key={item.href}
               href={item.href}
               onClick={onClose}
-              className={`flex items-center justify-between gap-4 px-5 py-3.5 rounded-full transition-all duration-300 font-bold w-full h-12 ${
+              className={`flex items-center justify-center gap-4 px-5 rounded-full transition-all duration-300 font-bold w-full h-12 box-border ${
                 isActive
                   ? "bg-zinc-900 text-white shadow-xl shadow-zinc-200"
                   : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
               }`}
             >
-              <div className="flex items-center gap-4">
-                <item.icon className="w-5 h-5 flex-shrink-0" />
-                <span className="text-[13px] tracking-wide truncate">
-                  {item.label}
-                </span>
-              </div>
+              <item.icon className="w-5 h-5 flex-shrink-0" />
+              <span className="text-[13px] tracking-wide truncate text-center">
+                {item.label}
+              </span>
             </Link>
           );
         })}
