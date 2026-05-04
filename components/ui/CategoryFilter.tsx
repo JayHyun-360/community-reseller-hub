@@ -85,7 +85,7 @@ export function CategoryFilter({
         </button>
       )}
 
-      {hasMoreCategories && (
+      {hasMoreCategories && onBrowseMore && (
         <button
           onClick={onBrowseMore}
           className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 font-black text-[11px] uppercase tracking-wider bg-zinc-100 text-zinc-400 hover:bg-zinc-200"
