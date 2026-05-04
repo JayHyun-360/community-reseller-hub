@@ -30,5 +30,22 @@ export interface Product {
   status?: string;
   isFeatured: boolean;
   likeCount: number;
+  viewCount?: number;
+  tags?: string[];
   createdAt: string;
+}
+
+export type CategoryFilterType =
+  | "all"
+  | "suggested"
+  | "trending"
+  | "category"
+  | "browse";
+
+export interface CategoryFilterItem {
+  id: string;
+  type: CategoryFilterType;
+  name: string;
+  emoji?: string;
+  productCount?: number;
 }

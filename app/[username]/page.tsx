@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
+import { BrowseMoreSheet } from "@/components/ui/BrowseMoreSheet";
 import { Button } from "@/components/ui/Button";
 import { Share2, MessageCircle, Phone as WhatsApp } from "lucide-react";
 import { Product, Seller, Category } from "@/lib/types";
@@ -16,7 +17,8 @@ export default function StorefrontPage({
 }) {
   const { username } = use(params);
   const router = useRouter();
-  const [selectedCat, setSelectedCat] = useState("cat1");
+  const [selectedCat, setSelectedCat] = useState("all");
+  const [showBrowseMore, setShowBrowseMore] = useState(false);
   const [seller, setSeller] = useState<Seller | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -80,10 +82,14 @@ export default function StorefrontPage({
     return null;
   }
 
-  const filteredProducts =
-    selectedCat === "cat1"
-      ? products
-      : products.filter((p) => p.categoryId === selectedCat);
+  const getFilteredProducts = () => {
+    if (selectedCat === "all") {
+      return products;
+    }
+    return products.filter((p) => p.categoryId === selectedCat);
+  };
+
+  const filteredProducts = getFilteredProducts();
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -197,6 +203,8 @@ export default function StorefrontPage({
             categories={categories}
             selectedId={selectedCat}
             onSelect={setSelectedCat}
+            onBrowseMore={() => setShowBrowseMore(true)}
+            showVirtualCategories={false}
           />
         </div>
 
@@ -212,6 +220,13 @@ export default function StorefrontPage({
           </div>
         )}
       </div>
+
+      <BrowseMoreSheet
+        categories={categories}
+        isOpen={showBrowseMore}
+        onClose={() => setShowBrowseMore(false)}
+        onSelectCategory={(id) => setSelectedCat(id)}
+      />
     </div>
   );
 }

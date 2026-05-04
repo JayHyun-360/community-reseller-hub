@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/ui/ProductCard";
 import { ProductModal } from "@/components/ui/ProductModal";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
+import { BrowseMoreSheet } from "@/components/ui/BrowseMoreSheet";
 import {
   ProductCardSkeleton,
   TrendingCardSkeleton,
@@ -16,7 +17,11 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // Home page - NearByt
 export default function HomePage() {
-  const [selectedCat, setSelectedCat] = useState("cat1");
+  const [selectedCat, setSelectedCat] = useState("all");
+  const [showBrowseMore, setShowBrowseMore] = useState(false);
+  const [suggestedCategoryIds, setSuggestedCategoryIds] = useState<string[]>(
+    [],
+  );
   const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [sellers, setSellers] = useState<Seller[]>([]);
@@ -74,7 +79,9 @@ export default function HomePage() {
             stockQty: p.stock_qty,
             status: p.status,
             isFeatured: p.is_featured,
+            likeCount: p.like_count || 0,
             viewCount: p.view_count,
+            tags: p.tags || [],
             createdAt: p.created_at,
           })),
         );
@@ -98,14 +105,16 @@ export default function HomePage() {
       }
 
       if (categoriesRes.data) {
-        setCategories(
-          categoriesRes.data.map((c) => ({
-            id: c.id,
-            name: c.name,
-            emoji: c.emoji,
-            productCount: c.product_count,
-          })),
-        );
+        const cats = categoriesRes.data.map((c) => ({
+          id: c.id,
+          name: c.name,
+          emoji: c.emoji,
+          productCount: c.product_count,
+        }));
+        setCategories(cats);
+        if (cats.length >= 3) {
+          setSuggestedCategoryIds([cats[0].id, cats[1].id, cats[2].id]);
+        }
       }
 
       setLoading(false);
@@ -114,10 +123,27 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  const filteredProducts =
-    selectedCat === "cat1" || !selectedCat
-      ? products
-      : products.filter((p) => p.categoryId === selectedCat);
+  const getFilteredProducts = () => {
+    switch (selectedCat) {
+      case "all":
+        return products;
+      case "suggested":
+        if (suggestedCategoryIds.length > 0) {
+          return products.filter((p) =>
+            suggestedCategoryIds.includes(p.categoryId),
+          );
+        }
+        return products.slice(0, 8);
+      case "trending":
+        return [...products]
+          .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+          .slice(0, 12);
+      default:
+        return products.filter((p) => p.categoryId === selectedCat);
+    }
+  };
+
+  const filteredProducts = getFilteredProducts();
 
   const scrollTrending = (direction: "left" | "right") => {
     if (trendingRef.current) {
@@ -213,6 +239,7 @@ export default function HomePage() {
                 categories={categories}
                 selectedId={selectedCat}
                 onSelect={setSelectedCat}
+                onBrowseMore={() => setShowBrowseMore(true)}
               />
             </div>
           </div>
@@ -265,6 +292,13 @@ export default function HomePage() {
       <ProductModal
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
+      />
+
+      <BrowseMoreSheet
+        categories={categories}
+        isOpen={showBrowseMore}
+        onClose={() => setShowBrowseMore(false)}
+        onSelectCategory={(id) => setSelectedCat(id)}
       />
     </div>
   );
