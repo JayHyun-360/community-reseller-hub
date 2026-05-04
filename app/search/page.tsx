@@ -86,11 +86,8 @@ export default function SearchPage() {
                 fullName: s.full_name,
                 avatarUrl: s.avatar_url,
                 role: s.role,
-                trustScore: s.trust_score,
-                trustTier: s.trust_tier,
                 whatsappNum: s.whatsapp_num,
                 messengerUrl: s.messenger_url,
-                primaryColor: s.primary_color,
               })),
           );
         }

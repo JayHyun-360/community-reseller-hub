@@ -46,11 +46,7 @@ export default function HomePage() {
             .from("products")
             .select("*")
             .order("created_at", { ascending: false }),
-          supabase
-            .from("profiles")
-            .select("*")
-            .eq("role", "seller")
-            .order("trust_score", { ascending: false }),
+          supabase.from("profiles").select("*"),
           supabase.from("categories").select("*"),
           user
             ? supabase
@@ -60,7 +56,7 @@ export default function HomePage() {
             : Promise.resolve({ data: [] }),
         ]);
 
-      if (favoritesRes.data) {
+      if (!favoritesRes.error && favoritesRes.data) {
         setLikedProductIds(
           new Set(favoritesRes.data.map((f: any) => f.product_id)),
         );
@@ -95,11 +91,8 @@ export default function HomePage() {
             fullName: s.full_name,
             avatarUrl: s.avatar_url,
             role: s.role,
-            trustScore: s.trust_score,
-            trustTier: s.trust_tier,
             whatsappNum: s.whatsapp_num,
             messengerUrl: s.messenger_url,
-            primaryColor: s.primary_color,
           })),
         );
       }

@@ -56,24 +56,13 @@ export function VerifiedSellersStrip({ sellers }: VerifiedSellersStripProps) {
             whileTap={{ scale: 0.95 }}
             className="flex flex-col items-center gap-3 flex-shrink-0 cursor-pointer"
           >
-            <div
-              className={`relative w-20 h-20 rounded-full p-1 border-2 ${
-                seller.trustTier === "Elite"
-                  ? "border-zinc-900"
-                  : "border-zinc-100"
-              }`}
-            >
+            <div className="relative w-20 h-20 rounded-full p-1 border-2 border-zinc-100">
               <img
                 src={seller.avatarUrl}
                 alt={seller.displayName}
                 className="w-full h-full rounded-full object-cover border-4 border-white"
                 referrerPolicy="no-referrer"
               />
-              {seller.trustTier === "elite" && (
-                <div className="absolute -bottom-1 -right-1 bg-zinc-900 p-1.5 rounded-full border-2 border-white shadow-md">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full"></div>
-                </div>
-              )}
             </div>
             <div className="flex flex-col items-center">
               <span className="text-[11px] font-black text-zinc-900 text-center leading-tight max-w-[80px] line-clamp-1">

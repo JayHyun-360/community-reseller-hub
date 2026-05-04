@@ -1,14 +1,12 @@
 "use client";
 
-import { TrustTier } from "@/lib/types";
-
 interface TrustBadgeProps {
-  tier: TrustTier;
+  tier: string;
   className?: string;
 }
 
 export function TrustBadge({ tier, className = "" }: TrustBadgeProps) {
-  const normalizedTier = (tier || "").toLowerCase() as TrustTier;
+  const normalizedTier = (tier || "").toLowerCase();
   const config = {
     new: {
       emoji: "&#127999;",
