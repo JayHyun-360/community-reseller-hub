@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { ShoppingBag, Store, ArrowRight, X, Check } from "lucide-react";
@@ -9,11 +9,13 @@ import { motion } from "motion/react";
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [loading, setLoading] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [showPolicy, setShowPolicy] = useState(false);
   const [policyAccepted, setPolicyAccepted] = useState(false);
+  const isUpgrade = searchParams.get("upgrade") === "true";
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => {
@@ -22,8 +24,11 @@ export default function OnboardingPage() {
         return;
       }
       setUser(user);
+      if (isUpgrade) {
+        setShowPolicy(true);
+      }
     });
-  }, [router, supabase]);
+  }, [router, supabase, isUpgrade]);
 
   const handleSelectRole = async (role: "user" | "seller") => {
     if (!user) return;

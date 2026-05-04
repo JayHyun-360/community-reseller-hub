@@ -74,22 +74,8 @@ export default function AccountPage() {
     router.refresh();
   };
 
-  const handleBecomeSeller = async () => {
-    if (!user) return;
-    setSaving(true);
-
-    const { error } = await supabase
-      .from("profiles")
-      .update({ role: "seller" })
-      .eq("id", user.id);
-
-    if (error) {
-      setMessage("Error: " + error.message);
-    } else {
-      setIsSeller(true);
-      setMessage("You're now a seller! You can now add products.");
-    }
-    setSaving(false);
+  const handleBecomeSeller = () => {
+    router.push("/onboarding?upgrade=true");
   };
 
   if (loading) {
