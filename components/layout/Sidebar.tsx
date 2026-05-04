@@ -71,7 +71,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               href: "/account",
               icon: Store,
               label: "Become a Seller",
-              isCta: true,
             },
           ]
         : [
@@ -79,7 +78,6 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               href: "/login",
               icon: Store,
               label: "Become a Seller",
-              isCta: true,
             },
           ]),
   ];
