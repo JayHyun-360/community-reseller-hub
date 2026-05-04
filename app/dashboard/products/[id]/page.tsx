@@ -7,7 +7,14 @@ import { getImageForProduct } from "@/lib/mock-data";
 import { Product, Category } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/ui/ProductCard";
-import { Camera, ChevronDown, Upload, X, Loader2, ArrowLeft } from "lucide-react";
+import {
+  Camera,
+  ChevronDown,
+  Upload,
+  X,
+  Loader2,
+  ArrowLeft,
+} from "lucide-react";
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -107,7 +114,7 @@ export default function EditProductPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSave = async (asDraft: boolean) => {
+  const handleSave = async () => {
     if (!validateForm()) return;
     if (!user) return;
 
@@ -123,7 +130,6 @@ export default function EditProductPage() {
           stock_qty: Number(formData.stockQty) || 0,
           location: formData.location || null,
           available_from: formData.availableFrom || null,
-          status: asDraft ? "draft" : "available",
           is_featured: formData.isFeatured,
           images:
             formData.images.length > 0
@@ -432,17 +438,17 @@ export default function EditProductPage() {
             <Button
               variant="outline"
               className="flex-1"
-              onClick={() => handleSave(true)}
+              onClick={() => router.push("/dashboard")}
               disabled={saving}
             >
-              {saving ? "Saving..." : "Save as Draft"}
+              Discard
             </Button>
             <Button
               className="flex-1"
-              onClick={() => handleSave(false)}
+              onClick={() => handleSave()}
               disabled={saving}
             >
-              {saving ? "Publishing..." : "Publish Listing"}
+              {saving ? "Saving..." : "Save"}
             </Button>
           </div>
         </div>
