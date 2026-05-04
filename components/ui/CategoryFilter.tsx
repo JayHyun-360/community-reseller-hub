@@ -32,8 +32,9 @@ export function CategoryFilter({
   showVirtualCategories = true,
   className = "",
 }: CategoryFilterProps) {
-  const visibleCategories = categories.slice(0, 5);
-  const hasMoreCategories = categories.length > 5;
+  const visibleCategories = categories.length > 0 ? categories.slice(0, 4) : [];
+  const hasMoreCategories = categories.length > 4;
+  const showAllFallback = categories.length === 0 && !showVirtualCategories;
 
   return (
     <div
@@ -69,6 +70,20 @@ export function CategoryFilter({
           <span className="whitespace-nowrap">{cat.name}</span>
         </button>
       ))}
+
+      {showAllFallback && (
+        <button
+          onClick={() => onSelect("all")}
+          className={`flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full transition-all duration-300 font-black text-[11px] uppercase tracking-wider ${
+            selectedId === "all"
+              ? "bg-zinc-900 text-white shadow-lg"
+              : "bg-white text-zinc-500 hover:bg-zinc-100"
+          }`}
+        >
+          <span>✨</span>
+          <span className="whitespace-nowrap">All Items</span>
+        </button>
+      )}
 
       {hasMoreCategories && (
         <button

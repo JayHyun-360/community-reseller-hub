@@ -18,7 +18,7 @@ import { Product, Seller, Category } from "@/lib/types";
 export default function SearchPage() {
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<"products" | "sellers">("products");
-  const [selectedCat, setSelectedCat] = useState("cat1");
+  const [selectedCat, setSelectedCat] = useState("all");
   const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [sellers, setSellers] = useState<Seller[]>([]);
@@ -123,7 +123,7 @@ export default function SearchPage() {
           p.title.toLowerCase().includes(q) ||
           p.description.toLowerCase().includes(q),
       );
-      if (selectedCat !== "cat1") {
+      if (selectedCat !== "all") {
         items = items.filter((p) => p.categoryId === selectedCat);
       }
       return items;
@@ -262,7 +262,7 @@ export default function SearchPage() {
             <button
               onClick={() => {
                 setQuery("");
-                setSelectedCat("cat1");
+                setSelectedCat("all");
               }}
               className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-colors"
             >
