@@ -285,6 +285,7 @@ export default function HomePage() {
       <ProductModal
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
+        onProductClick={setSelectedProduct}
       />
 
       <BrowseMoreSheet

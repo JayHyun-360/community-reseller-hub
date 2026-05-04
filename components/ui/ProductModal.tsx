@@ -13,10 +13,12 @@ import {
   X,
   ExternalLink,
 } from "lucide-react";
+import { ProductCard } from "./ProductCard";
 
 interface ProductModalProps {
   product: Product | null;
   onClose: () => void;
+  onProductClick?: (product: Product) => void;
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -34,7 +36,11 @@ function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString();
 }
 
-export function ProductModal({ product, onClose }: ProductModalProps) {
+export function ProductModal({
+  product,
+  onClose,
+  onProductClick,
+}: ProductModalProps) {
   const router = useRouter();
   const supabase = createClient();
   const [seller, setSeller] = useState<Seller | null>(null);
@@ -42,6 +48,7 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
   const [likeCount, setLikeCount] = useState(product?.likeCount || 0);
   const [imgError, setImgError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     if (!product) return;
@@ -81,6 +88,39 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
       }
     });
   }, [product, supabase]);
+
+  useEffect(() => {
+    if (!product?.categoryId) return;
+
+    supabase
+      .from("products")
+      .select("*")
+      .eq("category_id", product.categoryId)
+      .neq("id", product.id)
+      .eq("status", "active")
+      .limit(6)
+      .then(({ data }) => {
+        if (data) {
+          setRelatedProducts(
+            data.map((p) => ({
+              id: p.id,
+              sellerId: p.seller_id,
+              categoryId: p.category_id,
+              title: p.title,
+              description: p.description || "",
+              price: p.price,
+              images: p.images || [],
+              stockQty: p.stock_qty,
+              status: p.status,
+              isFeatured: p.is_featured || false,
+              likeCount: p.like_count || 0,
+              tags: p.tags,
+              createdAt: p.created_at,
+            })),
+          );
+        }
+      });
+  }, [product?.categoryId, supabase]);
 
   const handleLike = async () => {
     const {
@@ -303,6 +343,28 @@ export function ProductModal({ product, onClose }: ProductModalProps) {
                 </button>
               </div>
             </div>
+
+            {relatedProducts.length > 0 && (
+              <div className="pt-6 mt-6 border-t border-zinc-100">
+                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-wider mb-4">
+                  More like this
+                </h3>
+                <div className="flex gap-3 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+                  {relatedProducts.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex-shrink-0 w-32 cursor-pointer"
+                      onClick={() => {
+                        onClose();
+                        onProductClick?.(p);
+                      }}
+                    >
+                      <ProductCard product={p} showSeller={false} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </motion.div>
       </motion.div>

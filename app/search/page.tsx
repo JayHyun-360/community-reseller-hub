@@ -279,6 +279,7 @@ export default function SearchPage() {
       <ProductModal
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
+        onProductClick={setSelectedProduct}
       />
     </div>
   );
