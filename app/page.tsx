@@ -237,7 +237,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 md:gap-6 lg:gap-8 xl:gap-10 px-2 space-y-4 md:space-y-6 lg:space-y-8">
+          <div className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-3 md:gap-4 lg:gap-6 xl:gap-8 px-2 space-y-3 md:space-y-4 lg:space-y-6">
             {loading
               ? Array.from({ length: 8 }).map((_, i) => (
                   <ProductCardSkeleton key={i} />
