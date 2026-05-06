@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
+import { LocationInput } from "@/components/ui/LocationInput";
 import { Camera, Save, LogOut } from "lucide-react";
 
 export default function AccountPage() {
@@ -57,6 +58,8 @@ export default function AccountPage() {
         messenger_url: profile.messenger_url,
         avatar_url: profile.avatar_url,
         location: profile.location,
+        latitude: profile.latitude,
+        longitude: profile.longitude,
       })
       .eq("id", user.id);
 
@@ -270,14 +273,17 @@ export default function AccountPage() {
                 <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
                   Location
                 </label>
-                <input
-                  type="text"
+                <LocationInput
                   value={profile?.location || ""}
-                  onChange={(e) =>
-                    setProfile({ ...profile, location: e.target.value })
+                  onChange={(location, lat, lng) =>
+                    setProfile({
+                      ...profile,
+                      location,
+                      latitude: lat,
+                      longitude: lng,
+                    })
                   }
-                  placeholder="Add your location so buyers can find you"
-                  className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
+                  placeholder="Search your location..."
                 />
               </div>
             </>

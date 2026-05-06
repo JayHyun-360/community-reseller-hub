@@ -7,6 +7,7 @@ import { getImageForProduct } from "@/lib/mock-data";
 import { Product, Category } from "@/lib/types";
 import { Button } from "@/components/ui/Button";
 import { ProductCard } from "@/components/ui/ProductCard";
+import { LocationInput } from "@/components/ui/LocationInput";
 import {
   Camera,
   ChevronDown,
@@ -35,6 +36,8 @@ export default function EditProductPage() {
     price: "",
     stockQty: "",
     location: "",
+    latitude: null as number | null,
+    longitude: null as number | null,
     availableFrom: "",
     isFeatured: false,
     images: [] as string[],
@@ -90,6 +93,8 @@ export default function EditProductPage() {
           price: product.price?.toString() || "",
           stockQty: product.stock_qty?.toString() || "",
           location: product.location || "",
+          latitude: product.latitude || null,
+          longitude: product.longitude || null,
           availableFrom: product.available_from || "",
           isFeatured: product.is_featured || false,
           images: product.images || [],
@@ -127,6 +132,8 @@ export default function EditProductPage() {
         price: Number(formData.price),
         stock_qty: Number(formData.stockQty) || 0,
         location: formData.location || null,
+        latitude: formData.latitude,
+        longitude: formData.longitude,
         available_from: formData.availableFrom || null,
         is_featured: formData.isFeatured,
         images:
@@ -403,14 +410,17 @@ export default function EditProductPage() {
               <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest pl-1">
                 Location <span className="text-zinc-300">(optional)</span>
               </label>
-              <input
-                type="text"
+              <LocationInput
                 value={formData.location}
-                onChange={(e) =>
-                  setFormData({ ...formData, location: e.target.value })
+                onChange={(location, lat, lng) =>
+                  setFormData({
+                    ...formData,
+                    location,
+                    latitude: lat,
+                    longitude: lng,
+                  })
                 }
-                placeholder="e.g. Quezon City, Manila"
-                className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-900 outline-none transition-all"
+                placeholder="Search product location..."
               />
             </div>
 
