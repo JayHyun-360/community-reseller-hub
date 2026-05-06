@@ -14,8 +14,13 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [originalProfile, setOriginalProfile] = useState<any>(null);
   const [isSeller, setIsSeller] = useState(false);
   const [message, setMessage] = useState("");
+
+  const hasChanges =
+    originalProfile &&
+    JSON.stringify(profile) !== JSON.stringify(originalProfile);
 
   useEffect(() => {
     async function fetchData() {
@@ -36,6 +41,7 @@ export default function AccountPage() {
 
       if (data) {
         setProfile(data);
+        setOriginalProfile(data);
         setIsSeller(data.role === "seller");
       }
       setLoading(false);
@@ -67,6 +73,7 @@ export default function AccountPage() {
       setMessage("Error: " + error.message);
     } else {
       setMessage("Saved successfully!");
+      setOriginalProfile({ ...profile });
     }
     setSaving(false);
   };
@@ -290,25 +297,27 @@ export default function AccountPage() {
           )}
 
           {/* Save Button */}
-          <div className="pt-4">
-            <Button
-              onClick={handleSave}
-              disabled={saving}
-              fullWidth
-              size="lg"
-              className="bg-zinc-900 text-white rounded-full py-6 font-black uppercase tracking-widest text-xs hover:bg-zinc-800 shadow-xl shadow-zinc-200"
-            >
-              <Save className="w-5 h-5 mr-2" />
-              {saving ? "Saving..." : "Save Changes"}
-            </Button>
-            {message && (
-              <p
-                className={`text-center mt-4 text-sm font-bold ${message.includes("Error") ? "text-red-500" : "text-green-500"}`}
+          {hasChanges && (
+            <div className="pt-4">
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                fullWidth
+                size="lg"
+                className="bg-zinc-900 text-white rounded-full py-6 font-black uppercase tracking-widest text-xs hover:bg-zinc-800 shadow-xl shadow-zinc-200"
               >
-                {message}
-              </p>
-            )}
-          </div>
+                <Save className="w-5 h-5 mr-2" />
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
+              {message && (
+                <p
+                  className={`text-center mt-4 text-sm font-bold ${message.includes("Error") ? "text-red-500" : "text-green-500"}`}
+                >
+                  {message}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
