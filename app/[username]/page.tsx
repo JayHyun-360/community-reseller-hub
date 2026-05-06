@@ -225,18 +225,35 @@ export default function StorefrontPage({
                 </Button>
               )}
               {seller.whatsappNum && (
-                <Button
-                  fullWidth
-                  size="lg"
-                  variant="outline"
-                  leftIcon={<WhatsApp className="w-5 h-5 text-[#25D366]" />}
-                  className="rounded-3xl border-zinc-200 text-zinc-600"
-                  onClick={() =>
-                    window.open(`https://wa.me/${seller.whatsappNum}`, "_blank")
-                  }
-                >
-                  Chat on WhatsApp
-                </Button>
+                <div className="flex gap-2 w-full">
+                  <Button
+                    fullWidth
+                    size="lg"
+                    variant="outline"
+                    leftIcon={<WhatsApp className="w-5 h-5 text-[#25D366]" />}
+                    className="rounded-3xl border-zinc-200 text-zinc-600 flex-1"
+                    onClick={() =>
+                      window.open(
+                        `https://wa.me/${seller.whatsappNum}`,
+                        "_blank",
+                      )
+                    }
+                  >
+                    Chat on WhatsApp
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="rounded-3xl border-zinc-200 text-zinc-600 px-4"
+                    onClick={() => {
+                      navigator.clipboard.writeText(seller.whatsappNum || "");
+                      alert("Number copied!");
+                    }}
+                    title="Copy number"
+                  >
+                    📋
+                  </Button>
+                </div>
               )}
             </div>
 

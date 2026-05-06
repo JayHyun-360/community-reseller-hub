@@ -240,9 +240,13 @@ export default function AccountPage() {
                   onChange={(e) =>
                     setProfile({ ...profile, whatsapp_num: e.target.value })
                   }
-                  placeholder="Add your phone number so anyone can contact you"
+                  placeholder="+639123456789"
                   className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
                 />
+                <p className="mt-2 text-[10px] text-zinc-400">
+                  Use a business number if possible — this will be shared with
+                  customers.
+                </p>
               </div>
 
               {/* Messenger */}
