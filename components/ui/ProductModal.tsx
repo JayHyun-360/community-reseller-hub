@@ -217,8 +217,8 @@ export function ProductModal({
             <X className="w-5 h-5 text-zinc-900" />
           </button>
 
-          <div className="relative w-full md:w-1/2 bg-zinc-100">
-            <div className="aspect-[4/5] md:h-full">
+          <div className="relative w-full md:w-1/2 bg-zinc-100 flex-shrink-0">
+            <div className="aspect-[4/5] md:aspect-auto md:h-full md:min-h-[500px]">
               <img
                 src={imgError ? fallbackImage : images[currentImageIndex]}
                 alt={product.title}
@@ -267,8 +267,8 @@ export function ProductModal({
             )}
           </div>
 
-          <div className="w-full md:w-1/2 p-6 flex flex-col overflow-y-auto">
-            <div className="flex-1 space-y-4">
+          <div className="w-full md:w-1/2 p-6 flex flex-col overflow-y-auto max-h-[50vh] md:max-h-none">
+            <div className="space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <h2 className="text-xl font-black text-zinc-900">
                   {product.title}
