@@ -56,6 +56,22 @@ export function ProductModal({
     setLikeCount(product?.likeCount || 0);
   }, [product?.likeCount]);
 
+  // Fetch fresh product data when modal opens
+  useEffect(() => {
+    if (!product) return;
+
+    supabase
+      .from("products")
+      .select("like_count")
+      .eq("id", product.id)
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setLikeCount(data.like_count || 0);
+        }
+      });
+  }, [product?.id, supabase]);
+
   useEffect(() => {
     if (!product) return;
 
