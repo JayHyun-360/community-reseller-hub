@@ -213,15 +213,17 @@ export default function StorefrontPage({
             </p>
 
             <div className="mt-10 flex flex-wrap justify-center gap-4 w-full max-w-md">
-              <Button
-                fullWidth
-                size="lg"
-                leftIcon={<MessageCircle className="w-5 h-5" />}
-                className="bg-[#0084FF] text-white hover:bg-[#0084FF]/90 rounded-3xl"
-                onClick={() => window.open(seller.messengerUrl, "_blank")}
-              >
-                Message on Messenger
-              </Button>
+              {seller.messengerUrl && (
+                <Button
+                  fullWidth
+                  size="lg"
+                  leftIcon={<MessageCircle className="w-5 h-5" />}
+                  className="bg-[#0084FF] text-white hover:bg-[#0084FF]/90 rounded-3xl"
+                  onClick={() => window.open(seller.messengerUrl, "_blank")}
+                >
+                  Message on Messenger
+                </Button>
+              )}
               {seller.whatsappNum && (
                 <Button
                   fullWidth
