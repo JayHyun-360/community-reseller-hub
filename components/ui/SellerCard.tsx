@@ -14,7 +14,7 @@ export function SellerCard({ seller, className = "" }: SellerCardProps) {
   const avatarUrl = seller.avatarUrl || "https://picsum.photos/200";
 
   return (
-    <Link href={`/${seller.username}`}>
+    <Link href={`/${encodeURIComponent(seller.username)}`}>
       <motion.div
         whileHover={{ y: -4 }}
         className={`bg-white border border-zinc-200 rounded-[2rem] p-6 flex flex-col gap-4 hover:shadow-lg transition-all cursor-pointer ${className}`}

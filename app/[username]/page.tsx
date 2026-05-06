@@ -24,17 +24,46 @@ export default function StorefrontPage({
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isNotSeller, setIsNotSeller] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
     async function fetchData() {
+      const decodedUsername = decodeURIComponent(username);
+
+      if (!decodedUsername || decodedUsername.trim() === "") {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+
       const [sellerRes, productsRes, categoriesRes] = await Promise.all([
-        supabase.from("profiles").select("*").eq("username", username).single(),
+        supabase
+          .from("profiles")
+          .select("*")
+          .ilike("username", decodedUsername)
+          .single(),
         supabase.from("products").select("*"),
         supabase.from("categories").select("*"),
       ]);
 
+      if (sellerRes.error) {
+        if (sellerRes.error.code === "PGRST116") {
+          setNotFound(true);
+        } else {
+          setError("Failed to load seller profile. Please try again.");
+        }
+        setLoading(false);
+        return;
+      }
+
       if (sellerRes.data) {
+        if (sellerRes.data.role !== "seller") {
+          setIsNotSeller(true);
+          setLoading(false);
+          return;
+        }
         setSeller({
           id: sellerRes.data.id,
           username: sellerRes.data.username,
@@ -45,8 +74,6 @@ export default function StorefrontPage({
           whatsappNum: sellerRes.data.whatsapp_num,
           messengerUrl: sellerRes.data.messenger_url,
         });
-      } else if (sellerRes.error?.code === "PGRST116") {
-        setNotFound(true);
       }
       setLoading(false);
 
@@ -89,6 +116,30 @@ export default function StorefrontPage({
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
           <p className="text-sm font-medium text-zinc-400">Loading store...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <h1 className="text-4xl font-black text-zinc-900">Error</h1>
+          <p className="mt-2 text-zinc-500">{error}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isNotSeller) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <h1 className="text-4xl font-black text-zinc-900">Not a Seller</h1>
+          <p className="mt-2 text-zinc-500">
+            This user hasn't set up a seller store yet.
+          </p>
         </div>
       </div>
     );
