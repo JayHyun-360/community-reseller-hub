@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Bell, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
@@ -13,9 +14,10 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const supabase = createClient();
 
-  useEffect(() => {
+  const fetchNotifications = () => {
     if (userId) {
       supabase
         .from("notifications")
@@ -27,9 +29,41 @@ export function NotificationBell({ userId }: NotificationBellProps) {
           if (data) setNotifications(data);
         });
     }
+  };
+
+  useEffect(() => {
+    fetchNotifications();
   }, [userId]);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  const handleNotificationClick = async (notif: any) => {
+    if (!notif.is_read) {
+      await supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", notif.id);
+      fetchNotifications();
+    }
+    if (notif.product_id) {
+      setIsOpen(false);
+      router.push(`/?product=${notif.product_id}`);
+    }
+  };
+
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+    if (diffMins < 1) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+    return date.toLocaleDateString();
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -83,31 +117,40 @@ export function NotificationBell({ userId }: NotificationBellProps) {
               </div>
 
               <div className="max-h-80 overflow-y-auto">
-                {notifications.map((notif) => (
-                  <div
-                    key={notif.id}
-                    className={`p-4 border-b border-zinc-50 hover:bg-zinc-50 transition-colors cursor-pointer ${
-                      notif.unread ? "bg-indigo-50/50" : ""
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex-1">
-                        <p className="text-xs font-bold text-zinc-900">
-                          {notif.title}
-                        </p>
-                        <p className="text-[11px] text-zinc-500 mt-0.5">
-                          {notif.message}
-                        </p>
-                        <p className="text-[10px] text-zinc-400 mt-1">
-                          {notif.time}
-                        </p>
-                      </div>
-                      {notif.unread && (
-                        <div className="w-2 h-2 bg-indigo-600 rounded-full flex-shrink-0 mt-1" />
-                      )}
-                    </div>
+                {notifications.length === 0 ? (
+                  <div className="p-8 text-center">
+                    <p className="text-sm text-zinc-400">
+                      No notifications yet
+                    </p>
                   </div>
-                ))}
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotificationClick(notif)}
+                      className={`p-4 border-b border-zinc-50 hover:bg-zinc-50 transition-colors cursor-pointer ${
+                        !notif.is_read ? "bg-indigo-50/50" : ""
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <p className="text-xs font-bold text-zinc-900">
+                            {notif.title}
+                          </p>
+                          <p className="text-[11px] text-zinc-500 mt-0.5">
+                            {notif.message}
+                          </p>
+                          <p className="text-[10px] text-zinc-400 mt-1">
+                            {formatTime(notif.created_at)}
+                          </p>
+                        </div>
+                        {!notif.is_read && (
+                          <div className="w-2 h-2 bg-indigo-600 rounded-full flex-shrink-0 mt-1" />
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
 
               <div className="p-3 text-center border-t border-zinc-100">
