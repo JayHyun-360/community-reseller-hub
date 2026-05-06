@@ -248,6 +248,17 @@ export default function HomePage() {
                       product={p}
                       onNotifyMe={setNotifyProduct}
                       isLiked={likedProductIds.has(p.id)}
+                      onLikeChange={(productId, isLiked) => {
+                        setLikedProductIds((prev) => {
+                          const next = new Set(prev);
+                          if (isLiked) {
+                            next.add(productId);
+                          } else {
+                            next.delete(productId);
+                          }
+                          return next;
+                        });
+                      }}
                     />
                   </div>
                 ))}

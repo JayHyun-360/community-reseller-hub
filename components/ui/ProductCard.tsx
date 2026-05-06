@@ -16,6 +16,7 @@ import {
 interface ProductCardProps {
   product: Product;
   onNotifyMe?: (product: Product) => void;
+  onLikeChange?: (productId: string, isLiked: boolean) => void;
   showSeller?: boolean;
   sellerData?: Seller;
   isLiked?: boolean;
@@ -26,6 +27,7 @@ export function ProductCard({
   showSeller = true,
   sellerData,
   isLiked: initialLiked = false,
+  onLikeChange,
 }: ProductCardProps) {
   const [seller, setSeller] = useState<Seller | null>(sellerData || null);
   const [imgError, setImgError] = useState(false);
@@ -60,6 +62,7 @@ export function ProductCard({
         // PGRST116 = "could not find the row to delete"
         setIsLiked(false);
         setLikeCount((c) => c - 1);
+        onLikeChange?.(product.id, false);
       }
     } else {
       // Like - insert a new favorite
@@ -70,6 +73,7 @@ export function ProductCard({
         // If already exists (409), just update UI
         setIsLiked(true);
         setLikeCount((c) => c + 1);
+        onLikeChange?.(product.id, true);
       }
     }
   };
