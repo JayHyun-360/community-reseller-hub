@@ -84,7 +84,7 @@ export function ProductModal({
           .select("id")
           .eq("user_id", user.id)
           .eq("product_id", product.id)
-          .single()
+          .maybeSingle()
           .then(({ data, error }) => {
             if (!error) {
               setIsLiked(!!data);
