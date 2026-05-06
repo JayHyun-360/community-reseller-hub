@@ -439,14 +439,14 @@ export function ProductModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+            className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-md flex items-center justify-center"
             onClick={() => setFullscreenImage(null)}
           >
             <button
               onClick={() => setFullscreenImage(null)}
-              className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+              className="absolute top-4 right-4 p-3 bg-zinc-900/10 hover:bg-zinc-900/20 rounded-full transition-colors"
             >
-              <X className="w-6 h-6 text-white" />
+              <X className="w-6 h-6 text-zinc-900" />
             </button>
             <img
               src={fullscreenImage}
