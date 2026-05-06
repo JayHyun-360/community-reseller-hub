@@ -98,11 +98,13 @@ export function Header({ onMenuClick }: HeaderProps) {
               />
               <div className="hidden xl:block text-left mr-2">
                 <div className="text-[11px] font-black tracking-tight text-zinc-900 leading-none">
-                  {profile?.full_name || profile?.username || "Seller"}
+                  {profile?.full_name || profile?.username || "User"}
                 </div>
-                <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                  {profile?.trust_tier || "New"} Seller
-                </div>
+                {profile?.role === "seller" && (
+                  <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
+                    {profile?.trust_tier || "New"} Seller
+                  </div>
+                )}
               </div>
             </button>
           ) : (
