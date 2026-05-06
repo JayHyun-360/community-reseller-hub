@@ -45,18 +45,22 @@ export function ProductCard({
     }
 
     if (isLiked) {
-      await supabase
+      const { error } = await supabase
         .from("favorites")
         .delete()
         .match({ user_id: user.id, product_id: product.id });
-      setIsLiked(false);
-      setLikeCount((c) => c - 1);
+      if (!error) {
+        setIsLiked(false);
+        setLikeCount((c) => c - 1);
+      }
     } else {
-      await supabase
+      const { error } = await supabase
         .from("favorites")
         .insert({ user_id: user.id, product_id: product.id });
-      setIsLiked(true);
-      setLikeCount((c) => c + 1);
+      if (!error) {
+        setIsLiked(true);
+        setLikeCount((c) => c + 1);
+      }
     }
   };
 
