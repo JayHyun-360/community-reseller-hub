@@ -76,8 +76,6 @@ export default function AddProductPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.title.trim()) newErrors.title = "Title is required";
-    if (!formData.price || Number(formData.price) <= 0)
-      newErrors.price = "Valid price is required";
     if (!formData.categoryId) newErrors.category = "Category is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -307,7 +305,7 @@ export default function AddProductPage() {
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest pl-1">
-                  Price (₱)
+                  Price (₱) <span className="text-zinc-300">(optional)</span>
                 </label>
                 <input
                   type="number"
@@ -317,13 +315,11 @@ export default function AddProductPage() {
                     if (errors.price) setErrors({ ...errors, price: "" });
                   }}
                   placeholder="0.00"
-                  className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:border-zinc-900 outline-none transition-all ${
-                    errors.price ? "border-red-500" : "border-zinc-200"
-                  }`}
+                  className="w-full bg-white border border-zinc-200 rounded-xl px-4 py-3 text-sm focus:border-zinc-900 outline-none transition-all"
                 />
-                {errors.price && (
-                  <p className="text-xs text-red-500">{errors.price}</p>
-                )}
+                <p className="text-[10px] text-zinc-400">
+                  💡 For customers to be interested more, display your prices
+                </p>
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-zinc-400 uppercase tracking-widest pl-1">

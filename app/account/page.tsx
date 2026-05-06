@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
@@ -10,8 +10,10 @@ import { Camera, Save, LogOut } from "lucide-react";
 export default function AccountPage() {
   const router = useRouter();
   const supabase = createClient();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [originalProfile, setOriginalProfile] = useState<any>(null);
@@ -86,6 +88,32 @@ export default function AccountPage() {
 
   const handleBecomeSeller = () => {
     router.push("/onboarding?upgrade=true");
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `avatars/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+
+      setProfile({ ...profile, avatar_url: data.publicUrl });
+    } catch (err: any) {
+      setMessage("Error uploading avatar: " + err.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   if (loading || !profile) {
@@ -179,15 +207,33 @@ export default function AccountPage() {
                 alt="Avatar"
                 className="w-24 h-24 rounded-full object-cover border-4 border-zinc-100"
               />
-              <button className="absolute bottom-0 right-0 p-2 bg-zinc-900 text-white rounded-full shadow-lg">
-                <Camera className="w-4 h-4" />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="absolute bottom-0 right-0 p-2 bg-zinc-900 text-white rounded-full shadow-lg hover:bg-zinc-700 disabled:opacity-50"
+              >
+                {uploading ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
               </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleAvatarUpload}
+                className="hidden"
+              />
             </div>
             <div>
               <p className="text-sm font-bold text-zinc-900">
                 {profile?.full_name}
               </p>
               <p className="text-xs text-zinc-400">@{profile?.username}</p>
+              <p className="text-[10px] text-zinc-400 mt-1">
+                Click camera to upload custom avatar
+              </p>
             </div>
           </div>
 
