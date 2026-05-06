@@ -44,20 +44,25 @@ export function ProductCard({
       return;
     }
 
+    // Check current state and toggle accordingly
     if (isLiked) {
+      // Unlike - delete the favorite
       const { error } = await supabase
         .from("favorites")
         .delete()
         .match({ user_id: user.id, product_id: product.id });
-      if (!error) {
+      if (!error || error?.code === "PGRST116") {
+        // PGRST116 = "could not find the row to delete"
         setIsLiked(false);
         setLikeCount((c) => c - 1);
       }
     } else {
+      // Like - insert a new favorite
       const { error } = await supabase
         .from("favorites")
         .insert({ user_id: user.id, product_id: product.id });
-      if (!error) {
+      if (!error || error?.code === "PGRST116") {
+        // If already exists (409), just update UI
         setIsLiked(true);
         setLikeCount((c) => c + 1);
       }
