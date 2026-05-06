@@ -50,6 +50,7 @@ export function ProductModal({
   const [imgError, setImgError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
   useEffect(() => {
     setLikeCount(product?.likeCount || 0);
@@ -222,9 +223,10 @@ export function ProductModal({
               <img
                 src={imgError ? fallbackImage : images[currentImageIndex]}
                 alt={product.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover cursor-zoom-in"
                 referrerPolicy="no-referrer"
                 onError={() => setImgError(true)}
+                onClick={() => setFullscreenImage(images[currentImageIndex])}
               />
             </div>
 
@@ -431,6 +433,29 @@ export function ProductModal({
             )}
           </div>
         </motion.div>
+
+        {fullscreenImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black flex items-center justify-center"
+            onClick={() => setFullscreenImage(null)}
+          >
+            <button
+              onClick={() => setFullscreenImage(null)}
+              className="absolute top-4 right-4 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
+            >
+              <X className="w-6 h-6 text-white" />
+            </button>
+            <img
+              src={fullscreenImage}
+              alt={product?.title}
+              className="max-w-full max-h-full object-contain"
+              referrerPolicy="no-referrer"
+            />
+          </motion.div>
+        )}
       </motion.div>
     </AnimatePresence>
   );
