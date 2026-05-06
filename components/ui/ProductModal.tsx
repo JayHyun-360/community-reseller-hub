@@ -12,6 +12,7 @@ import {
   Heart,
   X,
   ExternalLink,
+  Phone,
 } from "lucide-react";
 import { ProductCard } from "./ProductCard";
 
@@ -151,16 +152,27 @@ export function ProductModal({
     }
   };
 
-  const handleMessageSeller = () => {
+  const [showContactMenu, setShowContactMenu] = useState(false);
+
+  const handleMessageSeller = (via: "messenger" | "whatsapp") => {
     if (!seller) return;
     const message = encodeURIComponent(
       `Hi! Is ${product!.title} at ₱${product!.price} available?`,
     );
-    const url = seller.messengerUrl
-      ? `${seller.messengerUrl}?text=${message}`
-      : `https://wa.me/${seller.whatsappNum}?text=${message}`;
-    window.open(url, "_blank");
+    let url = "";
+    if (via === "messenger" && seller.messengerUrl) {
+      url = `${seller.messengerUrl}?text=${message}`;
+    } else if (via === "whatsapp" && seller.whatsappNum) {
+      url = `https://wa.me/${seller.whatsappNum}?text=${message}`;
+    }
+    if (url) window.open(url, "_blank");
+    setShowContactMenu(false);
   };
+
+  const hasMessenger = seller?.messengerUrl;
+  const hasWhatsApp = seller?.whatsappNum;
+  const hasContact = hasMessenger || hasWhatsApp;
+  const showDropdown = hasMessenger && hasWhatsApp;
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -325,13 +337,61 @@ export function ProductModal({
                   <Heart className={`w-5 h-5 ${isLiked ? "fill-white" : ""}`} />
                   {likeCount}
                 </button>
-                <button
-                  onClick={handleMessageSeller}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors shadow-lg"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  Message
-                </button>
+                {hasContact ? (
+                  showDropdown ? (
+                    <div className="flex-1 relative">
+                      <button
+                        onClick={() => setShowContactMenu(!showContactMenu)}
+                        className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors shadow-lg"
+                      >
+                        <MessageCircle className="w-5 h-5" />
+                        Message
+                      </button>
+                      {showContactMenu && (
+                        <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-lg border border-zinc-100 overflow-hidden z-50">
+                          {hasMessenger && (
+                            <button
+                              onClick={() => handleMessageSeller("messenger")}
+                              className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
+                            >
+                              <MessageCircle className="w-4 h-4 text-[#0084FF]" />
+                              Messenger
+                            </button>
+                          )}
+                          {hasWhatsApp && (
+                            <button
+                              onClick={() => handleMessageSeller("whatsapp")}
+                              className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
+                            >
+                              <Phone className="w-4 h-4 text-[#25D366]" />
+                              WhatsApp
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() =>
+                        handleMessageSeller(
+                          hasMessenger ? "messenger" : "whatsapp",
+                        )
+                      }
+                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors shadow-lg"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      Message
+                    </button>
+                  )
+                ) : (
+                  <button
+                    disabled
+                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 rounded-full font-black text-sm text-zinc-400 cursor-not-allowed"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    No Contact
+                  </button>
+                )}
               </div>
               <div className="flex gap-3">
                 <button

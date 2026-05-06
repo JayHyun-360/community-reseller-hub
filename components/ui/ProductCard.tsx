@@ -5,7 +5,13 @@ import { useRouter } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
-import { MessageCircle, Share2, MoreHorizontal, Heart } from "lucide-react";
+import {
+  MessageCircle,
+  Share2,
+  MoreHorizontal,
+  Heart,
+  Phone,
+} from "lucide-react";
 
 interface ProductCardProps {
   product: Product;
@@ -82,18 +88,31 @@ export function ProductCard({
   const fallbackImage =
     "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
   const [isHovered, setIsHovered] = useState(false);
+  const [showContactMenu, setShowContactMenu] = useState(false);
 
-  const handleMessageSeller = (e: React.MouseEvent) => {
+  const handleMessageSeller = (
+    e: React.MouseEvent,
+    via: "messenger" | "whatsapp",
+  ) => {
     e.stopPropagation();
     if (!seller) return;
     const message = encodeURIComponent(
       `Hi! Is ${product.title} at ₱${product.price} available?`,
     );
-    const url = seller.messengerUrl
-      ? `${seller.messengerUrl}?text=${message}`
-      : `https://wa.me/${seller.whatsappNum}?text=${message}`;
-    window.open(url, "_blank");
+    let url = "";
+    if (via === "messenger" && seller.messengerUrl) {
+      url = `${seller.messengerUrl}?text=${message}`;
+    } else if (via === "whatsapp" && seller.whatsappNum) {
+      url = `https://wa.me/${seller.whatsappNum}?text=${message}`;
+    }
+    if (url) window.open(url, "_blank");
+    setShowContactMenu(false);
   };
+
+  const hasMessenger = seller?.messengerUrl;
+  const hasWhatsApp = seller?.whatsappNum;
+  const hasContact = hasMessenger || hasWhatsApp;
+  const showDropdown = hasMessenger && hasWhatsApp;
 
   return (
     <motion.div
@@ -133,13 +152,60 @@ export function ProductCard({
           </div>
 
           <div className="flex justify-between items-center">
-            <div className="flex gap-2">
-              <button
-                onClick={handleMessageSeller}
-                className="p-2 bg-white/90 hover:bg-white rounded-full text-zinc-900 transition-colors shadow-md"
-              >
-                <MessageCircle className="w-4 h-4" />
-              </button>
+            <div className="flex gap-2 relative">
+              {hasContact ? (
+                showDropdown ? (
+                  <>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowContactMenu(!showContactMenu);
+                      }}
+                      className="p-2 bg-white/90 hover:bg-white rounded-full text-zinc-900 transition-colors shadow-md"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </button>
+                    {showContactMenu && (
+                      <div className="absolute bottom-full left-0 mb-2 bg-white rounded-xl shadow-lg border border-zinc-100 overflow-hidden z-50">
+                        {hasMessenger && (
+                          <button
+                            onClick={(e) => handleMessageSeller(e, "messenger")}
+                            className="flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
+                          >
+                            <MessageCircle className="w-4 h-4 text-[#0084FF]" />
+                            Messenger
+                          </button>
+                        )}
+                        {hasWhatsApp && (
+                          <button
+                            onClick={(e) => handleMessageSeller(e, "whatsapp")}
+                            className="flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
+                          >
+                            <Phone className="w-4 h-4 text-[#25D366]" />
+                            WhatsApp
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <button
+                    onClick={(e) =>
+                      handleMessageSeller(
+                        e,
+                        hasMessenger ? "messenger" : "whatsapp",
+                      )
+                    }
+                    className="p-2 bg-white/90 hover:bg-white rounded-full text-zinc-900 transition-colors shadow-md"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                  </button>
+                )
+              ) : (
+                <span className="p-2 bg-white/50 rounded-full text-zinc-400 cursor-not-allowed">
+                  <MessageCircle className="w-4 h-4" />
+                </span>
+              )}
               <button className="p-2 bg-white/90 hover:bg-white rounded-full text-zinc-900 transition-colors shadow-md">
                 <Share2 className="w-4 h-4" />
               </button>
