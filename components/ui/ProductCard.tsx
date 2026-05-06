@@ -34,6 +34,11 @@ export function ProductCard({
   const router = useRouter();
   const supabase = createClient();
 
+  // Sync local state with prop
+  useEffect(() => {
+    setIsLiked(initialLiked);
+  }, [initialLiked]);
+
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const {
