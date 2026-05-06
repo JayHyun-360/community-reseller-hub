@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { Search as SearchIcon, X, Filter } from "lucide-react";
+import { Search as SearchIcon, X, Filter, Store } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -16,8 +17,12 @@ import {
 import { Product, Seller, Category } from "@/lib/types";
 
 export default function SearchPage() {
-  const [query, setQuery] = useState("");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get("q") || "");
   const [tab, setTab] = useState<"products" | "sellers">("products");
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentProfile, setCurrentProfile] = useState<any>(null);
   const [selectedCat, setSelectedCat] = useState("all");
   const [notifyProduct, setNotifyProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -37,6 +42,18 @@ export default function SearchPage() {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+        setCurrentUser(user);
+
+        let profile = null;
+        if (user) {
+          const { data: userProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .single();
+          profile = userProfile;
+          setCurrentProfile(profile);
+        }
 
         const [productsRes, profilesRes, categoriesRes, favoritesRes] =
           await Promise.all([
@@ -136,25 +153,22 @@ export default function SearchPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 pb-24 md:pb-12 pt-8">
       <div className="sticky top-20 bg-white pt-2 pb-6 z-40 space-y-8">
-        <div className="relative group">
-          <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-zinc-400 group-focus-within:text-indigo-600 transition-colors" />
-          <input
-            autoFocus
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search products, sellers, categories..."
-            className="w-full bg-white border-2 border-zinc-100 rounded-[2rem] pl-16 pr-6 py-5 text-xl font-bold focus:border-indigo-600 outline-none transition-all placeholder:text-zinc-300 shadow-sm"
-          />
-          {query && (
-            <button
-              onClick={() => setQuery("")}
-              className="absolute right-6 top-1/2 -translate-y-1/2 p-2 hover:bg-zinc-50 rounded-full transition-colors"
-            >
-              <X className="w-6 h-6 text-zinc-400" />
-            </button>
-          )}
-        </div>
+        {currentProfile?.role === "seller" && (
+          <button
+            onClick={() => router.push(`/${currentProfile.username}`)}
+            className="flex items-center gap-3 w-full p-4 bg-zinc-900 text-white rounded-[2rem] hover:bg-zinc-800 transition-all shadow-lg"
+          >
+            <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
+              <Store className="w-5 h-5" />
+            </div>
+            <div className="text-left">
+              <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
+                Your Store
+              </p>
+              <p className="text-sm font-bold">View your seller profile</p>
+            </div>
+          </button>
+        )}
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex gap-8 border-b border-zinc-100">

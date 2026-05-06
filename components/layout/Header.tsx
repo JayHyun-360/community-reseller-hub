@@ -62,7 +62,20 @@ export function Header({ onMenuClick }: HeaderProps) {
               type="text"
               placeholder="Search local finds..."
               className="w-full bg-zinc-100 border-none rounded-full py-3.5 pl-14 pr-4 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-zinc-900/5 focus:bg-zinc-200 transition-all"
-              onFocus={() => router.push("/search")}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && e.currentTarget.value) {
+                  router.push(
+                    `/search?q=${encodeURIComponent(e.currentTarget.value)}`,
+                  );
+                }
+              }}
+              onFocus={(e) => {
+                if (e.currentTarget.value) {
+                  router.push(
+                    `/search?q=${encodeURIComponent(e.currentTarget.value)}`,
+                  );
+                }
+              }}
             />
           </div>
         </div>
