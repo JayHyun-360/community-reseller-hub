@@ -22,6 +22,8 @@ export default function StorefrontPage({
   const [seller, setSeller] = useState<Seller | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const supabase = createClient();
 
   useEffect(() => {
@@ -43,7 +45,10 @@ export default function StorefrontPage({
           whatsappNum: sellerRes.data.whatsapp_num,
           messengerUrl: sellerRes.data.messenger_url,
         });
+      } else if (sellerRes.error?.code === "PGRST116") {
+        setNotFound(true);
       }
+      setLoading(false);
 
       if (productsRes.data) {
         setProducts(
@@ -78,8 +83,28 @@ export default function StorefrontPage({
     fetchData();
   }, [username]);
 
-  if (!seller) {
-    return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+          <p className="text-sm font-medium text-zinc-400">Loading store...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (notFound || !seller) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <h1 className="text-4xl font-black text-zinc-900">Store Not Found</h1>
+          <p className="mt-2 text-zinc-500">
+            This seller doesn't exist or has been removed.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const getFilteredProducts = () => {
