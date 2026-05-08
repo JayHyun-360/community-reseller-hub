@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { LocationInput } from "@/components/ui/LocationInput";
-import { Camera, Save, LogOut } from "lucide-react";
+import { ProductCard } from "@/components/ui/ProductCard";
+import { Camera, Save, LogOut, Heart } from "lucide-react";
+import { Product } from "@/lib/types";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -19,6 +21,8 @@ export default function AccountPage() {
   const [originalProfile, setOriginalProfile] = useState<any>(null);
   const [isSeller, setIsSeller] = useState(false);
   const [message, setMessage] = useState("");
+  const [favorites, setFavorites] = useState<Product[]>([]);
+  const [favoritesLoading, setFavoritesLoading] = useState(true);
 
   const hasChanges =
     originalProfile &&
@@ -46,6 +50,35 @@ export default function AccountPage() {
         setOriginalProfile(data);
         setIsSeller(data.role === "seller");
       }
+
+      const { data: favoritesData } = await supabase
+        .from("favorites")
+        .select("product_id, products(*)")
+        .eq("user_id", user.id);
+
+      if (favoritesData) {
+        const favProducts = favoritesData
+          .map((f: any) => f.products)
+          .filter(Boolean)
+          .map((p: any) => ({
+            id: p.id,
+            sellerId: p.seller_id,
+            categoryId: p.category_id,
+            title: p.title,
+            description: p.description,
+            price: p.price,
+            images: p.images || [],
+            stockQty: p.stock_qty,
+            status: p.status,
+            isFeatured: p.is_featured,
+            likeCount: p.like_count || 0,
+            viewCount: p.view_count,
+            tags: p.tags || [],
+            createdAt: p.created_at,
+          }));
+        setFavorites(favProducts);
+      }
+      setFavoritesLoading(false);
       setLoading(false);
     }
     fetchData();
@@ -341,6 +374,44 @@ export default function AccountPage() {
               </div>
             </>
           )}
+
+          {/* Favorites Section */}
+          <div className="pt-8 border-t border-zinc-100">
+            <div className="flex items-center gap-2 mb-6">
+              <Heart className="w-5 h-5 text-rose-500 fill-rose-500" />
+              <h2 className="text-xl font-black text-zinc-900">My Favorites</h2>
+              <span className="text-xs font-bold text-zinc-400 bg-zinc-100 px-2 py-1 rounded-full">
+                {favorites.length}
+              </span>
+            </div>
+
+            {favoritesLoading ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="aspect-[4/5] bg-zinc-100 rounded-2xl animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : favorites.length > 0 ? (
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {favorites.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            ) : (
+              <div className="py-12 text-center border-2 border-dashed border-zinc-100 rounded-3xl">
+                <Heart className="w-8 h-8 text-zinc-200 mx-auto mb-3" />
+                <p className="text-sm font-bold text-zinc-400">
+                  No favorites yet
+                </p>
+                <p className="text-xs text-zinc-300 mt-1">
+                  Tap the heart on products you love
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Save Button */}
           {hasChanges && (
