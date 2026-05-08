@@ -152,7 +152,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
 
   return (
     <>
-      <aside className="hidden lg:flex flex-col w-72 h-screen sticky top-0 bg-white border-r border-zinc-100 z-40">
+      <aside className="hidden lg:flex flex-col w-72 h-screen fixed top-0 left-0 bg-white border-r border-zinc-100 z-40">
         {sidebarContent}
       </aside>
 
