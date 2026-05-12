@@ -149,8 +149,8 @@ export default function HomePage() {
   };
 
   return (
-    <div className="max-w-[1600px] mx-auto pb-24 md:pb-12 bg-white min-h-screen">
-      <section className="pt-12 px-4 md:px-6">
+    <div className="max-w-[1600px] mx-auto pb-24 md:pb-12 bg-white min-h-screen px-2 md:px-0">
+      <section className="pt-12 px-0 md:px-6">
         <div className="max-w-2xl px-2">
           <h1 className="text-4xl md:text-7xl font-black tracking-tight text-zinc-900 leading-[0.9]">
             Find your next favorite thing{" "}
