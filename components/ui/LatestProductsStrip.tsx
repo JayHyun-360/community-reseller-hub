@@ -7,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface LatestProductsStripProps {
   products: Product[];
+  onProductClick?: (product: Product) => void;
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -24,7 +25,10 @@ function formatTimeAgo(dateString: string): string {
   return date.toLocaleDateString();
 }
 
-export function LatestProductsStrip({ products }: LatestProductsStripProps) {
+export function LatestProductsStrip({
+  products,
+  onProductClick,
+}: LatestProductsStripProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: "left" | "right") => {
@@ -61,17 +65,27 @@ export function LatestProductsStrip({ products }: LatestProductsStripProps) {
 
       <div
         ref={scrollRef}
-        className="flex gap-6 overflow-x-auto px-8 pb-4 hide-scrollbar"
+        className="flex gap-4 overflow-x-auto px-8 pb-4 hide-scrollbar"
       >
         {products.slice(0, 10).map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard
+            key={product.id}
+            product={product}
+            onProductClick={onProductClick}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function ProductCard({ product }: { product: Product }) {
+function ProductCard({
+  product,
+  onProductClick,
+}: {
+  product: Product;
+  onProductClick?: (product: Product) => void;
+}) {
   const [showFullDesc, setShowFullDesc] = useState(false);
   const hasLongDesc = product.description && product.description.length > 60;
 
@@ -79,6 +93,7 @@ function ProductCard({ product }: { product: Product }) {
     <motion.div
       whileHover={{ y: -4 }}
       whileTap={{ scale: 0.95 }}
+      onClick={() => onProductClick?.(product)}
       className="flex flex-col flex-shrink-0 w-64 cursor-pointer group"
     >
       <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-zinc-100">

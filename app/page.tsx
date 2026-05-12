@@ -187,6 +187,7 @@ export default function HomePage() {
                 : products.slice(0, 6).map((item, idx) => (
                     <div
                       key={idx}
+                      onClick={() => setSelectedProduct(item)}
                       className="flex-shrink-0 w-44 md:w-64 group cursor-pointer"
                     >
                       <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-100 mb-4 shadow-xl shadow-zinc-200/50 group-hover:scale-[1.02] transition-transform duration-500">
@@ -213,7 +214,10 @@ export default function HomePage() {
       </section>
 
       <div className="mt-8 px-6">
-        <LatestProductsStrip products={products} />
+        <LatestProductsStrip
+          products={products}
+          onProductClick={setSelectedProduct}
+        />
       </div>
 
       <section className="px-6 py-12">
@@ -237,7 +241,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-3 md:gap-4 lg:gap-6 xl:gap-8 px-2 space-y-3 md:space-y-4 lg:space-y-6">
+          <div className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 xl:gap-8 px-2 space-y-2 md:space-y-4 lg:space-y-6">
             {loading
               ? Array.from({ length: 8 }).map((_, i) => (
                   <ProductCardSkeleton key={i} />

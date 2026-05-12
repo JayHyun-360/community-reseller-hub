@@ -3,7 +3,7 @@ import "./globals.css";
 import { AppLayout } from "@/components/AppLayout";
 
 export const metadata: Metadata = {
-  title: "Community Seller Hub",
+  title: "Community Sellers Hub",
   description: "Discover local sellers and products near you",
 };
 
