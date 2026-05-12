@@ -138,11 +138,10 @@ export function ProductCard({
   const preferredPlatform = getPreferredPlatform(!!hasMessenger, !!hasWhatsApp);
 
   return (
-    <motion.div
-      layout
+    <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="break-inside-avoid flex flex-col group cursor-zoom-in"
+      className="flex flex-col group cursor-zoom-in"
     >
       <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-50 group-hover:brightness-90 transition-all duration-300">
         <img
@@ -276,6 +275,6 @@ export function ProductCard({
           </div>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

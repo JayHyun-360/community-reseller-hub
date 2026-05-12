@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Search as SearchIcon, X, Filter, Store } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion } from "motion/react";
+import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { ProductModal } from "@/components/ui/ProductModal";
@@ -236,38 +236,67 @@ export default function SearchPage() {
             ))}
           </div>
         ) : results.length > 0 ? (
-          <div
-            className={
-              tab === "products"
-                ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
-                : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            }
-          >
-            {tab === "products"
-              ? (results as Product[]).map((p) => (
-                  <div key={p.id} onClick={() => setSelectedProduct(p)}>
-                    <ProductCard
-                      product={p}
-                      onNotifyMe={setNotifyProduct}
-                      isLiked={likedProductIds.has(p.id)}
-                      onLikeChange={(productId, isLiked) => {
-                        setLikedProductIds((prev) => {
-                          const next = new Set(prev);
-                          if (isLiked) {
-                            next.add(productId);
-                          } else {
-                            next.delete(productId);
-                          }
-                          return next;
-                        });
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedCat}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className={
+                tab === "products"
+                  ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
+                  : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+              }
+            >
+              {tab === "products"
+                ? (results as Product[]).map((p, index) => (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{
+                        duration: 0.4,
+                        delay: index * 0.05,
+                        ease: "easeOut",
                       }}
-                    />
-                  </div>
-                ))
-              : (results as any[]).map((s) => (
-                  <SellerCard key={s.id} seller={s} />
-                ))}
-          </div>
+                      onClick={() => setSelectedProduct(p)}
+                      className="cursor-pointer break-inside-avoid"
+                    >
+                      <ProductCard
+                        product={p}
+                        onNotifyMe={setNotifyProduct}
+                        isLiked={likedProductIds.has(p.id)}
+                        onLikeChange={(productId, isLiked) => {
+                          setLikedProductIds((prev) => {
+                            const next = new Set(prev);
+                            if (isLiked) {
+                              next.add(productId);
+                            } else {
+                              next.delete(productId);
+                            }
+                            return next;
+                          });
+                        }}
+                      />
+                    </motion.div>
+                  ))
+                : (results as any[]).map((s, index) => (
+                    <motion.div
+                      key={s.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{
+                        duration: 0.4,
+                        delay: index * 0.05,
+                        ease: "easeOut",
+                      }}
+                    >
+                      <SellerCard seller={s} />
+                    </motion.div>
+                  ))}
+            </motion.div>
+          </AnimatePresence>
         ) : (
           <div className="py-40 text-center flex flex-col items-center gap-8">
             <div className="w-24 h-24 bg-white rounded-[2rem] border border-zinc-100 flex items-center justify-center text-5xl shadow-sm filter grayscale opacity-20">
