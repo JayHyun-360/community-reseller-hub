@@ -97,7 +97,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           className="flex items-center gap-2 group"
         >
           <div className="w-10 h-10 bg-zinc-900 rounded-full flex items-center justify-center transition-transform group-hover:rotate-12 shadow-lg">
-            <div className="w-4 h-4 bg-white rounded-sm rotate-45"></div>
+            <Search className="w-5 h-5 text-white" />
           </div>
           <span className="font-black text-2xl tracking-tighter text-zinc-900">
             NearByt
@@ -165,22 +165,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
       </div>
 
-      <div className="mt-auto space-y-6">
-        <div className="p-6 bg-zinc-50 rounded-[2.5rem] border border-zinc-100 relative overflow-hidden group">
-          <div className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-3">
-            Community Hub
-          </div>
-          <h4 className="text-sm font-black text-zinc-900 mb-4 leading-tight">
-            Support local sellers nearby.
-          </h4>
-          <button
-            onClick={() => router.push("/")}
-            className="w-full py-3 bg-zinc-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-800 transition-all shadow-md"
-          >
-            Explore
-          </button>
-        </div>
-
+      <div className="mt-auto">
         <div className="flex items-center justify-between px-4 text-zinc-300">
           <span className="text-[10px] font-bold uppercase tracking-widest">
             © {new Date().getFullYear()} NearByt

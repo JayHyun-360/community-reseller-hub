@@ -47,7 +47,7 @@ export function Header({ onMenuClick }: HeaderProps) {
           </button>
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-md">
-              <div className="w-3 h-3 bg-white rounded-sm rotate-45"></div>
+              <Search className="w-4 h-4 text-white" />
             </div>
             <span className="font-black text-xl tracking-tighter text-zinc-900">
               NearByt
