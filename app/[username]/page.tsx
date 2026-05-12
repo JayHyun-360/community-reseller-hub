@@ -303,7 +303,7 @@ export default function StorefrontPage({
           />
         </div>
 
-        <div className="columns-2 md:columns-3 gap-6 px-2 md:px-4">
+        <div className="columns-2 md:columns-3 gap-4 md:gap-6 px-2 md:px-4">
           {filteredProducts.map((p) => (
             <ProductCard key={p.id} product={p} showSeller={false} />
           ))}
