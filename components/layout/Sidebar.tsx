@@ -13,6 +13,10 @@ import {
   Compass,
   X,
   Store,
+  HelpCircle,
+  Shield,
+  FileText,
+  Info,
 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
@@ -76,6 +80,14 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       : [{ href: "/login", icon: Store, label: "Become a Seller" }]),
   ];
 
+  const secondaryNavItems = [
+    { href: "/help", icon: HelpCircle, label: "Help Center" },
+    { href: "/safety", icon: Shield, label: "Safety" },
+    { href: "/sellers", icon: Store, label: "Seller Resources" },
+    { href: "/about", icon: Info, label: "About Us" },
+    { href: "/terms", icon: FileText, label: "Terms" },
+  ];
+
   const sidebarContent = (
     <div className="flex flex-col h-full bg-white p-6">
       <div className="mb-10 flex items-center justify-between">
@@ -121,6 +133,37 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           );
         })}
       </nav>
+
+      {/* Secondary Navigation */}
+      <div className="py-4 border-t border-zinc-100">
+        <div className="px-5 mb-3">
+          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
+            Resources
+          </span>
+        </div>
+        <nav className="space-y-1">
+          {secondaryNavItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={onClose}
+                className={`flex items-center gap-4 px-5 py-3.5 rounded-full transition-all duration-300 font-bold w-full overflow-hidden ${
+                  isActive
+                    ? "bg-zinc-900 text-white shadow-xl shadow-zinc-200"
+                    : "text-zinc-400 hover:bg-zinc-50 hover:text-zinc-600"
+                }`}
+              >
+                <item.icon className="w-4 h-4 flex-shrink-0" />
+                <span className="text-[11px] tracking-wide truncate">
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
 
       <div className="mt-auto space-y-6">
         <div className="p-6 bg-zinc-50 rounded-[2.5rem] border border-zinc-100 relative overflow-hidden group">
