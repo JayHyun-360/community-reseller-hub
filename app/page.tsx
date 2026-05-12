@@ -150,7 +150,7 @@ export default function HomePage() {
 
   return (
     <div className="max-w-[1600px] mx-auto pb-24 md:pb-12 bg-white min-h-screen">
-      <section className="pt-12 px-6">
+      <section className="pt-12 px-4 md:px-6">
         <div className="max-w-2xl px-2">
           <h1 className="text-4xl md:text-7xl font-black tracking-tight text-zinc-900 leading-[0.9]">
             Find your next favorite thing{" "}
@@ -177,7 +177,7 @@ export default function HomePage() {
           </button>
           <div
             ref={trendingRef}
-            className="overflow-x-auto pb-8 hide-scrollbar scroll-smooth px-8"
+            className="overflow-x-auto pb-8 hide-scrollbar scroll-smooth px-4 md:px-8"
           >
             <div className="flex gap-8">
               {loading
@@ -241,7 +241,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 xl:gap-8 px-2 space-y-2 md:space-y-4 lg:space-y-6">
+          <div className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 xl:gap-8 px-1 md:px-2 space-y-2 md:space-y-4 lg:space-y-6">
             {loading
               ? Array.from({ length: 8 }).map((_, i) => (
                   <ProductCardSkeleton key={i} />

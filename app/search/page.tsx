@@ -151,7 +151,7 @@ export default function SearchPage() {
   }, [query, tab, selectedCat, products, sellers]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 pb-24 md:pb-12 pt-8">
+    <div className="max-w-7xl mx-auto px-2 md:px-4 pb-24 md:pb-12 pt-8">
       <div className="sticky top-20 bg-white pt-2 pb-6 z-40 space-y-8">
         {currentProfile?.role === "seller" && (
           <button

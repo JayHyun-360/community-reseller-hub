@@ -65,7 +65,7 @@ export function LatestProductsStrip({
 
       <div
         ref={scrollRef}
-        className="flex gap-4 overflow-x-auto px-8 pb-4 hide-scrollbar"
+        className="flex gap-4 overflow-x-auto px-4 md:px-8 pb-4 hide-scrollbar"
       >
         {products.slice(0, 10).map((product) => (
           <ProductCard
