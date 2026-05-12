@@ -26,7 +26,7 @@ interface ProductCardProps {
   isLiked?: boolean;
 }
 
-function ProductCard({
+function ProductCardComponent({
   product,
   showSeller = true,
   sellerData,
@@ -279,4 +279,4 @@ function ProductCard({
   );
 }
 
-export default memo(ProductCard);
+export const ProductCard = memo(ProductCardComponent);
