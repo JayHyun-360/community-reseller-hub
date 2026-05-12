@@ -137,7 +137,7 @@ export function ProductCard({
       layout
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="break-inside-avoid mb-3 md:mb-4 lg:mb-6 flex flex-col group cursor-zoom-in"
+      className="break-inside-avoid flex flex-col group cursor-zoom-in"
     >
       <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-50 group-hover:brightness-90 transition-all duration-300">
         <img

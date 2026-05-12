@@ -151,7 +151,7 @@ export default function SearchPage() {
   }, [query, tab, selectedCat, products, sellers]);
 
   return (
-    <div className="max-w-7xl mx-auto px-2 md:px-4 pb-24 md:pb-12 pt-8">
+    <div className="max-w-7xl mx-auto px-4 md:px-6 pb-24 md:pb-12 pt-8">
       <div className="sticky top-20 bg-white pt-2 pb-6 z-40 space-y-8">
         {currentProfile?.role === "seller" && (
           <button
@@ -230,7 +230,7 @@ export default function SearchPage() {
 
       <div className="mt-8 min-h-[40vh]">
         {loading ? (
-          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-3 md:gap-4 lg:gap-6 space-y-3 md:space-y-4 lg:space-y-6">
+          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1.5 md:gap-4 lg:gap-6 space-y-1.5 md:space-y-4 lg:space-y-6">
             {Array.from({ length: 8 }).map((_, i) => (
               <ProductCardSkeleton key={i} />
             ))}
@@ -239,7 +239,7 @@ export default function SearchPage() {
           <div
             className={
               tab === "products"
-                ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-3 md:gap-4 lg:gap-6 space-y-3 md:space-y-4 lg:space-y-6"
+                ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1.5 md:gap-4 lg:gap-6 space-y-1.5 md:space-y-4 lg:space-y-6"
                 : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             }
           >
