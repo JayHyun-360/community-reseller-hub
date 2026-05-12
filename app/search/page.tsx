@@ -222,7 +222,7 @@ export default function SearchPage() {
               categories={categories}
               selectedId={selectedCat}
               onSelect={setSelectedCat}
-              showVirtualCategories={false}
+              showVirtualCategories={true}
             />
           </div>
         )}
