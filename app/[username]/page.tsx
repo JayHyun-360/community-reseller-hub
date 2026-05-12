@@ -174,7 +174,7 @@ export default function StorefrontPage({
 
   return (
     <div className="max-w-4xl mx-auto pb-24 md:pb-12 min-h-screen bg-white">
-      <div className="relative pt-12 px-4">
+      <div className="relative pt-12 px-2 md:px-4">
         <div className="bg-white rounded-[2rem] overflow-hidden border border-zinc-100 shadow-sm">
           <div className="h-40 md:h-56 w-full bg-zinc-900 flex items-center justify-center overflow-hidden relative">
             <div className="absolute inset-0 opacity-20 flex flex-wrap gap-4 p-4 overflow-hidden pointer-events-none">
@@ -286,14 +286,14 @@ export default function StorefrontPage({
         </button>
       </div>
 
-      <div className="mt-16 px-4">
-        <div className="flex items-center justify-between mb-8 px-4">
+      <div className="mt-16 px-2 md:px-4">
+        <div className="flex items-center justify-between mb-8 px-2 md:px-4">
           <h2 className="text-2xl font-black tracking-tighter text-zinc-900">
             Inventory
           </h2>
         </div>
 
-        <div className="px-4 mb-8">
+        <div className="px-2 md:px-4 mb-8">
           <CategoryFilter
             categories={categories}
             selectedId={selectedCat}
@@ -303,7 +303,7 @@ export default function StorefrontPage({
           />
         </div>
 
-        <div className="columns-2 md:columns-3 gap-6 px-4">
+        <div className="columns-2 md:columns-3 gap-6 px-2 md:px-4">
           {filteredProducts.map((p) => (
             <ProductCard key={p.id} product={p} showSeller={false} />
           ))}

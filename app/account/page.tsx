@@ -151,7 +151,7 @@ export default function AccountPage() {
 
   if (loading || !profile) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 pb-24 min-h-screen">
+      <div className="max-w-2xl mx-auto px-2 md:px-4 py-12 pb-24 min-h-screen">
         <div className="space-y-8">
           <div className="space-y-2">
             <div className="h-10 w-48 bg-gradient-to-r from-zinc-200 via-zinc-100 to-zinc-200 bg-[length:200%_100%] animate-shimmer rounded-xl" />
@@ -178,7 +178,7 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12">
+    <div className="max-w-2xl mx-auto px-2 md:px-4 py-12">
       <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-8 shadow-xl">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-2xl font-black text-zinc-900">
