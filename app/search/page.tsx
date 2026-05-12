@@ -229,16 +229,23 @@ export default function SearchPage() {
       </div>
 
       <div className="mt-8 min-h-[40vh]">
-        {loading ? (
-          <div className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <ProductCardSkeleton key={i} />
-            ))}
-          </div>
-        ) : results.length > 0 ? (
-          <AnimatePresence mode="wait">
+        <AnimatePresence mode="wait">
+          {loading ? (
             <motion.div
-              key={selectedCat}
+              key="loading"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
+            >
+              {Array.from({ length: 8 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
+            </motion.div>
+          ) : results.length > 0 ? (
+            <motion.div
+              key={`${tab}-${selectedCat}-${query}`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -296,32 +303,39 @@ export default function SearchPage() {
                     </motion.div>
                   ))}
             </motion.div>
-          </AnimatePresence>
-        ) : (
-          <div className="py-40 text-center flex flex-col items-center gap-8">
-            <div className="w-24 h-24 bg-white rounded-[2rem] border border-zinc-100 flex items-center justify-center text-5xl shadow-sm filter grayscale opacity-20">
-              🔍
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
-                No results found
-              </h3>
-              <p className="text-sm font-medium text-zinc-400 max-w-xs mx-auto leading-relaxed">
-                We couldn&apos;t find anything matching your search. Try
-                broadening your keywords.
-              </p>
-            </div>
-            <button
-              onClick={() => {
-                setQuery("");
-                setSelectedCat("all");
-              }}
-              className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-colors"
+          ) : (
+            <motion.div
+              key="no-results"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="py-40 text-center flex flex-col items-center gap-8"
             >
-              Clear Filters
-            </button>
-          </div>
-        )}
+              <div className="w-24 h-24 bg-white rounded-[2rem] border border-zinc-100 flex items-center justify-center text-5xl shadow-sm filter grayscale opacity-20">
+                🔍
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
+                  No results found
+                </h3>
+                <p className="text-sm font-medium text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                  We couldn&apos;t find anything matching your search. Try
+                  broadening your keywords.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setQuery("");
+                  setSelectedCat("all");
+                }}
+                className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-colors"
+              >
+                Clear Filters
+              </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <NotifyMeSheet
