@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { Search as SearchIcon, X, Filter, Store } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
@@ -128,27 +128,73 @@ export default function SearchPage() {
     fetchData();
   }, []);
 
+  const useDebounce = (value: string, delay: number) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  };
+
+  const debouncedQuery = useDebounce(query, 300);
+
+  const normalizedProducts = useMemo(
+    () =>
+      products.map((p) => ({
+        ...p,
+        titleLower: p.title.toLowerCase(),
+        descriptionLower: p.description.toLowerCase(),
+      })),
+    [products],
+  );
+
+  const normalizedSellers = useMemo(
+    () =>
+      sellers.map((s) => ({
+        ...s,
+        fullNameLower: (s.fullName || "").toLowerCase(),
+        usernameLower: (s.username || "").toLowerCase(),
+      })),
+    [sellers],
+  );
+
   const results = useMemo(() => {
-    const q = query.toLowerCase();
+    const q = debouncedQuery.toLowerCase();
 
     if (tab === "products") {
-      let items = products.filter(
-        (p) =>
-          p.title.toLowerCase().includes(q) ||
-          p.description.toLowerCase().includes(q),
-      );
+      let items = normalizedProducts;
+
+      if (q) {
+        items = items.filter(
+          (p) => p.titleLower.includes(q) || p.descriptionLower.includes(q),
+        );
+      }
+
       if (selectedCat !== "all") {
         items = items.filter((p) => p.categoryId === selectedCat);
       }
+
       return items;
     } else {
-      return sellers.filter(
-        (s) =>
-          (s.fullName || s.username).toLowerCase().includes(q) ||
-          s.username.toLowerCase().includes(q),
-      );
+      let items = normalizedSellers;
+
+      if (q) {
+        items = items.filter(
+          (s) => s.fullNameLower.includes(q) || s.usernameLower.includes(q),
+        );
+      }
+
+      return items;
     }
-  }, [query, tab, selectedCat, products, sellers]);
+  }, [debouncedQuery, tab, selectedCat, normalizedProducts, normalizedSellers]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 pb-24 md:pb-12 pt-8">

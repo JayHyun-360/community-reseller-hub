@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useRouter } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion } from "motion/react";
@@ -26,7 +26,7 @@ interface ProductCardProps {
   isLiked?: boolean;
 }
 
-export function ProductCard({
+function ProductCard({
   product,
   showSeller = true,
   sellerData,
@@ -278,3 +278,5 @@ export function ProductCard({
     </div>
   );
 }
+
+export default memo(ProductCard);
