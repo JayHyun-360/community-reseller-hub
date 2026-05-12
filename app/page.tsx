@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/Skeleton";
 import { Product, Seller, Category } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 // Home page - NearByt
 export default function HomePage() {
@@ -241,40 +242,78 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 xl:gap-8 px-0 md:px-2 space-y-2 md:space-y-4 lg:space-y-6">
-            {loading
-              ? Array.from({ length: 8 }).map((_, i) => (
-                  <ProductCardSkeleton key={i} />
-                ))
-              : filteredProducts.map((p) => (
-                  <div key={p.id} onClick={() => setSelectedProduct(p)}>
-                    <ProductCard
-                      product={p}
-                      onNotifyMe={setNotifyProduct}
-                      isLiked={likedProductIds.has(p.id)}
-                      onLikeChange={(productId, isLiked) => {
-                        setLikedProductIds((prev) => {
-                          const next = new Set(prev);
-                          if (isLiked) {
-                            next.add(productId);
-                          } else {
-                            next.delete(productId);
-                          }
-                          return next;
-                        });
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedCat}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+              className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 xl:gap-8 px-0 md:px-2 space-y-2 md:space-y-4 lg:space-y-6"
+            >
+              {loading
+                ? Array.from({ length: 8 }).map((_, i) => (
+                    <motion.div
+                      key={`skeleton-${i}`}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{
+                        duration: 0.3,
+                        delay: i * 0.05,
+                        ease: "easeOut",
                       }}
-                    />
-                  </div>
-                ))}
-          </div>
+                    >
+                      <ProductCardSkeleton />
+                    </motion.div>
+                  ))
+                : filteredProducts.map((p, index) => (
+                    <motion.div
+                      key={p.id}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{
+                        duration: 0.4,
+                        delay: index * 0.05,
+                        ease: "easeOut",
+                      }}
+                      onClick={() => setSelectedProduct(p)}
+                      className="cursor-pointer break-inside-avoid"
+                    >
+                      <ProductCard
+                        product={p}
+                        onNotifyMe={setNotifyProduct}
+                        isLiked={likedProductIds.has(p.id)}
+                        onLikeChange={(productId, isLiked) => {
+                          setLikedProductIds((prev) => {
+                            const next = new Set(prev);
+                            if (isLiked) {
+                              next.add(productId);
+                            } else {
+                              next.delete(productId);
+                            }
+                            return next;
+                          });
+                        }}
+                      />
+                    </motion.div>
+                  ))}
+            </motion.div>
+          </AnimatePresence>
 
           {filteredProducts.length === 0 && (
-            <div className="py-40 text-center flex flex-col items-center gap-6">
+            <motion.div
+              key="no-results"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="py-40 text-center flex flex-col items-center gap-6"
+            >
               <div className="text-6xl filter grayscale opacity-10">🏙️</div>
               <p className="text-zinc-300 font-black uppercase tracking-[0.3em] text-[10px]">
                 No finds in this category today
               </p>
-            </div>
+            </motion.div>
           )}
         </div>
       </section>
