@@ -6,7 +6,8 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { LocationInput } from "@/components/ui/LocationInput";
 import { ProductCard } from "@/components/ui/ProductCard";
-import { Camera, Save, LogOut, Heart } from "lucide-react";
+import { MessagingPreferenceSheet } from "@/components/ui/MessagingPreferenceSheet";
+import { Camera, Save, LogOut, Heart, Settings } from "lucide-react";
 import { Product } from "@/lib/types";
 
 export default function AccountPage() {
@@ -23,6 +24,7 @@ export default function AccountPage() {
   const [message, setMessage] = useState("");
   const [favorites, setFavorites] = useState<Product[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(true);
+  const [showMessagingPreference, setShowMessagingPreference] = useState(false);
 
   const hasChanges =
     originalProfile &&
@@ -375,6 +377,29 @@ export default function AccountPage() {
             </>
           )}
 
+          {/* Messaging Preference */}
+          <div className="pt-8 border-t border-zinc-100">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Settings className="w-5 h-5 text-zinc-500" />
+                <h2 className="text-lg font-black text-zinc-900">
+                  Messaging Settings
+                </h2>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowMessagingPreference(true)}
+                className="text-zinc-500"
+              >
+                Configure
+              </Button>
+            </div>
+            <p className="text-sm text-zinc-600">
+              Set your preferred messaging platform for contacting sellers.
+            </p>
+          </div>
+
           {/* Favorites Section */}
           <div className="pt-8 border-t border-zinc-100">
             <div className="flex items-center gap-2 mb-6">
@@ -437,6 +462,12 @@ export default function AccountPage() {
           )}
         </div>
       </div>
+
+      {/* Messaging Preference Sheet */}
+      <MessagingPreferenceSheet
+        isOpen={showMessagingPreference}
+        onClose={() => setShowMessagingPreference(false)}
+      />
     </div>
   );
 }

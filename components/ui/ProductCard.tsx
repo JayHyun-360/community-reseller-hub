@@ -6,6 +6,10 @@ import { Product, Seller } from "@/lib/types";
 import { motion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import {
+  getPreferredPlatform,
+  setMessagingPreference,
+} from "@/lib/messaging-preference";
+import {
   MessageCircle,
   Share2,
   MoreHorizontal,
@@ -131,6 +135,7 @@ export function ProductCard({
   const hasWhatsApp = seller?.whatsappNum;
   const hasContact = hasMessenger || hasWhatsApp;
   const showDropdown = hasMessenger && hasWhatsApp;
+  const preferredPlatform = getPreferredPlatform(!!hasMessenger, !!hasWhatsApp);
 
   return (
     <motion.div
@@ -187,20 +192,32 @@ export function ProductCard({
                       <div className="absolute bottom-full left-0 mb-2 bg-white rounded-xl shadow-lg border border-zinc-100 overflow-hidden z-50">
                         {hasMessenger && (
                           <button
-                            onClick={(e) => handleMessageSeller(e, "messenger")}
+                            onClick={(e) => {
+                              handleMessageSeller(e, "messenger");
+                              setMessagingPreference("messenger");
+                            }}
                             className="flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
                           >
                             <MessageCircle className="w-4 h-4 text-[#0084FF]" />
                             Messenger
+                            {preferredPlatform === "messenger" && (
+                              <div className="ml-auto w-2 h-2 bg-zinc-900 rounded-full" />
+                            )}
                           </button>
                         )}
                         {hasWhatsApp && (
                           <button
-                            onClick={(e) => handleMessageSeller(e, "whatsapp")}
+                            onClick={(e) => {
+                              handleMessageSeller(e, "whatsapp");
+                              setMessagingPreference("whatsapp");
+                            }}
                             className="flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
                           >
                             <Phone className="w-4 h-4 text-[#25D366]" />
                             WhatsApp
+                            {preferredPlatform === "whatsapp" && (
+                              <div className="ml-auto w-2 h-2 bg-zinc-900 rounded-full" />
+                            )}
                           </button>
                         )}
                       </div>
@@ -211,7 +228,8 @@ export function ProductCard({
                     onClick={(e) =>
                       handleMessageSeller(
                         e,
-                        hasMessenger ? "messenger" : "whatsapp",
+                        preferredPlatform ||
+                          (hasMessenger ? "messenger" : "whatsapp"),
                       )
                     }
                     className="p-2 bg-white/90 hover:bg-white rounded-full text-zinc-900 transition-colors shadow-md"
