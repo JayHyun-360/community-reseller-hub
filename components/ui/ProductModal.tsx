@@ -437,9 +437,12 @@ export function ProductModal({
                   <Share2 className="w-5 h-5" />
                   Share
                 </button>
-                <button className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors">
-                  <MoreHorizontal className="w-5 h-5" />
-                  More
+                <button
+                  onClick={() => router.push(`/${seller?.username}`)}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors"
+                >
+                  <ExternalLink className="w-5 h-5" />
+                  Visit Seller
                 </button>
               </div>
             </div>

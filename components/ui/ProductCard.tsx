@@ -245,9 +245,6 @@ function ProductCardComponent({
                 <Share2 className="w-4 h-4" />
               </button>
             </div>
-            <button className="p-2 bg-white/90 hover:bg-white rounded-full text-zinc-900 transition-colors shadow-md">
-              <MoreHorizontal className="w-4 h-4" />
-            </button>
           </div>
         </div>
       </div>
@@ -263,7 +260,13 @@ function ProductCardComponent({
         </div>
 
         {showSeller && seller && (
-          <div className="mt-1.5 flex items-center gap-2">
+          <div
+            className="mt-1.5 flex items-center gap-2 cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`/${seller?.username}`);
+            }}
+          >
             <img
               src={seller.avatarUrl}
               alt={seller.displayName}
