@@ -68,8 +68,14 @@ export function ProductModal({
   const [imgError, setImgError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [relatedCategoryName, setRelatedCategoryName] = useState<string | null>(
+    null,
+  );
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const overlayScrollRef = useRef<HTMLDivElement>(null);
+
+  const resolvedViewerId =
+    viewerUserId !== undefined ? viewerUserId : (viewerUserIdProp ?? null);
 
   useEffect(() => {
     setCurrentImageIndex(0);
@@ -167,7 +173,30 @@ export function ProductModal({
   }, [product?.sellerId, supabase]);
 
   useEffect(() => {
-    if (!product) return;
+    if (!product?.categoryId) {
+      setRelatedCategoryName(null);
+      return;
+    }
+
+    supabase
+      .from("categories")
+      .select("name")
+      .eq("id", product.categoryId)
+      .single()
+      .then(({ data }) => {
+        setRelatedCategoryName(data?.name ?? null);
+      });
+  }, [product?.categoryId, supabase]);
+
+  useEffect(() => {
+    if (!product) {
+      setRelatedProducts([]);
+      return;
+    }
+
+    setRelatedProducts([]);
+
+    let cancelled = false;
 
     const mapRow = (p: {
       id: string;
@@ -199,29 +228,32 @@ export function ProductModal({
       createdAt: p.created_at,
     });
 
-    const ownerView = isProductOwner(viewerUserId, product.sellerId);
+    const ownerView = isProductOwner(resolvedViewerId, product.sellerId);
 
     let query = supabase
       .from("products")
       .select("*")
       .neq("id", product.id)
       .eq("status", "active")
+      .order("created_at", { ascending: false })
       .limit(12);
 
     if (ownerView) {
       query = query.eq("seller_id", product.sellerId);
     } else if (product.categoryId) {
       query = query.eq("category_id", product.categoryId);
-    } else {
-      return;
     }
 
     query.then(({ data }) => {
-      if (data) {
+      if (!cancelled && data) {
         setRelatedProducts(data.map(mapRow));
       }
     });
-  }, [product, viewerUserId, supabase]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product?.id, product?.categoryId, product?.sellerId, resolvedViewerId, supabase]);
 
   const handleLike = async () => {
     if (!product || isTogglingRef.current) return;
@@ -296,7 +328,19 @@ export function ProductModal({
   const hasContact = sellerHasContact(seller);
   const showDropdown = [hasMessenger, hasWhatsApp, hasInstagram, hasTikTok].filter(Boolean).length > 1;
   const preferredPlatform = getPreferredPlatform(!!hasMessenger, !!hasWhatsApp);
-  const isOwner = isProductOwner(viewerUserId, product?.sellerId);
+  const isOwner = isProductOwner(resolvedViewerId, product?.sellerId);
+
+  const relatedSectionTitle = isOwner
+    ? "Your other listings"
+    : product?.categoryId && relatedCategoryName
+      ? `More in ${relatedCategoryName}`
+      : "More like this";
+
+  const relatedSectionHint = isOwner
+    ? "Other products from your shop"
+    : product?.categoryId
+      ? "Same category as this listing"
+      : "Recently listed near you";
   const onOwnStorefront =
     !!seller?.username && pathname === `/${seller.username}`;
   const showVisitSeller = !onOwnStorefront && !!seller?.username;
@@ -335,14 +379,14 @@ export function ProductModal({
         className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       >
-        <div className="min-h-full flex justify-center px-0 sm:px-4 py-0 sm:py-8">
+        <div className="min-h-full flex justify-center items-end sm:items-center px-2 sm:px-4 py-2 sm:py-8">
           <motion.div
             key={product.id}
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative bg-white rounded-t-3xl sm:rounded-3xl overflow-hidden w-full max-w-5xl shadow-2xl my-0 sm:my-auto"
+            className="relative bg-white rounded-2xl sm:rounded-3xl overflow-hidden w-full max-w-lg sm:max-w-2xl lg:max-w-5xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -354,12 +398,12 @@ export function ProductModal({
             </button>
 
             <div className="flex flex-col lg:flex-row">
-              <div className="relative w-full lg:w-[52%] bg-zinc-100 flex-shrink-0">
-            <div className="aspect-[4/5] lg:aspect-auto lg:min-h-[420px] lg:max-h-[70vh]">
+              <div className="relative w-full lg:w-[52%] bg-zinc-100 flex-shrink-0 overflow-hidden">
+                <div className="w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-auto lg:min-h-[360px] lg:max-h-[65vh]">
               <img
                 src={imgError ? fallbackImage : images[currentImageIndex]}
                 alt={product.title}
-                className="w-full h-full object-cover cursor-zoom-in"
+                className="w-full h-full object-cover cursor-zoom-in max-h-[inherit]"
                 referrerPolicy="no-referrer"
                 onError={() => setImgError(true)}
                 onClick={() => setFullscreenImage(images[currentImageIndex])}
@@ -405,20 +449,20 @@ export function ProductModal({
             )}
               </div>
 
-              <div className="w-full lg:w-[48%] p-4 sm:p-6 flex flex-col lg:max-h-[70vh] lg:overflow-y-auto">
-            <div className="space-y-4">
-              <div className="flex items-start justify-between gap-4">
-                <div className="min-w-0">
+              <div className="w-full lg:w-[48%] p-3 sm:p-6 flex flex-col lg:max-h-[65vh] lg:overflow-y-auto">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
                   {isOwner && (
                     <span className="inline-block mb-2 text-[10px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full">
                       Your listing
                     </span>
                   )}
-                  <h2 className="text-xl font-black text-zinc-900">
+                  <h2 className="text-lg sm:text-xl font-black text-zinc-900 leading-snug">
                     {product.title}
                   </h2>
                 </div>
-                <span className="text-xl font-black text-zinc-900 whitespace-nowrap">
+                <span className="text-lg sm:text-xl font-black text-zinc-900 whitespace-nowrap shrink-0">
                   ₱{product.price?.toLocaleString()}
                 </span>
               </div>
@@ -514,14 +558,14 @@ export function ProductModal({
             </div>
 
             {relatedProducts.length > 0 && (
-              <section className="px-4 sm:px-6 pb-6 sm:pb-8 pt-4 border-t border-zinc-100 bg-white">
+              <section className="px-3 sm:px-6 pb-4 sm:pb-8 pt-3 sm:pt-4 border-t border-zinc-100 bg-white">
                 <h3 className="text-sm font-black text-zinc-900 tracking-tight">
-                  {isOwner ? "Your other listings" : "More like this"}
+                  {relatedSectionTitle}
                 </h3>
-                <p className="text-xs text-zinc-400 mt-1 mb-4">
-                  Tap a listing to view it above
+                <p className="text-xs text-zinc-400 mt-1 mb-3 sm:mb-4">
+                  {relatedSectionHint} · tap to open above
                 </p>
-                <div className="columns-2 sm:columns-3 gap-3 sm:gap-4">
+                <div className="columns-2 sm:columns-3 gap-2 sm:gap-4">
                   {relatedProducts.map((p) => (
                     <RelatedProductTile
                       key={p.id}
