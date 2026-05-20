@@ -207,12 +207,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           aria-label="Close menu"
           onClick={onClose}
           tabIndex={isOpen ? 0 : -1}
-          className={`fixed inset-0 w-full h-full bg-zinc-900/50 touch-none transition-opacity duration-300 ease-out motion-reduce:transition-none ${
+          className={`fixed inset-0 w-full h-full bg-zinc-900/50 touch-none transition-opacity duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none ${
             isOpen ? "opacity-100" : "opacity-0"
           }`}
         />
         <div
-          className={`fixed inset-y-0 left-0 z-[201] w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-out will-change-transform motion-reduce:transition-none ${
+          className={`fixed inset-y-0 left-0 z-[201] w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] will-change-transform motion-reduce:transition-none ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >

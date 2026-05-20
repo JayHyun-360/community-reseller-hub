@@ -1,9 +1,15 @@
 "use client";
 
-import { useState, useMemo, useEffect, useCallback } from "react";
+import {
+  useState,
+  useMemo,
+  useEffect,
+  useCallback,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import { Search as SearchIcon, X, Filter, Store } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { ProductModal } from "@/components/ui/ProductModalLazy";
@@ -37,6 +43,33 @@ export default function SearchPage() {
   );
   const productModal = useProductModalStack();
   const supabase = createClient();
+  const tabsBarRef = useRef<HTMLDivElement>(null);
+  const productsTabRef = useRef<HTMLButtonElement>(null);
+  const sellersTabRef = useRef<HTMLButtonElement>(null);
+  const [tabUnderline, setTabUnderline] = useState({ left: 0, width: 0 });
+  const [tabUnderlineReady, setTabUnderlineReady] = useState(false);
+
+  const measureTabUnderline = useCallback(() => {
+    const active =
+      tab === "products" ? productsTabRef.current : sellersTabRef.current;
+    const bar = tabsBarRef.current;
+    if (!active || !bar) return;
+    setTabUnderline({
+      left: active.offsetLeft,
+      width: active.offsetWidth,
+    });
+  }, [tab]);
+
+  useLayoutEffect(() => {
+    measureTabUnderline();
+    const frame = requestAnimationFrame(() => setTabUnderlineReady(true));
+    return () => cancelAnimationFrame(frame);
+  }, [measureTabUnderline, products.length, sellers.length]);
+
+  useEffect(() => {
+    window.addEventListener("resize", measureTabUnderline);
+    return () => window.removeEventListener("resize", measureTabUnderline);
+  }, [measureTabUnderline]);
 
   const handleLikeChange = (
     productId: string,
@@ -264,39 +297,46 @@ export default function SearchPage() {
       {/* Navigation Tabs & Filters */}
       <div className="bg-white pt-4 pb-6 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex gap-8 border-b border-zinc-100">
+          <div
+            ref={tabsBarRef}
+            className="relative flex gap-8 border-b border-zinc-100"
+          >
             <button
+              ref={productsTabRef}
+              type="button"
               onClick={() => setTab("products")}
-              className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-all relative ${
+              className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
                 tab === "products"
                   ? "text-indigo-600"
                   : "text-zinc-400 hover:text-zinc-600"
               }`}
             >
               Products ({products.length})
-              {tab === "products" && (
-                <motion.div
-                  layoutId="activeSearchTab"
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full"
-                />
-              )}
             </button>
             <button
+              ref={sellersTabRef}
+              type="button"
               onClick={() => setTab("sellers")}
-              className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-all relative ${
+              className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
                 tab === "sellers"
                   ? "text-indigo-600"
                   : "text-zinc-400 hover:text-zinc-600"
               }`}
             >
               Sellers ({sellers.length})
-              {tab === "sellers" && (
-                <motion.div
-                  layoutId="activeSearchTab"
-                  className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-600 rounded-t-full"
-                />
-              )}
             </button>
+            <div
+              aria-hidden
+              className={`absolute bottom-0 h-1 bg-indigo-600 rounded-t-full ${
+                tabUnderlineReady
+                  ? "transition-[left,width] duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] motion-reduce:transition-none"
+                  : ""
+              }`}
+              style={{
+                left: tabUnderline.left,
+                width: tabUnderline.width,
+              }}
+            />
           </div>
 
           <div className="flex items-center gap-3">
@@ -322,7 +362,6 @@ export default function SearchPage() {
       </div>
 
       <div className="mt-8 min-h-[40vh]">
-        <AnimatePresence mode="wait">
           {loading ? (
             <div
               key="loading"
@@ -367,14 +406,7 @@ export default function SearchPage() {
                   ))}
             </div>
           ) : (
-            <motion.div
-              key="no-results"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="py-40 text-center flex flex-col items-center gap-8"
-            >
+            <div className="py-40 text-center flex flex-col items-center gap-8">
               <div className="w-24 h-24 bg-white rounded-[2rem] border border-zinc-100 flex items-center justify-center text-5xl shadow-sm filter grayscale opacity-20">
                 🔍
               </div>
@@ -396,9 +428,8 @@ export default function SearchPage() {
               >
                 Clear Filters
               </button>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
       </div>
 
       <NotifyMeSheet
