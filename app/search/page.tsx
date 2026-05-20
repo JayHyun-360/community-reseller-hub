@@ -15,6 +15,7 @@ import {
   SellerCardSkeleton,
 } from "@/components/ui/Skeleton";
 import { applyLikeChange } from "@/lib/handle-like-change";
+import { useProductModalStack } from "@/lib/use-product-modal-stack";
 import { getViewerUserId } from "@/lib/viewer-session";
 import { Product, Seller, Category } from "@/lib/types";
 
@@ -34,7 +35,7 @@ export default function SearchPage() {
   const [likedProductIds, setLikedProductIds] = useState<Set<string>>(
     new Set(),
   );
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const productModal = useProductModalStack();
   const supabase = createClient();
 
   const handleLikeChange = (
@@ -48,7 +49,7 @@ export default function SearchPage() {
       changed,
       setLikedProductIds,
       setProducts,
-      setSelectedProduct,
+      productModal.setCurrentProduct,
     );
   };
 
@@ -347,7 +348,7 @@ export default function SearchPage() {
                 ? (results as Product[]).map((p, index) => (
                     <div
                       key={p.id}
-                      onClick={() => setSelectedProduct(p)}
+                      onClick={() => productModal.open(p)}
                       className="cursor-pointer break-inside-avoid"
                     >
                       <ProductCard
@@ -416,13 +417,17 @@ export default function SearchPage() {
       />
 
       <ProductModal
-        product={selectedProduct}
+        product={productModal.product}
         isLiked={
-          selectedProduct ? likedProductIds.has(selectedProduct.id) : false
+          productModal.product
+            ? likedProductIds.has(productModal.product.id)
+            : false
         }
         viewerUserId={currentUser?.id ?? null}
-        onClose={() => setSelectedProduct(null)}
-        onProductClick={setSelectedProduct}
+        canGoBack={productModal.canGoBack}
+        onBack={productModal.back}
+        onClose={productModal.close}
+        onProductClick={productModal.goToRelated}
         onLikeChange={handleLikeChange}
       />
     </div>

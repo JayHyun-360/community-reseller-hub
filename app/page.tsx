@@ -13,6 +13,7 @@ import {
   TrendingCardSkeleton,
 } from "@/components/ui/Skeleton";
 import { applyLikeChange } from "@/lib/handle-like-change";
+import { useProductModalStack } from "@/lib/use-product-modal-stack";
 import { getViewerUserId } from "@/lib/viewer-session";
 import { Product, Seller, Category } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -33,7 +34,7 @@ export default function HomePage() {
   const [likedProductIds, setLikedProductIds] = useState<Set<string>>(
     new Set(),
   );
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const productModal = useProductModalStack();
   const [viewerUserId, setViewerUserId] = useState<string | null>(null);
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
@@ -49,7 +50,7 @@ export default function HomePage() {
       changed,
       setLikedProductIds,
       setProducts,
-      setSelectedProduct,
+      productModal.setCurrentProduct,
     );
   };
 
@@ -208,7 +209,7 @@ export default function HomePage() {
                 : products.slice(0, 6).map((item, idx) => (
                     <div
                       key={idx}
-                      onClick={() => setSelectedProduct(item)}
+                      onClick={() => productModal.open(item)}
                       className="flex-shrink-0 w-44 md:w-64 group cursor-pointer"
                     >
                       <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-100 mb-4 shadow-xl shadow-zinc-200/50 group-hover:scale-[1.02] transition-transform duration-500">
@@ -237,7 +238,7 @@ export default function HomePage() {
       <div className="mt-8 px-0 md:px-6">
         <LatestProductsStrip
           products={products}
-          onProductClick={setSelectedProduct}
+          onProductClick={productModal.open}
         />
       </div>
 
@@ -296,7 +297,7 @@ export default function HomePage() {
                         delay: index * 0.05,
                         ease: "easeOut",
                       }}
-                      onClick={() => setSelectedProduct(p)}
+                      onClick={() => productModal.open(p)}
                       className="cursor-pointer break-inside-avoid"
                     >
                       <ProductCard
@@ -348,13 +349,17 @@ export default function HomePage() {
       />
 
       <ProductModal
-        product={selectedProduct}
+        product={productModal.product}
         isLiked={
-          selectedProduct ? likedProductIds.has(selectedProduct.id) : false
+          productModal.product
+            ? likedProductIds.has(productModal.product.id)
+            : false
         }
         viewerUserId={viewerUserId}
-        onClose={() => setSelectedProduct(null)}
-        onProductClick={setSelectedProduct}
+        canGoBack={productModal.canGoBack}
+        onBack={productModal.back}
+        onClose={productModal.close}
+        onProductClick={productModal.goToRelated}
         onLikeChange={handleLikeChange}
       />
 

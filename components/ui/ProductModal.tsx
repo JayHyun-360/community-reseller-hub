@@ -10,7 +10,7 @@ import { Product, Seller } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { getPreferredPlatform } from "@/lib/messaging-preference";
-import { X } from "lucide-react";
+import { ChevronLeft, X } from "lucide-react";
 import { RelatedProductTile } from "./RelatedProductTile";
 import { Skeleton } from "./Skeleton";
 import {
@@ -26,7 +26,10 @@ import { getViewerUserId } from "@/lib/viewer-session";
 interface ProductModalProps {
   product: Product | null;
   onClose: () => void;
-  /** Swap the focused product in this same modal — do not mount a second ProductModal. */
+  /** Previous product in the same modal (related-pin stack). */
+  onBack?: () => void;
+  canGoBack?: boolean;
+  /** Push onto the modal stack — do not mount a second ProductModal. */
   onProductClick?: (product: Product) => void;
   onLikeChange?: (productId: string, isLiked: boolean, changed?: boolean) => void;
   isLiked?: boolean;
@@ -51,6 +54,8 @@ function formatTimeAgo(dateString: string): string {
 export function ProductModal({
   product,
   onClose,
+  onBack,
+  canGoBack = false,
   onProductClick,
   onLikeChange,
   isLiked: initialLiked = false,
@@ -83,6 +88,29 @@ export function ProductModal({
     setCurrentImageIndex(0);
     setImgError(false);
   }, [product?.id]);
+
+  useEffect(() => {
+    if (!product) return;
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      if (canGoBack && onBack) onBack();
+      else onClose();
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [product, canGoBack, onBack, onClose]);
+
+  useEffect(() => {
+    if (!product) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [product]);
 
   useEffect(() => {
     setLikeCount(product?.likeCount || 0);
@@ -372,8 +400,14 @@ export function ProductModal({
   const showVisitSeller = !onOwnStorefront && !!seller?.username;
 
   const handleRelatedClick = (next: Product) => {
+    if (product?.id === next.id) return;
     onProductClick?.(next);
     overlayScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleHeaderNav = () => {
+    if (canGoBack && onBack) onBack();
+    else onClose();
   };
 
   const handleShare = async () => {
@@ -416,11 +450,16 @@ export function ProductModal({
             onClick={(e) => e.stopPropagation()}
           >
             <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-20 p-2 bg-white/95 hover:bg-white rounded-full shadow-lg transition-colors"
-              aria-label="Close"
+              type="button"
+              onClick={handleHeaderNav}
+              className="absolute top-4 left-4 z-20 p-2 bg-white/95 hover:bg-white rounded-full shadow-lg transition-colors"
+              aria-label={canGoBack ? "Back to previous listing" : "Close"}
             >
-              <X className="w-5 h-5 text-zinc-900" />
+              {canGoBack ? (
+                <ChevronLeft className="w-5 h-5 text-zinc-900" />
+              ) : (
+                <X className="w-5 h-5 text-zinc-900" />
+              )}
             </button>
 
             <div className="flex flex-col lg:flex-row">

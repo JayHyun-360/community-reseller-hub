@@ -22,6 +22,7 @@ import {
   sellerHasContact,
 } from "@/lib/seller-contacts";
 import { applyLikeChange } from "@/lib/handle-like-change";
+import { useProductModalStack } from "@/lib/use-product-modal-stack";
 import { getViewerUserId } from "@/lib/viewer-session";
 import { Product, Seller, Category } from "@/lib/types";
 
@@ -40,7 +41,7 @@ export default function StorefrontPage({
   const [likedProductIds, setLikedProductIds] = useState<Set<string>>(
     new Set()
   );
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const productModal = useProductModalStack();
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +60,7 @@ export default function StorefrontPage({
       changed,
       setLikedProductIds,
       setProducts,
-      setSelectedProduct,
+      productModal.setCurrentProduct,
     );
   };
 
@@ -447,7 +448,7 @@ export default function StorefrontPage({
           {filteredProducts.map((p) => (
             <div
               key={p.id}
-              onClick={() => setSelectedProduct(p)}
+              onClick={() => productModal.open(p)}
               className="cursor-pointer break-inside-avoid mb-4 md:mb-6 animate-fade-in"
             >
               <ProductCard
@@ -477,13 +478,17 @@ export default function StorefrontPage({
       />
 
       <ProductModal
-        product={selectedProduct}
+        product={productModal.product}
         isLiked={
-          selectedProduct ? likedProductIds.has(selectedProduct.id) : false
+          productModal.product
+            ? likedProductIds.has(productModal.product.id)
+            : false
         }
         viewerUserId={currentUserId}
-        onClose={() => setSelectedProduct(null)}
-        onProductClick={setSelectedProduct}
+        canGoBack={productModal.canGoBack}
+        onBack={productModal.back}
+        onClose={productModal.close}
+        onProductClick={productModal.goToRelated}
         onLikeChange={handleLikeChange}
       />
     </div>
