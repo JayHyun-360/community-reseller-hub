@@ -195,22 +195,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {sidebarContent}
       </aside>
 
-      {/* Mobile drawer: CSS transform only (no spring/blur) for smoother open on low-end phones */}
+      {/* Mobile drawer — fixed layers so backdrop always blocks page touches when open */}
       <div
-        className={`fixed inset-0 z-[100] lg:hidden pointer-events-none ${
-          isOpen ? "pointer-events-auto" : ""
+        className={`fixed inset-0 z-[200] lg:hidden ${
+          isOpen ? "pointer-events-auto" : "pointer-events-none invisible"
         }`}
         aria-hidden={!isOpen}
       >
-        <div
-          role="presentation"
+        <button
+          type="button"
+          aria-label="Close menu"
           onClick={onClose}
-          className={`absolute inset-0 bg-zinc-900/50 transition-opacity duration-300 ease-out motion-reduce:transition-none ${
+          tabIndex={isOpen ? 0 : -1}
+          className={`fixed inset-0 w-full h-full bg-zinc-900/50 touch-none transition-opacity duration-300 ease-out motion-reduce:transition-none ${
             isOpen ? "opacity-100" : "opacity-0"
           }`}
         />
         <div
-          className={`absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-out will-change-transform motion-reduce:transition-none ${
+          className={`fixed inset-y-0 left-0 z-[201] w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-out will-change-transform motion-reduce:transition-none ${
             isOpen ? "translate-x-0" : "-translate-x-full"
           }`}
         >
