@@ -16,7 +16,7 @@ export function RelatedProductTile({ product, onClick }: RelatedProductTileProps
       onClick={onClick}
       className="group w-full mb-3 sm:mb-4 break-inside-avoid text-left rounded-2xl overflow-hidden bg-zinc-50 [@media(hover:hover)]:hover:brightness-95 transition-[filter] duration-200"
     >
-      <div className="relative aspect-[4/5] w-full bg-zinc-100">
+      <div className="relative aspect-[4/5] w-full overflow-hidden rounded-t-2xl bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200/90">
         <ProductImage
           src={product.images?.[0]}
           alt={product.title}

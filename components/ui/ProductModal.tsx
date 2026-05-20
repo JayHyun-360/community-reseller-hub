@@ -431,7 +431,7 @@ export function ProductModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18, ease: "easeOut" }}
-            className="relative bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg sm:max-w-2xl lg:max-w-5xl shadow-2xl"
+            className="relative bg-white rounded-2xl sm:rounded-3xl overflow-hidden w-full max-w-lg sm:max-w-2xl lg:max-w-5xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -448,8 +448,8 @@ export function ProductModal({
             </button>
 
             <div className="flex flex-col lg:flex-row">
-              <div className="relative w-full lg:w-[52%] bg-zinc-100 flex-shrink-0 overflow-hidden">
-                <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px]">
+              <div className="relative w-full lg:w-[52%] flex-shrink-0 overflow-hidden rounded-t-2xl sm:rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200/90">
+                <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit]">
               <ProductImage
                 src={imgError ? PRODUCT_IMAGE_FALLBACK : images[currentImageIndex]}
                 alt={product.title}
@@ -457,7 +457,7 @@ export function ProductModal({
                 width={800}
                 sizes="(max-width: 1024px) 100vw, 800px"
                 priority
-                className="object-cover cursor-zoom-in"
+                className="object-cover cursor-zoom-in rounded-[inherit]"
                 onClick={() => setFullscreenImage(images[currentImageIndex])}
                 onImageError={() => setImgError(true)}
               />

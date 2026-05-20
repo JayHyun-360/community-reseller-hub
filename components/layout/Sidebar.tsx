@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getViewerUserId } from "@/lib/viewer-session";
 import {
   Home,
   Search,
   LayoutDashboard,
-  LogIn,
   Github,
   Compass,
   X,
@@ -18,7 +18,6 @@ import {
   FileText,
   Info,
 } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -27,44 +26,57 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const supabase = createClient();
-  const [user, setUser] = useState<any>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [isSeller, setIsSeller] = useState(false);
 
   useEffect(() => {
-    async function fetchAuth() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
+    let cancelled = false;
 
-      if (user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", user.id)
-          .single();
-        setIsSeller(profile?.role === "seller");
+    getViewerUserId(supabase).then((id) => {
+      if (cancelled) return;
+      setUserId(id);
+      if (!id) {
+        setIsSeller(false);
+        return;
       }
-    }
-    fetchAuth();
+      supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", id)
+        .single()
+        .then(({ data }) => {
+          if (!cancelled) setIsSeller(data?.role === "seller");
+        });
+    });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user || null;
-      setUser(currentUser);
-      if (!currentUser) setIsSeller(false);
+      const id = session?.user?.id ?? null;
+      setUserId(id);
+      if (!id) setIsSeller(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [isOpen]);
 
   const navItems = [
     { href: "/", icon: Home, label: "Home" },
     { href: "/search", icon: Compass, label: "Explore" },
-    ...(user
+    ...(userId
       ? [
           { href: "/account", icon: Store, label: "Account" },
           ...(isSeller
@@ -89,7 +101,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   ];
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-white p-6">
+    <div className="flex flex-col h-full bg-white p-6 overscroll-contain">
       <div className="mb-10 flex items-center justify-between">
         <Link
           href="/"
@@ -104,22 +116,24 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           </span>
         </Link>
         <button
+          type="button"
           onClick={onClose}
           className="lg:hidden p-2 text-zinc-400 hover:text-zinc-900 transition-colors"
+          aria-label="Close menu"
         >
           <X className="w-6 h-6" />
         </button>
       </div>
 
-      <nav className="flex-grow space-y-1">
+      <nav className="flex-grow space-y-1 overflow-y-auto">
         {navItems.map((item) => {
-          const isActive = pathname === item.href && !(item as any).isCta;
+          const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
               href={item.href}
               onClick={onClose}
-              className={`flex items-center gap-4 px-5 py-3.5 rounded-full transition-all duration-300 font-bold w-full overflow-hidden ${
+              className={`flex items-center gap-4 px-5 py-3.5 rounded-full transition-colors duration-200 font-bold w-full overflow-hidden ${
                 isActive
                   ? "bg-zinc-900 text-white shadow-xl shadow-zinc-200"
                   : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900"
@@ -134,8 +148,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         })}
       </nav>
 
-      {/* Secondary Navigation */}
-      <div className="py-4 border-t border-zinc-100">
+      <div className="py-4 border-t border-zinc-100 shrink-0">
         <div className="px-5 mb-3">
           <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
             Resources
@@ -149,7 +162,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-4 px-5 py-3.5 rounded-full transition-all duration-300 font-bold w-full overflow-hidden ${
+                className={`flex items-center gap-4 px-5 py-3.5 rounded-full transition-colors duration-200 font-bold w-full overflow-hidden ${
                   isActive
                     ? "bg-zinc-900 text-white shadow-xl shadow-zinc-200"
                     : "text-zinc-400 hover:bg-zinc-50 hover:text-zinc-600"
@@ -165,14 +178,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         </nav>
       </div>
 
-      <div className="mt-auto">
+      <div className="mt-auto shrink-0">
         <div className="flex items-center justify-between px-4 text-zinc-300">
           <span className="text-[10px] font-bold uppercase tracking-widest">
             © {new Date().getFullYear()} NearByt
           </span>
-          <div className="flex gap-4">
-            <Github className="w-4 h-4 cursor-pointer hover:text-zinc-900 transition-colors" />
-          </div>
+          <Github className="w-4 h-4 cursor-pointer hover:text-zinc-900 transition-colors" />
         </div>
       </div>
     </div>
@@ -184,28 +195,28 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         {sidebarContent}
       </aside>
 
-      <AnimatePresence>
-        {isOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={onClose}
-              className="fixed inset-0 bg-zinc-900/40 backdrop-blur-sm z-[100] lg:hidden"
-            />
-            <motion.div
-              initial={{ x: "-100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "-100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-y-0 left-0 w-80 max-w-[85vw] bg-white z-[101] shadow-2xl lg:hidden"
-            >
-              {sidebarContent}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* Mobile drawer: CSS transform only (no spring/blur) for smoother open on low-end phones */}
+      <div
+        className={`fixed inset-0 z-[100] lg:hidden pointer-events-none ${
+          isOpen ? "pointer-events-auto" : ""
+        }`}
+        aria-hidden={!isOpen}
+      >
+        <div
+          role="presentation"
+          onClick={onClose}
+          className={`absolute inset-0 bg-zinc-900/50 transition-opacity duration-300 ease-out motion-reduce:transition-none ${
+            isOpen ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <div
+          className={`absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-white shadow-2xl transform transition-transform duration-300 ease-out will-change-transform motion-reduce:transition-none ${
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
+          {sidebarContent}
+        </div>
+      </div>
     </>
   );
 }
