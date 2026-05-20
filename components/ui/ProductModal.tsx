@@ -21,6 +21,7 @@ import {
   isProductOwner,
   sellerHasContact,
 } from "@/lib/seller-contacts";
+import { getViewerUserId } from "@/lib/viewer-session";
 
 interface ProductModalProps {
   product: Product | null;
@@ -28,6 +29,7 @@ interface ProductModalProps {
   onProductClick?: (product: Product) => void;
   onLikeChange?: (productId: string, isLiked: boolean, changed?: boolean) => void;
   isLiked?: boolean;
+  viewerUserId?: string | null;
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -51,12 +53,15 @@ export function ProductModal({
   onProductClick,
   onLikeChange,
   isLiked: initialLiked = false,
+  viewerUserId: viewerUserIdProp,
 }: ProductModalProps) {
   const router = useRouter();
   const pathname = usePathname();
   const supabase = createClient();
   const [seller, setSeller] = useState<Seller | null>(null);
-  const [viewerUserId, setViewerUserId] = useState<string | null>(null);
+  const [viewerUserId, setViewerUserId] = useState<string | null | undefined>(
+    viewerUserIdProp,
+  );
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(0);
   const isTogglingRef = useRef(false);
@@ -79,43 +84,54 @@ export function ProductModal({
 
     let cancelled = false;
 
-    Promise.all([
-      supabase
+    (async () => {
+      const productRes = await supabase
         .from("products")
         .select("like_count")
         .eq("id", product.id)
-        .single(),
-      supabase.auth.getUser(),
-    ]).then(async ([productRes, authRes]) => {
+        .single();
+
       if (cancelled) return;
 
       if (productRes.data) {
         setLikeCount(productRes.data.like_count || 0);
       }
 
-      const user = authRes.data.user;
-      setViewerUserId(user?.id ?? null);
-      if (!user) {
+      const userId =
+        viewerUserIdProp !== undefined
+          ? viewerUserIdProp
+          : await getViewerUserId(supabase);
+
+      if (cancelled) return;
+
+      setViewerUserId(userId);
+      const ownerView = isProductOwner(userId, product.sellerId);
+
+      if (!userId) {
         setIsLiked(false);
+        return;
+      }
+
+      if (ownerView) {
         return;
       }
 
       const { data, error } = await supabase
         .from("favorites")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("user_id", userId)
         .eq("product_id", product.id)
         .maybeSingle();
 
       if (!cancelled && !error) {
         setIsLiked(!!data);
       }
-    });
+    })();
 
     return () => {
       cancelled = true;
     };
-  }, [product?.id, supabase]);
+  }, [product?.id, supabase, viewerUserIdProp]);
 
   useEffect(() => {
     if (!product) return;
@@ -203,10 +219,8 @@ export function ProductModal({
 
   const handleLike = async () => {
     if (!product || isTogglingRef.current) return;
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getViewerUserId(supabase);
+    if (!userId) {
       router.push("/login");
       return;
     }
@@ -215,7 +229,7 @@ export function ProductModal({
     try {
       const result = await toggleFavorite(
         supabase,
-        user.id,
+        userId,
         product.id,
         isLiked,
       );
@@ -306,7 +320,7 @@ export function ProductModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       >
         <motion.div
@@ -314,7 +328,7 @@ export function ProductModal({
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
           transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="bg-white rounded-3xl overflow-hidden max-w-4xl w-full max-h-[90vh] flex flex-col md:flex-row shadow-2xl"
+          className="bg-white rounded-t-3xl sm:rounded-3xl overflow-hidden max-w-4xl w-full max-h-[92vh] sm:max-h-[90vh] flex flex-col md:flex-row shadow-2xl"
           onClick={(e) => e.stopPropagation()}
         >
           <button
@@ -375,7 +389,7 @@ export function ProductModal({
             )}
           </div>
 
-          <div className="w-full md:w-1/2 p-6 flex flex-col overflow-y-auto max-h-[50vh] md:max-h-none">
+          <div className="w-full md:w-1/2 p-4 sm:p-6 flex flex-col overflow-y-auto min-h-0 flex-1 max-h-[48vh] sm:max-h-[55vh] md:max-h-none">
             <div className="space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -496,7 +510,11 @@ export function ProductModal({
                         onProductClick?.(p);
                       }}
                     >
-                      <ProductCard product={p} showSeller={false} />
+                      <ProductCard
+                        product={p}
+                        showSeller={false}
+                        viewerUserId={viewerUserId ?? null}
+                      />
                     </div>
                   ))}
                 </div>

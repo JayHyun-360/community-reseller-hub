@@ -5,6 +5,7 @@ import {
   fetchProductLikeCount,
   toggleFavorite,
 } from "@/lib/favorites";
+import { getViewerUserId } from "@/lib/viewer-session";
 import { useRouter } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion } from "motion/react";
@@ -36,6 +37,7 @@ interface ProductCardProps {
   showSeller?: boolean;
   sellerData?: Seller;
   isLiked?: boolean;
+  viewerUserId?: string | null;
 }
 
 function ProductCardComponent({
@@ -44,23 +46,28 @@ function ProductCardComponent({
   sellerData,
   isLiked: initialLiked = false,
   onLikeChange,
+  viewerUserId: viewerUserIdProp,
 }: ProductCardProps) {
   const [seller, setSeller] = useState<Seller | null>(sellerData || null);
   const [imgError, setImgError] = useState(false);
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(product.likeCount || 0);
-  const [viewerUserId, setViewerUserId] = useState<string | null>(null);
+  const [viewerUserId, setViewerUserId] = useState<string | null | undefined>(
+    viewerUserIdProp,
+  );
   const isTogglingRef = useRef(false);
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setViewerUserId(user?.id ?? null);
-    });
-  }, [supabase]);
+    if (viewerUserIdProp !== undefined) {
+      setViewerUserId(viewerUserIdProp);
+      return;
+    }
+    getViewerUserId(supabase).then(setViewerUserId);
+  }, [supabase, viewerUserIdProp]);
 
-  const isOwner = isProductOwner(viewerUserId, product.sellerId);
+  const isOwner = isProductOwner(viewerUserId ?? null, product.sellerId);
   const canEdit = isOwner && product.id !== "preview";
 
   // Sync local state with prop
@@ -76,10 +83,8 @@ function ProductCardComponent({
     e.stopPropagation();
     if (isTogglingRef.current) return;
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
+    const userId = await getViewerUserId(supabase);
+    if (!userId) {
       router.push("/login");
       return;
     }
@@ -88,7 +93,7 @@ function ProductCardComponent({
     try {
       const result = await toggleFavorite(
         supabase,
-        user.id,
+        userId,
         product.id,
         isLiked,
       );

@@ -15,6 +15,7 @@ import {
   SellerCardSkeleton,
 } from "@/components/ui/Skeleton";
 import { applyLikeChange } from "@/lib/handle-like-change";
+import { getViewerUserId } from "@/lib/viewer-session";
 import { Product, Seller, Category } from "@/lib/types";
 
 export default function SearchPage() {
@@ -55,17 +56,17 @@ export default function SearchPage() {
     async function fetchData() {
       setLoading(true);
       try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
+        const userId = await getViewerUserId(supabase);
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user ?? null;
         setCurrentUser(user);
 
         let profile = null;
-        if (user) {
+        if (userId) {
           const { data: userProfile } = await supabase
             .from("profiles")
             .select("*")
-            .eq("id", user.id)
+            .eq("id", userId)
             .single();
           profile = userProfile;
           setCurrentProfile(profile);
@@ -76,11 +77,11 @@ export default function SearchPage() {
             supabase.from("products").select("*"),
             supabase.from("profiles").select("*"),
             supabase.from("categories").select("*"),
-            user
+            userId
               ? supabase
                   .from("favorites")
                   .select("product_id")
-                  .eq("user_id", user.id)
+                  .eq("user_id", userId)
               : Promise.resolve({ data: [] }),
           ]);
 
@@ -361,6 +362,7 @@ export default function SearchPage() {
                         onNotifyMe={setNotifyProduct}
                         isLiked={likedProductIds.has(p.id)}
                         onLikeChange={handleLikeChange}
+                        viewerUserId={currentUser?.id ?? null}
                       />
                     </motion.div>
                   ))
@@ -425,6 +427,7 @@ export default function SearchPage() {
         isLiked={
           selectedProduct ? likedProductIds.has(selectedProduct.id) : false
         }
+        viewerUserId={currentUser?.id ?? null}
         onClose={() => setSelectedProduct(null)}
         onProductClick={setSelectedProduct}
         onLikeChange={handleLikeChange}

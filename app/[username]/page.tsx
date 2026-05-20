@@ -22,6 +22,7 @@ import {
   sellerHasContact,
 } from "@/lib/seller-contacts";
 import { applyLikeChange } from "@/lib/handle-like-change";
+import { getViewerUserId } from "@/lib/viewer-session";
 import { Product, Seller, Category } from "@/lib/types";
 
 export default function StorefrontPage({
@@ -116,10 +117,8 @@ export default function StorefrontPage({
       });
 
       // 2. Fetch authenticated user to get their likes
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setCurrentUserId(user?.id ?? null);
+      const userId = await getViewerUserId(supabase);
+      setCurrentUserId(userId);
 
       // 3. Fetch products of this seller and categories (and favorites if logged in) concurrently
       const [productsRes, categoriesRes, favoritesRes] = await Promise.all([
@@ -129,11 +128,11 @@ export default function StorefrontPage({
           .eq("seller_id", sellerData.id)
           .order("created_at", { ascending: false }),
         supabase.from("categories").select("*"),
-        user
+        userId
           ? supabase
               .from("favorites")
               .select("product_id")
-              .eq("user_id", user.id)
+              .eq("user_id", userId)
           : Promise.resolve({ data: [] }),
       ]);
 
@@ -457,6 +456,7 @@ export default function StorefrontPage({
                 sellerData={seller}
                 isLiked={likedProductIds.has(p.id)}
                 onLikeChange={handleLikeChange}
+                viewerUserId={currentUserId}
               />
             </div>
           ))}
@@ -481,6 +481,7 @@ export default function StorefrontPage({
         isLiked={
           selectedProduct ? likedProductIds.has(selectedProduct.id) : false
         }
+        viewerUserId={currentUserId}
         onClose={() => setSelectedProduct(null)}
         onProductClick={setSelectedProduct}
         onLikeChange={handleLikeChange}

@@ -61,11 +61,11 @@ export function VisitorProductActions({
   const hasTikTok = !!seller?.tiktokHandle;
 
   return (
-    <>
-      <div className="flex gap-3">
+    <div className="space-y-3">
+      <div className="flex flex-col gap-3 sm:flex-row">
         <button
           onClick={onLike}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-black text-sm transition-colors shadow-lg ${
+          className={`w-full sm:flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl sm:rounded-full font-black text-sm transition-colors shadow-lg ${
             isLiked
               ? "bg-rose-500 text-white hover:bg-rose-600"
               : "bg-zinc-900 text-white hover:bg-zinc-800"
@@ -77,17 +77,17 @@ export function VisitorProductActions({
         {sellerLoading ? (
           <button
             disabled
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 rounded-full font-black text-sm text-zinc-400 cursor-not-allowed"
+            className="w-full sm:flex-1 flex items-center justify-center gap-2 py-3.5 bg-zinc-100 rounded-2xl sm:rounded-full font-black text-sm text-zinc-400 cursor-not-allowed"
           >
             <MessageCircle className="w-5 h-5 animate-pulse" />
-            Loading Contact...
+            Loading...
           </button>
         ) : hasContact ? (
           showDropdown ? (
-            <div className="flex-1 relative">
+            <div className="w-full sm:flex-1 relative">
               <button
                 onClick={() => setShowContactMenu(!showContactMenu)}
-                className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors shadow-lg"
+                className="w-full flex items-center justify-center gap-2 py-3.5 bg-zinc-100 hover:bg-zinc-200 rounded-2xl sm:rounded-full font-black text-sm text-zinc-900 transition-colors shadow-lg"
               >
                 <MessageCircle className="w-5 h-5" />
                 Message
@@ -153,7 +153,7 @@ export function VisitorProductActions({
                     (hasMessenger ? "messenger" : "whatsapp"),
                 )
               }
-              className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors shadow-lg"
+              className="w-full sm:flex-1 flex items-center justify-center gap-2 py-3.5 bg-zinc-100 hover:bg-zinc-200 rounded-2xl sm:rounded-full font-black text-sm text-zinc-900 transition-colors shadow-lg"
             >
               <MessageCircle className="w-5 h-5" />
               Message
@@ -162,33 +162,35 @@ export function VisitorProductActions({
         ) : (
           <button
             disabled
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 rounded-full font-black text-sm text-zinc-400 cursor-not-allowed"
+            className="w-full sm:flex-1 flex items-center justify-center gap-2 py-3.5 bg-zinc-100 rounded-2xl sm:rounded-full font-black text-sm text-zinc-400 cursor-not-allowed"
           >
             <MessageCircle className="w-5 h-5" />
             No Contact
           </button>
         )}
       </div>
-      <div className="flex gap-3">
+      <div
+        className={`grid gap-3 ${showVisitSeller ? "grid-cols-2" : "grid-cols-1"}`}
+      >
         <button
           onClick={onShare}
-          className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors"
+          className="flex items-center justify-center gap-2 py-3.5 bg-zinc-100 hover:bg-zinc-200 rounded-2xl sm:rounded-full font-black text-sm text-zinc-900 transition-colors"
         >
-          <Share2 className="w-5 h-5" />
+          <Share2 className="w-5 h-5 shrink-0" />
           Share
         </button>
         {showVisitSeller && (
           <button
             onClick={onVisitSeller}
             disabled={!seller?.username}
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-black text-sm text-zinc-900 transition-colors"
+            className="flex items-center justify-center gap-2 py-3.5 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl sm:rounded-full font-black text-sm text-zinc-900 transition-colors"
           >
-            <ExternalLink className="w-5 h-5" />
-            {seller ? "Visit Seller" : "Loading..."}
+            <ExternalLink className="w-5 h-5 shrink-0" />
+            <span className="truncate">{seller ? "Visit store" : "..."}</span>
           </button>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -213,56 +215,79 @@ export function OwnerProductActions({
   const canEdit = productId !== "preview";
 
   return (
-    <>
-      <div className="flex gap-3">
-        <div className="flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-black text-sm bg-zinc-100 text-zinc-600">
-          <Heart className="w-5 h-5 fill-rose-500 text-rose-500" />
+    <div className="space-y-3">
+      <div className="flex items-center justify-center gap-2 py-3.5 rounded-2xl bg-zinc-100 text-zinc-600 font-black text-sm w-full">
+        <Heart className="w-5 h-5 fill-rose-500 text-rose-500 shrink-0" />
+        <span>
           {likeCount} {likeCount === 1 ? "like" : "likes"}
-        </div>
+        </span>
+      </div>
+
+      <div
+        className={`grid gap-3 ${canEdit ? "grid-cols-2" : "grid-cols-1"}`}
+      >
         {canEdit && (
           <button
             onClick={() => router.push(`/dashboard/products/${productId}`)}
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-900 text-white hover:bg-zinc-800 rounded-full font-black text-sm transition-colors shadow-lg"
+            className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-3.5 bg-zinc-900 text-white hover:bg-zinc-800 rounded-2xl sm:rounded-full font-black text-xs sm:text-sm transition-colors shadow-lg min-h-[3.25rem]"
           >
-            <Pencil className="w-5 h-5" />
-            Edit product
+            <Pencil className="w-5 h-5 shrink-0" />
+            <span>Edit</span>
           </button>
         )}
         <button
           onClick={() => router.push(ACCOUNT_CONTACTS_PATH)}
-          className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-black text-sm transition-colors shadow-lg ${
+          className={`flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-3.5 rounded-2xl sm:rounded-full font-black text-xs sm:text-sm transition-colors shadow-lg min-h-[3.25rem] ${
+            canEdit ? "" : "col-span-1"
+          } ${
             hasContact
               ? "bg-zinc-100 text-zinc-900 hover:bg-zinc-200"
               : "bg-amber-500 text-white hover:bg-amber-600"
           }`}
         >
-          <Link2 className="w-5 h-5" />
-          {hasContact ? "Manage links" : "Add links"}
+          <Link2 className="w-5 h-5 shrink-0" />
+          <span className="text-center leading-tight">
+            {hasContact ? (
+              <>
+                <span className="sm:hidden">Manage</span>
+                <span className="hidden sm:inline">Manage links</span>
+              </>
+            ) : (
+              "Add links"
+            )}
+          </span>
         </button>
       </div>
-      <div className="flex gap-3">
+
+      <div
+        className={`grid gap-3 ${showVisitStorefront ? "grid-cols-2" : "grid-cols-1"}`}
+      >
         <button
           onClick={onShare}
-          className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors"
+          className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-3.5 bg-zinc-100 hover:bg-zinc-200 rounded-2xl sm:rounded-full font-black text-xs sm:text-sm text-zinc-900 transition-colors min-h-[3.25rem]"
         >
-          <Share2 className="w-5 h-5" />
-          Share listing
+          <Share2 className="w-5 h-5 shrink-0" />
+          <span>Share</span>
         </button>
         {showVisitStorefront && (
           <button
             onClick={onVisitStorefront}
-            className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors"
+            className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 py-3.5 bg-zinc-100 hover:bg-zinc-200 rounded-2xl sm:rounded-full font-black text-xs sm:text-sm text-zinc-900 transition-colors min-h-[3.25rem]"
           >
-            <ExternalLink className="w-5 h-5" />
-            View storefront
+            <ExternalLink className="w-5 h-5 shrink-0" />
+            <span className="text-center leading-tight">
+              <span className="sm:hidden">Store</span>
+              <span className="hidden sm:inline">View storefront</span>
+            </span>
           </button>
         )}
       </div>
+
       {!hasContact && (
-        <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 text-center font-medium">
+        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 text-center font-medium leading-relaxed">
           Add Messenger, WhatsApp, or social links so buyers can reach you.
         </p>
       )}
-    </>
+    </div>
   );
 }

@@ -13,6 +13,7 @@ import {
   TrendingCardSkeleton,
 } from "@/components/ui/Skeleton";
 import { applyLikeChange } from "@/lib/handle-like-change";
+import { getViewerUserId } from "@/lib/viewer-session";
 import { Product, Seller, Category } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -33,6 +34,7 @@ export default function HomePage() {
     new Set(),
   );
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [viewerUserId, setViewerUserId] = useState<string | null>(null);
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
@@ -53,9 +55,8 @@ export default function HomePage() {
 
   useEffect(() => {
     async function fetchData() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const userId = await getViewerUserId(supabase);
+      setViewerUserId(userId);
 
       const [productsRes, sellersRes, categoriesRes, favoritesRes] =
         await Promise.all([
@@ -65,11 +66,11 @@ export default function HomePage() {
             .order("created_at", { ascending: false }),
           supabase.from("profiles").select("*"),
           supabase.from("categories").select("*"),
-          user
+          userId
             ? supabase
                 .from("favorites")
                 .select("product_id")
-                .eq("user_id", user.id)
+                .eq("user_id", userId)
             : Promise.resolve({ data: [] }),
         ]);
 
@@ -303,6 +304,7 @@ export default function HomePage() {
                         onNotifyMe={setNotifyProduct}
                         isLiked={likedProductIds.has(p.id)}
                         onLikeChange={handleLikeChange}
+                        viewerUserId={viewerUserId}
                       />
                     </motion.div>
                   ))}
@@ -350,6 +352,7 @@ export default function HomePage() {
         isLiked={
           selectedProduct ? likedProductIds.has(selectedProduct.id) : false
         }
+        viewerUserId={viewerUserId}
         onClose={() => setSelectedProduct(null)}
         onProductClick={setSelectedProduct}
         onLikeChange={handleLikeChange}
