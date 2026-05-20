@@ -106,6 +106,8 @@ export default function SearchPage() {
                 role: s.role,
                 whatsappNum: s.whatsapp_num,
                 messengerUrl: s.messenger_url,
+                instagramHandle: s.instagram_handle,
+                tiktokHandle: s.tiktok_handle,
               })),
           );
         }

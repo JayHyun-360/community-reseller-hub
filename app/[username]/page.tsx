@@ -8,7 +8,7 @@ import { ProductModal } from "@/components/ui/ProductModal";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { BrowseMoreSheet } from "@/components/ui/BrowseMoreSheet";
 import { Button } from "@/components/ui/Button";
-import { Share2, MessageCircle, Phone as WhatsApp } from "lucide-react";
+import { Share2, MessageCircle, Phone as WhatsApp, Instagram, Video } from "lucide-react";
 import { Product, Seller, Category } from "@/lib/types";
 
 export default function StorefrontPage({
@@ -82,6 +82,8 @@ export default function StorefrontPage({
         role: sellerData.role,
         whatsappNum: sellerData.whatsapp_num,
         messengerUrl: sellerData.messenger_url,
+        instagramHandle: sellerData.instagram_handle,
+        tiktokHandle: sellerData.tiktok_handle,
       });
 
       // 2. Fetch authenticated user to get their likes
@@ -292,6 +294,28 @@ export default function StorefrontPage({
                     📋
                   </Button>
                 </div>
+              )}
+              {seller.instagramHandle && (
+                <Button
+                  fullWidth
+                  size="lg"
+                  leftIcon={<Instagram className="w-5 h-5" />}
+                  className="bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F56040] text-white hover:opacity-90 rounded-3xl border-0 shadow-lg"
+                  onClick={() => window.open(`https://instagram.com/${seller.instagramHandle}`, "_blank")}
+                >
+                  Visit Instagram
+                </Button>
+              )}
+              {seller.tiktokHandle && (
+                <Button
+                  fullWidth
+                  size="lg"
+                  leftIcon={<Video className="w-5 h-5 text-white" />}
+                  className="bg-black text-white hover:bg-zinc-900 rounded-3xl shadow-lg border border-zinc-800"
+                  onClick={() => window.open(`https://tiktok.com/@${seller.tiktokHandle}`, "_blank")}
+                >
+                  Watch on TikTok
+                </Button>
               )}
             </div>
 

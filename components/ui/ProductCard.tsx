@@ -15,6 +15,8 @@ import {
   MoreHorizontal,
   Heart,
   Phone,
+  Instagram,
+  Video,
 } from "lucide-react";
 
 interface ProductCardProps {
@@ -102,6 +104,8 @@ function ProductCardComponent({
               role: data.role,
               whatsappNum: data.whatsapp_num,
               messengerUrl: data.messenger_url,
+              instagramHandle: data.instagram_handle,
+              tiktokHandle: data.tiktok_handle,
             });
           }
         });
@@ -115,10 +119,22 @@ function ProductCardComponent({
 
   const handleMessageSeller = (
     e: React.MouseEvent,
-    via: "messenger" | "whatsapp",
+    via: "messenger" | "whatsapp" | "instagram" | "tiktok",
   ) => {
     e.stopPropagation();
     if (!seller) return;
+
+    if (via === "instagram" && seller.instagramHandle) {
+      window.open(`https://instagram.com/${seller.instagramHandle}`, "_blank");
+      setShowContactMenu(false);
+      return;
+    }
+    if (via === "tiktok" && seller.tiktokHandle) {
+      window.open(`https://tiktok.com/@${seller.tiktokHandle}`, "_blank");
+      setShowContactMenu(false);
+      return;
+    }
+
     const message = encodeURIComponent(
       `Hi! Is ${product.title} at ₱${product.price} available?`,
     );
@@ -134,8 +150,10 @@ function ProductCardComponent({
 
   const hasMessenger = seller?.messengerUrl;
   const hasWhatsApp = seller?.whatsappNum;
-  const hasContact = hasMessenger || hasWhatsApp;
-  const showDropdown = hasMessenger && hasWhatsApp;
+  const hasInstagram = seller?.instagramHandle;
+  const hasTikTok = seller?.tiktokHandle;
+  const hasContact = hasMessenger || hasWhatsApp || hasInstagram || hasTikTok;
+  const showDropdown = [hasMessenger, hasWhatsApp, hasInstagram, hasTikTok].filter(Boolean).length > 1;
   const preferredPlatform = getPreferredPlatform(!!hasMessenger, !!hasWhatsApp);
 
   return (
@@ -218,6 +236,28 @@ function ProductCardComponent({
                             {preferredPlatform === "whatsapp" && (
                               <div className="ml-auto w-2 h-2 bg-zinc-900 rounded-full" />
                             )}
+                          </button>
+                        )}
+                        {hasInstagram && (
+                          <button
+                            onClick={(e) => {
+                              handleMessageSeller(e, "instagram");
+                            }}
+                            className="flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
+                          >
+                            <Instagram className="w-4 h-4 text-[#E1306C]" />
+                            Instagram
+                          </button>
+                        )}
+                        {hasTikTok && (
+                          <button
+                            onClick={(e) => {
+                              handleMessageSeller(e, "tiktok");
+                            }}
+                            className="flex items-center gap-2 px-4 py-2.5 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
+                          >
+                            <Video className="w-4 h-4 text-black" />
+                            TikTok
                           </button>
                         )}
                       </div>

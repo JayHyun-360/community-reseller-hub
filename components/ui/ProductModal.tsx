@@ -17,6 +17,8 @@ import {
   X,
   ExternalLink,
   Phone,
+  Instagram,
+  Video,
 } from "lucide-react";
 import { ProductCard } from "./ProductCard";
 import { Skeleton } from "./Skeleton";
@@ -96,6 +98,8 @@ export function ProductModal({
             role: data.role,
             whatsappNum: data.whatsapp_num,
             messengerUrl: data.messenger_url,
+            instagramHandle: data.instagram_handle,
+            tiktokHandle: data.tiktok_handle,
           });
         }
       });
@@ -177,8 +181,20 @@ export function ProductModal({
 
   const [showContactMenu, setShowContactMenu] = useState(false);
 
-  const handleMessageSeller = (via: "messenger" | "whatsapp") => {
+  const handleMessageSeller = (via: "messenger" | "whatsapp" | "instagram" | "tiktok") => {
     if (!seller) return;
+
+    if (via === "instagram" && seller.instagramHandle) {
+      window.open(`https://instagram.com/${seller.instagramHandle}`, "_blank");
+      setShowContactMenu(false);
+      return;
+    }
+    if (via === "tiktok" && seller.tiktokHandle) {
+      window.open(`https://tiktok.com/@${seller.tiktokHandle}`, "_blank");
+      setShowContactMenu(false);
+      return;
+    }
+
     const message = encodeURIComponent(
       `Hi! Is ${product!.title} at ₱${product!.price} available?`,
     );
@@ -194,8 +210,10 @@ export function ProductModal({
 
   const hasMessenger = seller?.messengerUrl;
   const hasWhatsApp = seller?.whatsappNum;
-  const hasContact = hasMessenger || hasWhatsApp;
-  const showDropdown = hasMessenger && hasWhatsApp;
+  const hasInstagram = seller?.instagramHandle;
+  const hasTikTok = seller?.tiktokHandle;
+  const hasContact = hasMessenger || hasWhatsApp || hasInstagram || hasTikTok;
+  const showDropdown = [hasMessenger, hasWhatsApp, hasInstagram, hasTikTok].filter(Boolean).length > 1;
   const preferredPlatform = getPreferredPlatform(!!hasMessenger, !!hasWhatsApp);
 
   const handleShare = async () => {
@@ -418,6 +436,28 @@ export function ProductModal({
                               {preferredPlatform === "whatsapp" && (
                                 <div className="ml-auto w-2 h-2 bg-zinc-900 rounded-full" />
                               )}
+                            </button>
+                          )}
+                          {hasInstagram && (
+                            <button
+                              onClick={() => {
+                                handleMessageSeller("instagram");
+                              }}
+                              className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
+                            >
+                              <Instagram className="w-4 h-4 text-[#E1306C]" />
+                              Instagram
+                            </button>
+                          )}
+                          {hasTikTok && (
+                            <button
+                              onClick={() => {
+                                handleMessageSeller("tiktok");
+                              }}
+                              className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
+                            >
+                              <Video className="w-4 h-4 text-black" />
+                              TikTok
                             </button>
                           )}
                         </div>

@@ -7,6 +7,8 @@ export interface Seller {
   bio?: string;
   messengerUrl?: string;
   whatsappNum?: string | null;
+  instagramHandle?: string | null;
+  tiktokHandle?: string | null;
   role?: string;
   createdAt?: string;
 }

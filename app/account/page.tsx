@@ -91,18 +91,35 @@ export default function AccountPage() {
     setSaving(true);
     setMessage("");
 
+    const cleanInstagram = profile.instagram_handle ? profile.instagram_handle.trim().replace(/^@/, "") : null;
+    const cleanTikTok = profile.tiktok_handle ? profile.tiktok_handle.trim().replace(/^@/, "") : null;
+    const cleanWhatsApp = profile.whatsapp_num ? profile.whatsapp_num.trim() : null;
+    const cleanMessenger = profile.messenger_url ? profile.messenger_url.trim() : null;
+
+    const updatedProfile = {
+      ...profile,
+      instagram_handle: cleanInstagram,
+      tiktok_handle: cleanTikTok,
+      whatsapp_num: cleanWhatsApp,
+      messenger_url: cleanMessenger,
+      username: profile.username?.trim(),
+      full_name: profile.full_name?.trim(),
+    };
+
     const { error } = await supabase
       .from("profiles")
       .update({
-        username: profile.username?.trim(),
-        full_name: profile.full_name?.trim(),
-        bio: profile.bio,
-        whatsapp_num: profile.whatsapp_num,
-        messenger_url: profile.messenger_url,
-        avatar_url: profile.avatar_url,
-        location: profile.location,
-        latitude: profile.latitude,
-        longitude: profile.longitude,
+        username: updatedProfile.username,
+        full_name: updatedProfile.full_name,
+        bio: updatedProfile.bio,
+        whatsapp_num: updatedProfile.whatsapp_num,
+        messenger_url: updatedProfile.messenger_url,
+        instagram_handle: cleanInstagram,
+        tiktok_handle: cleanTikTok,
+        avatar_url: updatedProfile.avatar_url,
+        location: updatedProfile.location,
+        latitude: updatedProfile.latitude,
+        longitude: updatedProfile.longitude,
       })
       .eq("id", user.id);
 
@@ -110,7 +127,8 @@ export default function AccountPage() {
       setMessage("Error: " + error.message);
     } else {
       setMessage("Saved successfully!");
-      setOriginalProfile({ ...profile });
+      setProfile(updatedProfile);
+      setOriginalProfile(updatedProfile);
     }
     setSaving(false);
   };
@@ -352,6 +370,38 @@ export default function AccountPage() {
                     setProfile({ ...profile, messenger_url: e.target.value })
                   }
                   placeholder="https://m.me/yourusername"
+                  className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
+                />
+              </div>
+
+              {/* Instagram */}
+              <div>
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  Instagram Handle
+                </label>
+                <input
+                  type="text"
+                  value={profile?.instagram_handle || ""}
+                  onChange={(e) =>
+                    setProfile({ ...profile, instagram_handle: e.target.value })
+                  }
+                  placeholder="username"
+                  className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
+                />
+              </div>
+
+              {/* TikTok */}
+              <div>
+                <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                  TikTok Handle
+                </label>
+                <input
+                  type="text"
+                  value={profile?.tiktok_handle || ""}
+                  onChange={(e) =>
+                    setProfile({ ...profile, tiktok_handle: e.target.value })
+                  }
+                  placeholder="username"
                   className="w-full bg-zinc-50 border border-zinc-100 rounded-2xl px-6 py-4 text-base focus:border-zinc-900 outline-none transition-all placeholder:text-zinc-300"
                 />
               </div>
