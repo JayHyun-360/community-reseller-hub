@@ -47,7 +47,7 @@ export default function StorefrontPage({
       const { data: sellerData, error: sellerError } = await supabase
         .from("profiles")
         .select("*")
-        .ilike("username", decodedUsername)
+        .ilike("username", decodedUsername.trim())
         .single();
 
       if (sellerError) {

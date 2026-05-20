@@ -94,8 +94,8 @@ export default function AccountPage() {
     const { error } = await supabase
       .from("profiles")
       .update({
-        username: profile.username,
-        full_name: profile.full_name,
+        username: profile.username?.trim(),
+        full_name: profile.full_name?.trim(),
         bio: profile.bio,
         whatsapp_num: profile.whatsapp_num,
         messenger_url: profile.messenger_url,
