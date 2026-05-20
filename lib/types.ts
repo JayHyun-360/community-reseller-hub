@@ -31,7 +31,7 @@ export interface Product {
   stockQty?: number;
   status?: string;
   isFeatured: boolean;
-  likeCount: number;
+  likeCount?: number;
   viewCount?: number;
   tags?: string[];
   createdAt: string;
@@ -51,3 +51,5 @@ export interface CategoryFilterItem {
   emoji?: string;
   productCount?: number;
 }
+
+export type StockStatus = "available" | "low" | "sold_out";

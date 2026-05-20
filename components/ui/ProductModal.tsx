@@ -27,6 +27,7 @@ interface ProductModalProps {
   product: Product | null;
   onClose: () => void;
   onProductClick?: (product: Product) => void;
+  onLikeChange?: (productId: string, isLiked: boolean) => void;
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -48,6 +49,7 @@ export function ProductModal({
   product,
   onClose,
   onProductClick,
+  onLikeChange,
 }: ProductModalProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -155,6 +157,7 @@ export function ProductModal({
   }, [product?.categoryId, supabase]);
 
   const handleLike = async () => {
+    if (!product) return;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -164,18 +167,33 @@ export function ProductModal({
     }
 
     if (isLiked) {
-      await supabase
+      const { error } = await supabase
         .from("favorites")
         .delete()
-        .match({ user_id: user.id, product_id: product!.id });
-      setIsLiked(false);
-      setLikeCount((c) => c - 1);
+        .match({ user_id: user.id, product_id: product.id });
+      if (!error) {
+        setIsLiked(false);
+        const newCount = Math.max(0, likeCount - 1);
+        setLikeCount(newCount);
+        onLikeChange?.(product.id, false);
+      } else {
+        console.error("Error unliking product:", error);
+      }
     } else {
-      await supabase
+      const { error } = await supabase
         .from("favorites")
-        .insert({ user_id: user.id, product_id: product!.id });
-      setIsLiked(true);
-      setLikeCount((c) => c + 1);
+        .insert({ user_id: user.id, product_id: product.id });
+      if (!error) {
+        setIsLiked(true);
+        const newCount = likeCount + 1;
+        setLikeCount(newCount);
+        onLikeChange?.(product.id, true);
+      } else if (error.code === "23505") {
+        setIsLiked(true);
+        onLikeChange?.(product.id, true);
+      } else {
+        console.error("Error liking product:", error);
+      }
     }
   };
 

@@ -33,6 +33,39 @@ export default function StorefrontPage({
   const [isNotSeller, setIsNotSeller] = useState(false);
   const supabase = createClient();
 
+  const handleLikeChange = (productId: string, isLiked: boolean) => {
+    setLikedProductIds((prev) => {
+      const next = new Set(prev);
+      if (isLiked) {
+        next.add(productId);
+      } else {
+        next.delete(productId);
+      }
+      return next;
+    });
+
+    setProducts((prev) =>
+      prev.map((item) =>
+        item.id === productId
+          ? {
+              ...item,
+              likeCount: Math.max(0, (item.likeCount || 0) + (isLiked ? 1 : -1)),
+            }
+          : item
+      )
+    );
+
+    setSelectedProduct((prev) => {
+      if (prev && prev.id === productId) {
+        return {
+          ...prev,
+          likeCount: Math.max(0, (prev.likeCount || 0) + (isLiked ? 1 : -1)),
+        };
+      }
+      return prev;
+    });
+  };
+
   useEffect(() => {
     async function fetchData() {
       const decodedUsername = decodeURIComponent(username);
@@ -376,17 +409,7 @@ export default function StorefrontPage({
                 product={p}
                 showSeller={false}
                 isLiked={likedProductIds.has(p.id)}
-                onLikeChange={(productId, isLiked) => {
-                  setLikedProductIds((prev) => {
-                    const next = new Set(prev);
-                    if (isLiked) {
-                      next.add(productId);
-                    } else {
-                      next.delete(productId);
-                    }
-                    return next;
-                  });
-                }}
+                onLikeChange={handleLikeChange}
               />
             </div>
           ))}
@@ -410,6 +433,7 @@ export default function StorefrontPage({
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onProductClick={setSelectedProduct}
+        onLikeChange={handleLikeChange}
       />
     </div>
   );

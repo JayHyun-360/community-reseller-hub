@@ -35,6 +35,40 @@ export default function HomePage() {
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
 
+  const handleLikeChange = (productId: string, isLiked: boolean) => {
+    setLikedProductIds((prev) => {
+      const next = new Set(prev);
+      if (isLiked) {
+        next.add(productId);
+      } else {
+        next.delete(productId);
+      }
+      return next;
+    });
+
+    setProducts((prev) =>
+      prev.map((item) =>
+        item.id === productId
+          ? {
+              ...item,
+              likeCount: Math.max(0, (item.likeCount || 0) + (isLiked ? 1 : -1)),
+            }
+          : item
+      )
+    );
+
+    // Also update selectedProduct's likeCount if it is currently open in the modal
+    setSelectedProduct((prev) => {
+      if (prev && prev.id === productId) {
+        return {
+          ...prev,
+          likeCount: Math.max(0, (prev.likeCount || 0) + (isLiked ? 1 : -1)),
+        };
+      }
+      return prev;
+    });
+  };
+
   useEffect(() => {
     async function fetchData() {
       const {
@@ -57,7 +91,7 @@ export default function HomePage() {
             : Promise.resolve({ data: [] }),
         ]);
 
-      if (!favoritesRes.error && favoritesRes.data) {
+      if (favoritesRes.data) {
         setLikedProductIds(
           new Set(favoritesRes.data.map((f: any) => f.product_id)),
         );
@@ -286,17 +320,7 @@ export default function HomePage() {
                         product={p}
                         onNotifyMe={setNotifyProduct}
                         isLiked={likedProductIds.has(p.id)}
-                        onLikeChange={(productId, isLiked) => {
-                          setLikedProductIds((prev) => {
-                            const next = new Set(prev);
-                            if (isLiked) {
-                              next.add(productId);
-                            } else {
-                              next.delete(productId);
-                            }
-                            return next;
-                          });
-                        }}
+                        onLikeChange={handleLikeChange}
                       />
                     </motion.div>
                   ))}
@@ -343,6 +367,7 @@ export default function HomePage() {
         product={selectedProduct}
         onClose={() => setSelectedProduct(null)}
         onProductClick={setSelectedProduct}
+        onLikeChange={handleLikeChange}
       />
 
       <BrowseMoreSheet

@@ -47,6 +47,10 @@ function ProductCardComponent({
     setIsLiked(initialLiked);
   }, [initialLiked]);
 
+  useEffect(() => {
+    setLikeCount(product.likeCount || 0);
+  }, [product.likeCount]);
+
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const {
@@ -64,22 +68,28 @@ function ProductCardComponent({
         .from("favorites")
         .delete()
         .match({ user_id: user.id, product_id: product.id });
-      if (!error || error?.code === "PGRST116") {
-        // PGRST116 = "could not find the row to delete"
+      if (!error) {
         setIsLiked(false);
-        setLikeCount((c) => c - 1);
+        setLikeCount((c) => Math.max(0, c - 1));
         onLikeChange?.(product.id, false);
+      } else {
+        console.error("Error deleting favorite:", error);
       }
     } else {
       // Like - insert a new favorite
       const { error } = await supabase
         .from("favorites")
         .insert({ user_id: user.id, product_id: product.id });
-      if (!error || error?.code === "PGRST116") {
-        // If already exists (409), just update UI
+      if (!error) {
         setIsLiked(true);
         setLikeCount((c) => c + 1);
         onLikeChange?.(product.id, true);
+      } else if (error.code === "23505") {
+        // If already exists, just update UI
+        setIsLiked(true);
+        onLikeChange?.(product.id, true);
+      } else {
+        console.error("Error inserting favorite:", error);
       }
     }
   };

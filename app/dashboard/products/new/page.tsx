@@ -346,8 +346,8 @@ export default function AddProductPage() {
                   setFormData({
                     ...formData,
                     location,
-                    latitude: lat,
-                    longitude: lng,
+                    latitude: lat ?? null,
+                    longitude: lng ?? null,
                   })
                 }
                 placeholder="Search product location..."
