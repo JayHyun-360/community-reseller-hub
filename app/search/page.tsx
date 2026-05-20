@@ -238,8 +238,8 @@ export default function SearchPage() {
         )}
       </div>
 
-      {/* Sticky Navigation Tabs & Filters */}
-      <div className="sticky top-20 bg-white pt-4 pb-6 z-40 space-y-6">
+      {/* Navigation Tabs & Filters */}
+      <div className="bg-white pt-4 pb-6 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex gap-8 border-b border-zinc-100">
             <button
