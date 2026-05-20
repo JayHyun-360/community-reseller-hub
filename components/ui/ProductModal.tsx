@@ -5,27 +5,22 @@ import {
   fetchProductLikeCount,
   toggleFavorite,
 } from "@/lib/favorites";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
-import {
-  getPreferredPlatform,
-  setMessagingPreference,
-} from "@/lib/messaging-preference";
-import {
-  MessageCircle,
-  Share2,
-  MoreHorizontal,
-  Heart,
-  X,
-  ExternalLink,
-  Phone,
-  Instagram,
-  Video,
-} from "lucide-react";
+import { getPreferredPlatform } from "@/lib/messaging-preference";
+import { X } from "lucide-react";
 import { ProductCard } from "./ProductCard";
 import { Skeleton } from "./Skeleton";
+import {
+  OwnerProductActions,
+  VisitorProductActions,
+} from "./ProductModalActions";
+import {
+  isProductOwner,
+  sellerHasContact,
+} from "@/lib/seller-contacts";
 
 interface ProductModalProps {
   product: Product | null;
@@ -58,8 +53,10 @@ export function ProductModal({
   isLiked: initialLiked = false,
 }: ProductModalProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = createClient();
   const [seller, setSeller] = useState<Seller | null>(null);
+  const [viewerUserId, setViewerUserId] = useState<string | null>(null);
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(0);
   const isTogglingRef = useRef(false);
@@ -97,6 +94,7 @@ export function ProductModal({
       }
 
       const user = authRes.data.user;
+      setViewerUserId(user?.id ?? null);
       if (!user) {
         setIsLiked(false);
         return;
@@ -147,37 +145,61 @@ export function ProductModal({
   }, [product?.sellerId, supabase]);
 
   useEffect(() => {
-    if (!product?.categoryId) return;
+    if (!product) return;
 
-    supabase
+    const mapRow = (p: {
+      id: string;
+      seller_id: string;
+      category_id: string;
+      title: string;
+      description: string | null;
+      price: number;
+      images: string[] | null;
+      stock_qty: number | null;
+      status: string;
+      is_featured: boolean | null;
+      like_count: number | null;
+      tags: string[] | null;
+      created_at: string;
+    }): Product => ({
+      id: p.id,
+      sellerId: p.seller_id,
+      categoryId: p.category_id,
+      title: p.title,
+      description: p.description || "",
+      price: p.price,
+      images: p.images || [],
+      stockQty: p.stock_qty ?? undefined,
+      status: p.status,
+      isFeatured: p.is_featured || false,
+      likeCount: p.like_count || 0,
+      tags: p.tags ?? undefined,
+      createdAt: p.created_at,
+    });
+
+    const ownerView = isProductOwner(viewerUserId, product.sellerId);
+
+    let query = supabase
       .from("products")
       .select("*")
-      .eq("category_id", product.categoryId)
       .neq("id", product.id)
       .eq("status", "active")
-      .limit(6)
-      .then(({ data }) => {
-        if (data) {
-          setRelatedProducts(
-            data.map((p) => ({
-              id: p.id,
-              sellerId: p.seller_id,
-              categoryId: p.category_id,
-              title: p.title,
-              description: p.description || "",
-              price: p.price,
-              images: p.images || [],
-              stockQty: p.stock_qty,
-              status: p.status,
-              isFeatured: p.is_featured || false,
-              likeCount: p.like_count || 0,
-              tags: p.tags,
-              createdAt: p.created_at,
-            })),
-          );
-        }
-      });
-  }, [product?.categoryId, supabase]);
+      .limit(6);
+
+    if (ownerView) {
+      query = query.eq("seller_id", product.sellerId);
+    } else if (product.categoryId) {
+      query = query.eq("category_id", product.categoryId);
+    } else {
+      return;
+    }
+
+    query.then(({ data }) => {
+      if (data) {
+        setRelatedProducts(data.map(mapRow));
+      }
+    });
+  }, [product, viewerUserId, supabase]);
 
   const handleLike = async () => {
     if (!product || isTogglingRef.current) return;
@@ -251,9 +273,13 @@ export function ProductModal({
   const hasWhatsApp = seller?.whatsappNum;
   const hasInstagram = seller?.instagramHandle;
   const hasTikTok = seller?.tiktokHandle;
-  const hasContact = hasMessenger || hasWhatsApp || hasInstagram || hasTikTok;
+  const hasContact = sellerHasContact(seller);
   const showDropdown = [hasMessenger, hasWhatsApp, hasInstagram, hasTikTok].filter(Boolean).length > 1;
   const preferredPlatform = getPreferredPlatform(!!hasMessenger, !!hasWhatsApp);
+  const isOwner = isProductOwner(viewerUserId, product?.sellerId);
+  const onOwnStorefront =
+    !!seller?.username && pathname === `/${seller.username}`;
+  const showVisitSeller = !onOwnStorefront && !!seller?.username;
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -352,9 +378,16 @@ export function ProductModal({
           <div className="w-full md:w-1/2 p-6 flex flex-col overflow-y-auto max-h-[50vh] md:max-h-none">
             <div className="space-y-4">
               <div className="flex items-start justify-between gap-4">
-                <h2 className="text-xl font-black text-zinc-900">
-                  {product.title}
-                </h2>
+                <div className="min-w-0">
+                  {isOwner && (
+                    <span className="inline-block mb-2 text-[10px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full">
+                      Your listing
+                    </span>
+                  )}
+                  <h2 className="text-xl font-black text-zinc-900">
+                    {product.title}
+                  </h2>
+                </div>
                 <span className="text-xl font-black text-zinc-900 whitespace-nowrap">
                   ₱{product.price?.toLocaleString()}
                 </span>
@@ -415,140 +448,43 @@ export function ProductModal({
             </div>
 
             <div className="pt-6 mt-6 border-t border-zinc-100 space-y-3">
-              <div className="flex gap-3">
-                <button
-                  onClick={handleLike}
-                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full font-black text-sm transition-colors shadow-lg ${
-                    isLiked
-                      ? "bg-rose-500 text-white hover:bg-rose-600"
-                      : "bg-zinc-900 text-white hover:bg-zinc-800"
-                  }`}
-                >
-                  <Heart className={`w-5 h-5 ${isLiked ? "fill-white" : ""}`} />
-                  {likeCount}
-                </button>
-                {!seller ? (
-                  <button
-                    disabled
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 rounded-full font-black text-sm text-zinc-400 cursor-not-allowed"
-                  >
-                    <MessageCircle className="w-5 h-5 animate-pulse" />
-                    Loading Contact...
-                  </button>
-                ) : hasContact ? (
-                  showDropdown ? (
-                    <div className="flex-1 relative">
-                      <button
-                        onClick={() => setShowContactMenu(!showContactMenu)}
-                        className="w-full flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors shadow-lg"
-                      >
-                        <MessageCircle className="w-5 h-5" />
-                        Message
-                      </button>
-                      {showContactMenu && (
-                        <div className="absolute top-full mt-2 left-0 right-0 bg-white rounded-xl shadow-lg border border-zinc-100 overflow-hidden z-50">
-                          {hasMessenger && (
-                            <button
-                              onClick={() => {
-                                handleMessageSeller("messenger");
-                                setMessagingPreference("messenger");
-                              }}
-                              className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
-                            >
-                              <MessageCircle className="w-4 h-4 text-[#0084FF]" />
-                              Messenger
-                              {preferredPlatform === "messenger" && (
-                                <div className="ml-auto w-2 h-2 bg-zinc-900 rounded-full" />
-                              )}
-                            </button>
-                          )}
-                          {hasWhatsApp && (
-                            <button
-                              onClick={() => {
-                                handleMessageSeller("whatsapp");
-                                setMessagingPreference("whatsapp");
-                              }}
-                              className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
-                            >
-                              <Phone className="w-4 h-4 text-[#25D366]" />
-                              WhatsApp
-                              {preferredPlatform === "whatsapp" && (
-                                <div className="ml-auto w-2 h-2 bg-zinc-900 rounded-full" />
-                              )}
-                            </button>
-                          )}
-                          {hasInstagram && (
-                            <button
-                              onClick={() => {
-                                handleMessageSeller("instagram");
-                              }}
-                              className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
-                            >
-                              <Instagram className="w-4 h-4 text-[#E1306C]" />
-                              Instagram
-                            </button>
-                          )}
-                          {hasTikTok && (
-                            <button
-                              onClick={() => {
-                                handleMessageSeller("tiktok");
-                              }}
-                              className="flex items-center justify-center gap-2 px-4 py-3 hover:bg-zinc-50 w-full text-left text-sm font-medium text-zinc-900"
-                            >
-                              <Video className="w-4 h-4 text-black" />
-                              TikTok
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() =>
-                        handleMessageSeller(
-                          preferredPlatform ||
-                            (hasMessenger ? "messenger" : "whatsapp"),
-                        )
-                      }
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors shadow-lg"
-                    >
-                      <MessageCircle className="w-5 h-5" />
-                      Message
-                    </button>
-                  )
-                ) : (
-                  <button
-                    disabled
-                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 rounded-full font-black text-sm text-zinc-400 cursor-not-allowed"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    No Contact
-                  </button>
-                )}
-              </div>
-              <div className="flex gap-3">
-                <button
-                  onClick={handleShare}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors"
-                >
-                  <Share2 className="w-5 h-5" />
-                  Share
-                </button>
-                <button
-                  onClick={() => seller?.username && router.push(`/${seller.username}`)}
-                  disabled={!seller?.username}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-black text-sm text-zinc-900 transition-colors"
-                >
-                  <ExternalLink className="w-5 h-5" />
-                  {seller ? "Visit Seller" : "Loading..."}
-                </button>
-              </div>
+              {isOwner ? (
+                <OwnerProductActions
+                  productId={product.id}
+                  likeCount={likeCount}
+                  hasContact={hasContact}
+                  onShare={handleShare}
+                  onVisitStorefront={() =>
+                    seller?.username && router.push(`/${seller.username}`)
+                  }
+                  showVisitStorefront={showVisitSeller}
+                />
+              ) : (
+                <VisitorProductActions
+                  seller={seller}
+                  hasContact={hasContact}
+                  showDropdown={showDropdown}
+                  showContactMenu={showContactMenu}
+                  setShowContactMenu={setShowContactMenu}
+                  preferredPlatform={preferredPlatform}
+                  onMessage={handleMessageSeller}
+                  isLiked={isLiked}
+                  likeCount={likeCount}
+                  onLike={handleLike}
+                  onShare={handleShare}
+                  onVisitSeller={() =>
+                    seller?.username && router.push(`/${seller.username}`)
+                  }
+                  showVisitSeller={showVisitSeller}
+                  sellerLoading={!seller}
+                />
+              )}
             </div>
 
             {relatedProducts.length > 0 && (
               <div className="pt-6 mt-6 border-t border-zinc-100">
                 <h3 className="text-xs font-black text-zinc-400 uppercase tracking-wider mb-4">
-                  More like this
+                  {isOwner ? "Your other listings" : "More like this"}
                 </h3>
                 <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
                   {relatedProducts.map((p) => (

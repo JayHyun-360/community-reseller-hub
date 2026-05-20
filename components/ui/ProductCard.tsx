@@ -14,13 +14,19 @@ import {
   setMessagingPreference,
 } from "@/lib/messaging-preference";
 import {
+  ACCOUNT_CONTACTS_PATH,
+  isProductOwner,
+  sellerHasContact,
+} from "@/lib/seller-contacts";
+import {
   MessageCircle,
   Share2,
-  MoreHorizontal,
   Heart,
   Phone,
   Instagram,
   Video,
+  Pencil,
+  Link2,
 } from "lucide-react";
 
 interface ProductCardProps {
@@ -43,9 +49,19 @@ function ProductCardComponent({
   const [imgError, setImgError] = useState(false);
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(product.likeCount || 0);
+  const [viewerUserId, setViewerUserId] = useState<string | null>(null);
   const isTogglingRef = useRef(false);
   const router = useRouter();
   const supabase = createClient();
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setViewerUserId(user?.id ?? null);
+    });
+  }, [supabase]);
+
+  const isOwner = isProductOwner(viewerUserId, product.sellerId);
+  const canEdit = isOwner && product.id !== "preview";
 
   // Sync local state with prop
   useEffect(() => {
@@ -165,7 +181,7 @@ function ProductCardComponent({
   const hasWhatsApp = seller?.whatsappNum;
   const hasInstagram = seller?.instagramHandle;
   const hasTikTok = seller?.tiktokHandle;
-  const hasContact = hasMessenger || hasWhatsApp || hasInstagram || hasTikTok;
+  const hasContact = sellerHasContact(seller);
   const showDropdown = [hasMessenger, hasWhatsApp, hasInstagram, hasTikTok].filter(Boolean).length > 1;
   const preferredPlatform = getPreferredPlatform(!!hasMessenger, !!hasWhatsApp);
 
@@ -192,22 +208,58 @@ function ProductCardComponent({
           }`}
         >
           <div className="flex justify-between items-center">
-            <button
-              onClick={handleLike}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-sm transition-colors shadow-lg ${
-                isLiked
-                  ? "bg-rose-500 text-white hover:bg-rose-600"
-                  : "bg-white/90 text-zinc-900 hover:bg-white"
-              }`}
-            >
-              <Heart className={`w-4 h-4 ${isLiked ? "fill-white" : ""}`} />
-              {likeCount}
-            </button>
+            {isOwner ? (
+              <span className="flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-sm bg-white/90 text-zinc-600 shadow-lg">
+                <Heart className="w-4 h-4 fill-rose-500 text-rose-500" />
+                {likeCount}
+              </span>
+            ) : (
+              <button
+                onClick={handleLike}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-black text-sm transition-colors shadow-lg ${
+                  isLiked
+                    ? "bg-rose-500 text-white hover:bg-rose-600"
+                    : "bg-white/90 text-zinc-900 hover:bg-white"
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${isLiked ? "fill-white" : ""}`} />
+                {likeCount}
+              </button>
+            )}
           </div>
 
           <div className="flex justify-between items-center">
             <div className="flex gap-2 relative">
-              {hasContact ? (
+              {isOwner ? (
+                <>
+                  {canEdit && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/dashboard/products/${product.id}`);
+                      }}
+                      className="p-2 bg-white/90 hover:bg-white rounded-full text-zinc-900 transition-colors shadow-md"
+                      title="Edit product"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      router.push(ACCOUNT_CONTACTS_PATH);
+                    }}
+                    className={`p-2 rounded-full transition-colors shadow-md ${
+                      hasContact
+                        ? "bg-white/90 hover:bg-white text-zinc-900"
+                        : "bg-amber-500 hover:bg-amber-600 text-white"
+                    }`}
+                    title={hasContact ? "Manage contact links" : "Add contact links"}
+                  >
+                    <Link2 className="w-4 h-4" />
+                  </button>
+                </>
+              ) : hasContact ? (
                 showDropdown ? (
                   <>
                     <button
@@ -291,7 +343,10 @@ function ProductCardComponent({
                   </button>
                 )
               ) : (
-                <span className="p-2 bg-white/50 rounded-full text-zinc-400 cursor-not-allowed">
+                <span
+                  className="p-2 bg-white/50 rounded-full text-zinc-400 cursor-not-allowed"
+                  title="Seller has no contact links"
+                >
                   <MessageCircle className="w-4 h-4" />
                 </span>
               )}

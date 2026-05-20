@@ -9,6 +9,7 @@ import { ProductCard } from "@/components/ui/ProductCard";
 import { MessagingPreferenceSheet } from "@/components/ui/MessagingPreferenceSheet";
 import { Camera, Save, LogOut, Heart, Settings } from "lucide-react";
 import { Product } from "@/lib/types";
+import { SELLER_CONTACTS_HASH } from "@/lib/seller-contacts";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -29,6 +30,17 @@ export default function AccountPage() {
   const hasChanges =
     originalProfile &&
     JSON.stringify(profile) !== JSON.stringify(originalProfile);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.hash === `#${SELLER_CONTACTS_HASH}`) {
+      requestAnimationFrame(() => {
+        document
+          .getElementById(SELLER_CONTACTS_HASH)
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [loading, isSeller]);
 
   useEffect(() => {
     async function fetchData() {
@@ -321,7 +333,18 @@ export default function AccountPage() {
           </div>
 
           {isSeller && (
-            <>
+            <div
+              id={SELLER_CONTACTS_HASH}
+              className="space-y-6 scroll-mt-24 pt-2 border-t border-zinc-100"
+            >
+              <div>
+                <h2 className="text-sm font-black text-zinc-900 uppercase tracking-widest">
+                  Seller contact links
+                </h2>
+                <p className="text-xs text-zinc-400 mt-1">
+                  Shown on your products and storefront for buyers to reach you.
+                </p>
+              </div>
               {/* Bio */}
               <div>
                 <label className="block text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
@@ -424,7 +447,7 @@ export default function AccountPage() {
                   placeholder="Search your location..."
                 />
               </div>
-            </>
+            </div>
           )}
 
           {/* Messaging Preference */}

@@ -8,7 +8,19 @@ import { ProductModal } from "@/components/ui/ProductModal";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { BrowseMoreSheet } from "@/components/ui/BrowseMoreSheet";
 import { Button } from "@/components/ui/Button";
-import { Share2, MessageCircle, Phone as WhatsApp, Instagram, Video } from "lucide-react";
+import {
+  Share2,
+  MessageCircle,
+  Phone as WhatsApp,
+  Instagram,
+  Video,
+  Link2,
+  Pencil,
+} from "lucide-react";
+import {
+  ACCOUNT_CONTACTS_PATH,
+  sellerHasContact,
+} from "@/lib/seller-contacts";
 import { applyLikeChange } from "@/lib/handle-like-change";
 import { Product, Seller, Category } from "@/lib/types";
 
@@ -32,6 +44,7 @@ export default function StorefrontPage({
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isNotSeller, setIsNotSeller] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const supabase = createClient();
 
   const handleLikeChange = (
@@ -106,6 +119,7 @@ export default function StorefrontPage({
       const {
         data: { user },
       } = await supabase.auth.getUser();
+      setCurrentUserId(user?.id ?? null);
 
       // 3. Fetch products of this seller and categories (and favorites if logged in) concurrently
       const [productsRes, categoriesRes, favoritesRes] = await Promise.all([
@@ -222,6 +236,9 @@ export default function StorefrontPage({
   };
 
   const filteredProducts = getFilteredProducts();
+  const isStoreOwner =
+    !!currentUserId && !!seller && currentUserId === seller.id;
+  const storeHasContact = sellerHasContact(seller);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -268,7 +285,51 @@ export default function StorefrontPage({
               {seller.bio || "No bio yet."}
             </p>
 
+            {isStoreOwner && (
+              <p className="mt-6 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-100 px-4 py-2 rounded-full">
+                You&apos;re viewing your storefront — buyers see contact buttons here
+              </p>
+            )}
+
             <div className="mt-10 flex flex-wrap justify-center gap-4 w-full max-w-md">
+              {isStoreOwner ? (
+                <>
+                  <Button
+                    fullWidth
+                    size="lg"
+                    leftIcon={<Link2 className="w-5 h-5" />}
+                    className={`rounded-3xl ${
+                      storeHasContact
+                        ? "bg-zinc-900 text-white hover:bg-zinc-800"
+                        : "bg-amber-500 text-white hover:bg-amber-600"
+                    }`}
+                    onClick={() => router.push(ACCOUNT_CONTACTS_PATH)}
+                  >
+                    {storeHasContact ? "Manage contact links" : "Add contact links"}
+                  </Button>
+                  <Button
+                    fullWidth
+                    size="lg"
+                    variant="outline"
+                    leftIcon={<Pencil className="w-5 h-5" />}
+                    className="rounded-3xl border-zinc-200 text-zinc-600"
+                    onClick={() => router.push("/account")}
+                  >
+                    Edit profile
+                  </Button>
+                  <Button
+                    fullWidth
+                    size="lg"
+                    variant="outline"
+                    leftIcon={<Share2 className="w-5 h-5" />}
+                    className="rounded-3xl border-zinc-200 text-zinc-600"
+                    onClick={handleShare}
+                  >
+                    Share storefront
+                  </Button>
+                </>
+              ) : (
+                <>
               {seller.messengerUrl && (
                 <Button
                   fullWidth
@@ -333,6 +394,8 @@ export default function StorefrontPage({
                   Watch on TikTok
                 </Button>
               )}
+                </>
+              )}
             </div>
 
             <div className="mt-12 grid grid-cols-2 gap-1 w-full max-w-xl mx-auto rounded-3xl overflow-hidden border border-zinc-100 bg-zinc-50">
@@ -391,6 +454,7 @@ export default function StorefrontPage({
               <ProductCard
                 product={p}
                 showSeller={false}
+                sellerData={seller}
                 isLiked={likedProductIds.has(p.id)}
                 onLikeChange={handleLikeChange}
               />
