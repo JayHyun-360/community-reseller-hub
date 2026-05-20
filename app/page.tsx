@@ -217,14 +217,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      <div className="mt-8 px-6">
+      <div className="mt-8 px-0 md:px-6">
         <LatestProductsStrip
           products={products}
           onProductClick={setSelectedProduct}
         />
       </div>
 
-      <section className="px-6 py-12">
+      <section className="px-0 md:px-6 py-12">
         <div className="flex flex-col gap-10">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
             <div className="space-y-1">
