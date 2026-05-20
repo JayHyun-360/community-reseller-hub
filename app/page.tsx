@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { LatestProductsStrip } from "@/components/ui/LatestProductsStrip";
 import { ProductCard } from "@/components/ui/ProductCard";
-import { ProductModal } from "@/components/ui/ProductModal";
+import { ProductModal } from "@/components/ui/ProductModalLazy";
+import { ProductImage } from "@/components/ui/ProductImage";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
 import { BrowseMoreSheet } from "@/components/ui/BrowseMoreSheet";
@@ -17,7 +18,6 @@ import { useProductModalStack } from "@/lib/use-product-modal-stack";
 import { getViewerUserId } from "@/lib/viewer-session";
 import { Product, Seller, Category } from "@/lib/types";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { motion, AnimatePresence } from "motion/react";
 
 // Home page - NearByt
 export default function HomePage() {
@@ -160,6 +160,11 @@ export default function HomePage() {
 
   const filteredProducts = getFilteredProducts();
 
+  const sellersById = useMemo(
+    () => new Map(sellers.map((s) => [s.id, s])),
+    [sellers],
+  );
+
   const scrollTrending = (direction: "left" | "right") => {
     if (trendingRef.current) {
       const scrollAmount = 300;
@@ -212,12 +217,14 @@ export default function HomePage() {
                       onClick={() => productModal.open(item)}
                       className="flex-shrink-0 w-44 md:w-64 group cursor-pointer"
                     >
-                      <div className="aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-100 mb-4 shadow-xl shadow-zinc-200/50 group-hover:scale-[1.02] transition-transform duration-500">
-                        <img
+                      <div className="relative aspect-[4/5] rounded-[2rem] overflow-hidden bg-zinc-100 mb-4 shadow-xl shadow-zinc-200/50 [@media(hover:hover)]:group-hover:scale-[1.02] [@media(hover:hover)]:transition-transform [@media(hover:hover)]:duration-500">
+                        <ProductImage
                           src={item.images[0]}
                           alt={item.title}
-                          className="w-full h-full object-cover"
-                          referrerPolicy="no-referrer"
+                          fill
+                          width={400}
+                          sizes="256px"
+                          className="object-cover"
                         />
                       </div>
                       <div className="px-2">
@@ -263,69 +270,41 @@ export default function HomePage() {
             </div>
           </div>
 
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={selectedCat}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
-            >
-              {loading
-                ? Array.from({ length: 8 }).map((_, i) => (
-                    <motion.div
-                      key={`skeleton-${i}`}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{
-                        duration: 0.3,
-                        delay: i * 0.05,
-                        ease: "easeOut",
-                      }}
-                    >
-                      <ProductCardSkeleton />
-                    </motion.div>
-                  ))
-                : filteredProducts.map((p, index) => (
-                    <motion.div
-                      key={p.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{
-                        duration: 0.4,
-                        delay: index * 0.05,
-                        ease: "easeOut",
-                      }}
-                      onClick={() => productModal.open(p)}
-                      className="cursor-pointer break-inside-avoid"
-                    >
-                      <ProductCard
-                        product={p}
-                        onNotifyMe={setNotifyProduct}
-                        isLiked={likedProductIds.has(p.id)}
-                        onLikeChange={handleLikeChange}
-                        viewerUserId={viewerUserId}
-                      />
-                    </motion.div>
-                  ))}
-            </motion.div>
-          </AnimatePresence>
+          <div
+            key={selectedCat}
+            className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6 [content-visibility:auto]"
+          >
+            {loading
+              ? Array.from({ length: 8 }).map((_, i) => (
+                  <div key={`skeleton-${i}`} className="break-inside-avoid">
+                    <ProductCardSkeleton />
+                  </div>
+                ))
+              : filteredProducts.map((p) => (
+                  <div
+                    key={p.id}
+                    onClick={() => productModal.open(p)}
+                    className="cursor-pointer break-inside-avoid"
+                  >
+                    <ProductCard
+                      product={p}
+                      sellerData={sellersById.get(p.sellerId)}
+                      onNotifyMe={setNotifyProduct}
+                      isLiked={likedProductIds.has(p.id)}
+                      onLikeChange={handleLikeChange}
+                      viewerUserId={viewerUserId}
+                    />
+                  </div>
+                ))}
+          </div>
 
-          {filteredProducts.length === 0 && (
-            <motion.div
-              key="no-results"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="py-40 text-center flex flex-col items-center gap-6"
-            >
+          {filteredProducts.length === 0 && !loading && (
+            <div className="py-40 text-center flex flex-col items-center gap-6">
               <div className="text-6xl filter grayscale opacity-10">🏙️</div>
               <p className="text-zinc-300 font-black uppercase tracking-[0.3em] text-[10px]">
                 No finds in this category today
               </p>
-            </motion.div>
+            </div>
           )}
         </div>
       </section>

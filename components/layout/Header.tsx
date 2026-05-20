@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getViewerUserId } from "@/lib/viewer-session";
 import { Search, Menu } from "lucide-react";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 
@@ -19,21 +20,22 @@ export function Header({ onMenuClick }: HeaderProps) {
 
   useEffect(() => {
     async function fetchUser() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        const { data } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-        setProfile(data);
+      const userId = await getViewerUserId(supabase);
+      if (!userId) {
+        setUser(null);
+        setProfile(null);
+        return;
       }
+      setUser({ id: userId });
+      const { data } = await supabase
+        .from("profiles")
+        .select("id,username,full_name,avatar_url,role,trust_tier")
+        .eq("id", userId)
+        .single();
+      setProfile(data);
     }
     fetchUser();
-  }, []);
+  }, [supabase]);
 
   return (
     <header className="sticky top-0 w-full bg-white/80 backdrop-blur-md border-b border-zinc-50 z-50">

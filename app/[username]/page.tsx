@@ -4,7 +4,7 @@ import { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
-import { ProductModal } from "@/components/ui/ProductModal";
+import { ProductModal } from "@/components/ui/ProductModalLazy";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { BrowseMoreSheet } from "@/components/ui/BrowseMoreSheet";
 import { Button } from "@/components/ui/Button";

@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import { Product } from "@/lib/types";
-import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ProductImage } from "./ProductImage";
 
 interface LatestProductsStripProps {
   products: Product[];
@@ -90,17 +90,18 @@ function ProductCard({
   const hasLongDesc = product.description && product.description.length > 60;
 
   return (
-    <motion.div
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.95 }}
+    <div
       onClick={() => onProductClick?.(product)}
       className="flex flex-col flex-shrink-0 w-64 cursor-pointer group"
     >
       <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-zinc-100">
-        <img
-          src={product.images?.[0] || "https://picsum.photos/400/500"}
+        <ProductImage
+          src={product.images?.[0]}
           alt={product.title}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          fill
+          width={320}
+          sizes="256px"
+          className="object-cover [@media(hover:hover)]:group-hover:scale-105 [@media(hover:hover)]:transition-transform [@media(hover:hover)]:duration-300"
         />
         <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">
           <span className="text-[10px] font-black text-zinc-900 uppercase">
@@ -134,6 +135,6 @@ function ProductCard({
           </p>
         )}
       </div>
-    </motion.div>
+    </div>
   );
 }

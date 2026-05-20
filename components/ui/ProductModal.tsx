@@ -22,6 +22,80 @@ import {
   sellerHasContact,
 } from "@/lib/seller-contacts";
 import { getViewerUserId } from "@/lib/viewer-session";
+import { mapProfileRowToSeller } from "@/lib/map-profile";
+import {
+  getCachedRelatedProducts,
+  setCachedRelatedProducts,
+} from "@/lib/modal-related-cache";
+import { ProductImage } from "./ProductImage";
+import { PRODUCT_IMAGE_FALLBACK } from "@/lib/product-image";
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+const RELATED_SELECT =
+  "id,seller_id,category_id,title,description,price,images,stock_qty,status,is_featured,like_count,created_at";
+
+function mapRelatedRow(p: {
+  id: string;
+  seller_id: string;
+  category_id: string | null;
+  title: string;
+  description: string | null;
+  price: number;
+  images: string[] | null;
+  stock_qty: number | null;
+  status: string;
+  is_featured: boolean | null;
+  like_count: number | null;
+  created_at: string;
+}): Product {
+  return {
+    id: p.id,
+    sellerId: p.seller_id,
+    categoryId: p.category_id ?? "",
+    title: p.title,
+    description: p.description || "",
+    price: p.price,
+    images: p.images || [],
+    stockQty: p.stock_qty ?? undefined,
+    status: p.status,
+    isFeatured: p.is_featured || false,
+    likeCount: p.like_count || 0,
+    createdAt: p.created_at,
+  };
+}
+
+async function fetchRelatedForProduct(
+  supabase: SupabaseClient,
+  product: Product,
+  ownerView: boolean,
+): Promise<Product[]> {
+  const listable = () =>
+    supabase
+      .from("products")
+      .select(RELATED_SELECT)
+      .neq("id", product.id)
+      .neq("status", "draft")
+      .order("created_at", { ascending: false })
+      .limit(12);
+
+  const run = async (scoped: ReturnType<typeof listable>) => {
+    const { data, error } = await scoped;
+    if (error) {
+      console.error("[ProductModal] related products:", error.message);
+      return [] as Product[];
+    }
+    return (data ?? []).map(mapRelatedRow);
+  };
+
+  if (ownerView) {
+    return run(listable().eq("seller_id", product.sellerId));
+  }
+  if (product.categoryId) {
+    const items = await run(listable().eq("category_id", product.categoryId));
+    if (items.length > 0) return items;
+  }
+  return run(listable());
+}
 
 interface ProductModalProps {
   product: Product | null;
@@ -120,25 +194,26 @@ export function ProductModal({
     setIsLiked(initialLiked);
   }, [initialLiked, product?.id]);
 
-  // Fetch fresh product data when modal opens
   useEffect(() => {
-    if (!product) return;
+    if (!product) {
+      setRelatedProducts([]);
+      setRelatedLoading(false);
+      setRelatedCategoryName(null);
+      return;
+    }
 
     let cancelled = false;
+    const cachedRelated = getCachedRelatedProducts(product.id);
+
+    if (cachedRelated) {
+      setRelatedProducts(cachedRelated);
+      setRelatedLoading(false);
+    } else {
+      setRelatedProducts([]);
+      setRelatedLoading(true);
+    }
 
     (async () => {
-      const productRes = await supabase
-        .from("products")
-        .select("like_count")
-        .eq("id", product.id)
-        .single();
-
-      if (cancelled) return;
-
-      if (productRes.data) {
-        setLikeCount(productRes.data.like_count || 0);
-      }
-
       const userId =
         viewerUserIdProp !== undefined
           ? viewerUserIdProp
@@ -149,157 +224,68 @@ export function ProductModal({
       setViewerUserId(userId);
       const ownerView = isProductOwner(userId, product.sellerId);
 
-      if (!userId) {
+      const categoryPromise = product.categoryId
+        ? supabase
+            .from("categories")
+            .select("name")
+            .eq("id", product.categoryId)
+            .single()
+        : Promise.resolve({ data: null as { name: string } | null });
+
+      const favoritePromise =
+        userId && !ownerView
+          ? supabase
+              .from("favorites")
+              .select("id")
+              .eq("user_id", userId)
+              .eq("product_id", product.id)
+              .maybeSingle()
+          : Promise.resolve({ data: null, error: null });
+
+      const relatedPromise = cachedRelated
+        ? Promise.resolve(cachedRelated)
+        : fetchRelatedForProduct(supabase, product, ownerView);
+
+      const [productRes, sellerRes, categoryRes, favoriteRes, relatedItems] =
+        await Promise.all([
+          supabase
+            .from("products")
+            .select("like_count")
+            .eq("id", product.id)
+            .single(),
+          supabase
+            .from("profiles")
+            .select(
+              "id,username,full_name,avatar_url,role,whatsapp_num,messenger_url,instagram_handle,tiktok_handle",
+            )
+            .eq("id", product.sellerId)
+            .single(),
+          categoryPromise,
+          favoritePromise,
+          relatedPromise,
+        ]);
+
+      if (cancelled) return;
+
+      if (productRes.data) {
+        setLikeCount(productRes.data.like_count || 0);
+      }
+
+      if (sellerRes.data) {
+        setSeller(mapProfileRowToSeller(sellerRes.data));
+      }
+
+      setRelatedCategoryName(categoryRes.data?.name ?? null);
+
+      if (!userId || ownerView) {
         setIsLiked(false);
-        return;
+      } else if (!favoriteRes.error) {
+        setIsLiked(!!favoriteRes.data);
       }
 
-      if (ownerView) {
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("favorites")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("product_id", product.id)
-        .maybeSingle();
-
-      if (!cancelled && !error) {
-        setIsLiked(!!data);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [product?.id, supabase, viewerUserIdProp]);
-
-  useEffect(() => {
-    if (!product) return;
-
-    supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", product.sellerId)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setSeller({
-            id: data.id,
-            username: data.username,
-            fullName: data.full_name,
-            displayName: data.full_name || data.username,
-            avatarUrl: data.avatar_url,
-            role: data.role,
-            whatsappNum: data.whatsapp_num,
-            messengerUrl: data.messenger_url,
-            instagramHandle: data.instagram_handle,
-            tiktokHandle: data.tiktok_handle,
-          });
-        }
-      });
-
-  }, [product?.sellerId, supabase]);
-
-  useEffect(() => {
-    if (!product?.categoryId) {
-      setRelatedCategoryName(null);
-      return;
-    }
-
-    supabase
-      .from("categories")
-      .select("name")
-      .eq("id", product.categoryId)
-      .single()
-      .then(({ data }) => {
-        setRelatedCategoryName(data?.name ?? null);
-      });
-  }, [product?.categoryId, supabase]);
-
-  useEffect(() => {
-    if (!product) {
-      setRelatedProducts([]);
-      setRelatedLoading(false);
-      return;
-    }
-
-    setRelatedProducts([]);
-    setRelatedLoading(true);
-
-    let cancelled = false;
-
-    const mapRow = (p: {
-      id: string;
-      seller_id: string;
-      category_id: string | null;
-      title: string;
-      description: string | null;
-      price: number;
-      images: string[] | null;
-      stock_qty: number | null;
-      status: string;
-      is_featured: boolean | null;
-      like_count: number | null;
-      tags: string[] | null;
-      created_at: string;
-    }): Product => ({
-      id: p.id,
-      sellerId: p.seller_id,
-      categoryId: p.category_id ?? "",
-      title: p.title,
-      description: p.description || "",
-      price: p.price,
-      images: p.images || [],
-      stockQty: p.stock_qty ?? undefined,
-      status: p.status,
-      isFeatured: p.is_featured || false,
-      likeCount: p.like_count || 0,
-      tags: p.tags ?? undefined,
-      createdAt: p.created_at,
-    });
-
-    const listableProducts = () =>
-      supabase
-        .from("products")
-        .select("*")
-        .neq("id", product.id)
-        .neq("status", "draft")
-        .order("created_at", { ascending: false })
-        .limit(12);
-
-    (async () => {
-      const ownerView = isProductOwner(resolvedViewerId, product.sellerId);
-
-      const runQuery = async (scoped: ReturnType<typeof listableProducts>) => {
-        const { data, error } = await scoped;
-        if (error) {
-          console.error("[ProductModal] related products:", error.message);
-          return [] as Product[];
-        }
-        return (data ?? []).map(mapRow);
-      };
-
-      let items: Product[] = [];
-
-      if (ownerView) {
-        items = await runQuery(
-          listableProducts().eq("seller_id", product.sellerId),
-        );
-      } else if (product.categoryId) {
-        items = await runQuery(
-          listableProducts().eq("category_id", product.categoryId),
-        );
-        if (items.length === 0) {
-          items = await runQuery(listableProducts());
-        }
-      } else {
-        items = await runQuery(listableProducts());
-      }
-
-      if (!cancelled) {
-        setRelatedProducts(items);
+      if (!cachedRelated) {
+        setRelatedProducts(relatedItems);
+        setCachedRelatedProducts(product.id, relatedItems);
         setRelatedLoading(false);
       }
     })();
@@ -307,7 +293,7 @@ export function ProductModal({
     return () => {
       cancelled = true;
     };
-  }, [product?.id, product?.categoryId, product?.sellerId, resolvedViewerId, supabase]);
+  }, [product?.id, product?.categoryId, product?.sellerId, viewerUserIdProp, supabase]);
 
   const handleLike = async () => {
     if (!product || isTogglingRef.current) return;
@@ -424,9 +410,8 @@ export function ProductModal({
 
   if (!product) return null;
 
-  const fallbackImage =
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
-  const images = product.images?.length > 0 ? product.images : [fallbackImage];
+  const images =
+    product.images?.length > 0 ? product.images : [PRODUCT_IMAGE_FALLBACK];
   const hasMultipleImages = images.length > 1;
 
   return (
@@ -436,16 +421,16 @@ export function ProductModal({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 sm:backdrop-blur-sm"
         onClick={onClose}
       >
         <div className="min-h-full flex justify-center items-end sm:items-center px-2 sm:px-4 py-2 sm:py-8">
           <motion.div
             key={product.id}
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             className="relative bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg sm:max-w-2xl lg:max-w-5xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
@@ -464,14 +449,17 @@ export function ProductModal({
 
             <div className="flex flex-col lg:flex-row">
               <div className="relative w-full lg:w-[52%] bg-zinc-100 flex-shrink-0 overflow-hidden">
-                <div className="w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-auto lg:min-h-[360px] lg:max-h-[65vh]">
-              <img
-                src={imgError ? fallbackImage : images[currentImageIndex]}
+                <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px]">
+              <ProductImage
+                src={imgError ? PRODUCT_IMAGE_FALLBACK : images[currentImageIndex]}
                 alt={product.title}
-                className="w-full h-full object-cover cursor-zoom-in max-h-[inherit]"
-                referrerPolicy="no-referrer"
-                onError={() => setImgError(true)}
+                fill
+                width={800}
+                sizes="(max-width: 1024px) 100vw, 800px"
+                priority
+                className="object-cover cursor-zoom-in"
                 onClick={() => setFullscreenImage(images[currentImageIndex])}
+                onImageError={() => setImgError(true)}
               />
             </div>
 

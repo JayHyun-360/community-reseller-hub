@@ -8,8 +8,9 @@ import {
 import { getViewerUserId } from "@/lib/viewer-session";
 import { useRouter } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
-import { motion } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
+import { mapProfileRowToSeller } from "@/lib/map-profile";
+import { ProductImage } from "./ProductImage";
 import {
   getPreferredPlatform,
   setMessagingPreference,
@@ -49,7 +50,6 @@ function ProductCardComponent({
   viewerUserId: viewerUserIdProp,
 }: ProductCardProps) {
   const [seller, setSeller] = useState<Seller | null>(sellerData || null);
-  const [imgError, setImgError] = useState(false);
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(product.likeCount || 0);
   const [viewerUserId, setViewerUserId] = useState<string | null | undefined>(
@@ -121,33 +121,22 @@ function ProductCardComponent({
   useEffect(() => {
     if (sellerData) {
       setSeller(sellerData);
-    } else if (product.sellerId) {
-      supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", product.sellerId)
-        .single()
-        .then(({ data }) => {
-          if (data) {
-            setSeller({
-              id: data.id,
-              username: data.username,
-              fullName: data.full_name,
-              displayName: data.full_name || data.username,
-              avatarUrl: data.avatar_url,
-              role: data.role,
-              whatsappNum: data.whatsapp_num,
-              messengerUrl: data.messenger_url,
-              instagramHandle: data.instagram_handle,
-              tiktokHandle: data.tiktok_handle,
-            });
-          }
-        });
+      return;
     }
-  }, [product.sellerId, sellerData]);
+    if (!product.sellerId) return;
 
-  const fallbackImage =
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80";
+    supabase
+      .from("profiles")
+      .select(
+        "id,username,full_name,avatar_url,role,whatsapp_num,messenger_url,instagram_handle,tiktok_handle",
+      )
+      .eq("id", product.sellerId)
+      .single()
+      .then(({ data }) => {
+        if (data) setSeller(mapProfileRowToSeller(data));
+      });
+  }, [product.sellerId, sellerData, supabase]);
+
   const [isHovered, setIsHovered] = useState(false);
   const [showContactMenu, setShowContactMenu] = useState(false);
 
@@ -196,15 +185,14 @@ function ProductCardComponent({
       onMouseLeave={() => setIsHovered(false)}
       className="flex flex-col group cursor-zoom-in"
     >
-      <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-50 group-hover:brightness-90 transition-all duration-300">
-        <img
-          src={imgError ? fallbackImage : product.images[0]}
+      <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-zinc-50 [@media(hover:hover)]:group-hover:brightness-90 transition-[filter] duration-300">
+        <ProductImage
+          src={product.images[0]}
           alt={product.title}
-          className="w-full h-auto object-cover block transform group-hover:scale-105 transition-transform duration-700"
-          referrerPolicy="no-referrer"
-          onError={() => setImgError(true)}
-          loading="lazy"
-          decoding="async"
+          fill
+          width={480}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+          className="object-cover [@media(hover:hover)]:group-hover:scale-105 [@media(hover:hover)]:transition-transform [@media(hover:hover)]:duration-500"
         />
 
         <div

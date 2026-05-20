@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
-import { ProductModal } from "@/components/ui/ProductModal";
+import { ProductModal } from "@/components/ui/ProductModalLazy";
 import { SellerCard } from "@/components/ui/SellerCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { NotifyMeSheet } from "@/components/ui/NotifyMeSheet";
@@ -187,6 +187,11 @@ export default function SearchPage() {
     [sellers],
   );
 
+  const sellersById = useMemo(
+    () => new Map(sellers.map((s) => [s.id, s])),
+    [sellers],
+  );
+
   const results = useMemo(() => {
     const q = debouncedQuery.toLowerCase();
 
@@ -319,28 +324,22 @@ export default function SearchPage() {
       <div className="mt-8 min-h-[40vh]">
         <AnimatePresence mode="wait">
           {loading ? (
-            <motion.div
+            <div
               key="loading"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
               className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
             >
               {Array.from({ length: 8 }).map((_, i) => (
-                <ProductCardSkeleton key={i} />
+                <div key={i} className="break-inside-avoid">
+                  <ProductCardSkeleton />
+                </div>
               ))}
-            </motion.div>
+            </div>
           ) : results.length > 0 ? (
-            <motion.div
-              key={`${tab}-${selectedCat}-${query}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3, ease: "easeInOut" }}
+            <div
+              key={`${tab}-${selectedCat}-${debouncedQuery}`}
               className={
                 tab === "products"
-                  ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
+                  ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6 [content-visibility:auto]"
                   : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
               }
             >
@@ -353,6 +352,7 @@ export default function SearchPage() {
                     >
                       <ProductCard
                         product={p}
+                        sellerData={sellersById.get(p.sellerId)}
                         onNotifyMe={setNotifyProduct}
                         isLiked={likedProductIds.has(p.id)}
                         onLikeChange={handleLikeChange}
@@ -360,21 +360,12 @@ export default function SearchPage() {
                       />
                     </div>
                   ))
-                : (results as any[]).map((s, index) => (
-                    <motion.div
-                      key={s.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{
-                        duration: 0.4,
-                        delay: index * 0.05,
-                        ease: "easeOut",
-                      }}
-                    >
+                : (results as any[]).map((s) => (
+                    <div key={s.id}>
                       <SellerCard seller={s} />
-                    </motion.div>
+                    </div>
                   ))}
-            </motion.div>
+            </div>
           ) : (
             <motion.div
               key="no-results"
