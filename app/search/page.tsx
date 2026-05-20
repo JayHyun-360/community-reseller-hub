@@ -205,7 +205,7 @@ export default function SearchPage() {
         
         {/* Mobile Search Bar */}
         <div className="lg:hidden w-full relative group">
-          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-zinc-900 transition-colors" />
+          <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-zinc-900 transition-colors" />
           <input
             type="text"
             placeholder="Search local finds..."
