@@ -26,10 +26,9 @@ export function Header({ onMenuClick }: HeaderProps) {
       
       // Auto-hide header on scroll down for mobile/tablet/iPad (<= 1200px)
       if (window.innerWidth <= 1200) {
-        // Only trigger hide if we scrolled down by at least 10px (prevents jitter)
-        if (currentScrollY > lastScrollY + 10 && currentScrollY > 80) {
+        if (currentScrollY > lastScrollY && currentScrollY > 80) {
           setIsVisible(false);
-        } else if (currentScrollY < lastScrollY - 10 || currentScrollY <= 80) {
+        } else if (currentScrollY < lastScrollY || currentScrollY <= 80) {
           setIsVisible(true);
         }
       } else {
