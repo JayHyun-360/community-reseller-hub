@@ -4,6 +4,7 @@ import { useState, use, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
+import { ProductModal } from "@/components/ui/ProductModal";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { BrowseMoreSheet } from "@/components/ui/BrowseMoreSheet";
 import { Button } from "@/components/ui/Button";
@@ -22,6 +23,10 @@ export default function StorefrontPage({
   const [seller, setSeller] = useState<Seller | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [likedProductIds, setLikedProductIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,18 +43,15 @@ export default function StorefrontPage({
         return;
       }
 
-      const [sellerRes, productsRes, categoriesRes] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("*")
-          .ilike("username", decodedUsername)
-          .single(),
-        supabase.from("products").select("*"),
-        supabase.from("categories").select("*"),
-      ]);
+      // 1. Fetch the seller profile first
+      const { data: sellerData, error: sellerError } = await supabase
+        .from("profiles")
+        .select("*")
+        .ilike("username", decodedUsername)
+        .single();
 
-      if (sellerRes.error) {
-        if (sellerRes.error.code === "PGRST116") {
+      if (sellerError) {
+        if (sellerError.code === "PGRST116") {
           setNotFound(true);
         } else {
           setError("Failed to load seller profile. Please try again.");
@@ -58,41 +60,75 @@ export default function StorefrontPage({
         return;
       }
 
-      if (sellerRes.data) {
-        if (sellerRes.data.role !== "seller") {
-          setIsNotSeller(true);
-          setLoading(false);
-          return;
-        }
-        setSeller({
-          id: sellerRes.data.id,
-          username: sellerRes.data.username,
-          fullName: sellerRes.data.full_name,
-          avatarUrl: sellerRes.data.avatar_url,
-          bio: sellerRes.data.bio,
-          role: sellerRes.data.role,
-          whatsappNum: sellerRes.data.whatsapp_num,
-          messengerUrl: sellerRes.data.messenger_url,
-        });
+      if (!sellerData) {
+        setNotFound(true);
+        setLoading(false);
+        return;
       }
-      setLoading(false);
+
+      if (sellerData.role !== "seller") {
+        setIsNotSeller(true);
+        setLoading(false);
+        return;
+      }
+
+      setSeller({
+        id: sellerData.id,
+        username: sellerData.username,
+        fullName: sellerData.full_name,
+        displayName: sellerData.full_name || sellerData.username,
+        avatarUrl: sellerData.avatar_url,
+        bio: sellerData.bio,
+        role: sellerData.role,
+        whatsappNum: sellerData.whatsapp_num,
+        messengerUrl: sellerData.messenger_url,
+      });
+
+      // 2. Fetch authenticated user to get their likes
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      // 3. Fetch products of this seller and categories (and favorites if logged in) concurrently
+      const [productsRes, categoriesRes, favoritesRes] = await Promise.all([
+        supabase
+          .from("products")
+          .select("*")
+          .eq("seller_id", sellerData.id)
+          .order("created_at", { ascending: false }),
+        supabase.from("categories").select("*"),
+        user
+          ? supabase
+              .from("favorites")
+              .select("product_id")
+              .eq("user_id", user.id)
+          : Promise.resolve({ data: [] }),
+      ]);
+
+      if (favoritesRes.data) {
+        setLikedProductIds(
+          new Set(favoritesRes.data.map((f: any) => f.product_id))
+        );
+      }
 
       if (productsRes.data) {
         setProducts(
-          productsRes.data
-            .filter((p) => p.seller_id === sellerRes.data?.id)
-            .map((p) => ({
-              id: p.id,
-              sellerId: p.seller_id,
-              categoryId: p.category_id,
-              title: p.title,
-              description: p.description,
-              price: p.price,
-              images: p.images || [],
-              isFeatured: p.is_featured,
-              likeCount: p.like_count || 0,
-              createdAt: p.created_at,
-            })),
+          productsRes.data.map((p) => ({
+            id: p.id,
+            sellerId: p.seller_id,
+            categoryId: p.category_id,
+            title: p.title,
+            description: p.description || "",
+            price: p.price,
+            images: p.images || [],
+            stockQty: p.stock_qty,
+            status: p.status,
+            isFeatured: p.is_featured || false,
+            likeCount: p.like_count || 0,
+            viewCount: p.view_count,
+            tags: p.tags || [],
+            createdAt: p.created_at,
+          }))
         );
       }
 
@@ -103,12 +139,14 @@ export default function StorefrontPage({
             name: c.name,
             emoji: c.emoji,
             productCount: c.product_count,
-          })),
+          }))
         );
       }
+
+      setLoading(false);
     }
     fetchData();
-  }, [username]);
+  }, [username, supabase]);
 
   if (loading) {
     return (
@@ -305,7 +343,28 @@ export default function StorefrontPage({
 
         <div className="columns-2 md:columns-3 gap-4 md:gap-6 px-2 md:px-4">
           {filteredProducts.map((p) => (
-            <ProductCard key={p.id} product={p} showSeller={false} />
+            <div
+              key={p.id}
+              onClick={() => setSelectedProduct(p)}
+              className="cursor-pointer break-inside-avoid mb-4 md:mb-6 animate-fade-in"
+            >
+              <ProductCard
+                product={p}
+                showSeller={false}
+                isLiked={likedProductIds.has(p.id)}
+                onLikeChange={(productId, isLiked) => {
+                  setLikedProductIds((prev) => {
+                    const next = new Set(prev);
+                    if (isLiked) {
+                      next.add(productId);
+                    } else {
+                      next.delete(productId);
+                    }
+                    return next;
+                  });
+                }}
+              />
+            </div>
           ))}
         </div>
 
@@ -321,6 +380,12 @@ export default function StorefrontPage({
         isOpen={showBrowseMore}
         onClose={() => setShowBrowseMore(false)}
         onSelectCategory={(id) => setSelectedCat(id)}
+      />
+
+      <ProductModal
+        product={selectedProduct}
+        onClose={() => setSelectedProduct(null)}
+        onProductClick={setSelectedProduct}
       />
     </div>
   );

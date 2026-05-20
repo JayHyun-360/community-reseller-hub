@@ -101,6 +101,7 @@ export default function SearchPage() {
                 id: s.id,
                 username: s.username,
                 fullName: s.full_name,
+                displayName: s.full_name || s.username,
                 avatarUrl: s.avatar_url,
                 role: s.role,
                 whatsappNum: s.whatsapp_num,

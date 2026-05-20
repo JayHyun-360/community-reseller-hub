@@ -90,6 +90,7 @@ export function ProductModal({
             id: data.id,
             username: data.username,
             fullName: data.full_name,
+            displayName: data.full_name || data.username,
             avatarUrl: data.avatar_url,
             role: data.role,
             whatsappNum: data.whatsapp_num,
