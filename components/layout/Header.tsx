@@ -29,7 +29,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       setUser({ id: userId });
       const { data } = await supabase
         .from("profiles")
-        .select("id,username,full_name,avatar_url,role,trust_tier")
+        .select("id,username,full_name,avatar_url,role")
         .eq("id", userId)
         .single();
       setProfile(data);
@@ -112,7 +112,7 @@ export function Header({ onMenuClick }: HeaderProps) {
                 </div>
                 {profile?.role === "seller" && (
                   <div className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                    {profile?.trust_tier || "New"} Seller
+                    Seller
                   </div>
                 )}
               </div>
