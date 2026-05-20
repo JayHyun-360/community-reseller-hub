@@ -153,7 +153,7 @@ export default function AddProductPage() {
 
   const previewProduct: Product = {
     id: "preview",
-    sellerId: "s1",
+    sellerId: user?.id || "",
     categoryId: formData.categoryId,
     title: formData.title || "Product Title",
     description: formData.description || "Product description...",
