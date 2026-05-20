@@ -24,11 +24,12 @@ export function Header({ onMenuClick }: HeaderProps) {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       
-      // Auto-hide header on scroll down for mobile/tablet (< 1024px)
-      if (window.innerWidth < 1024) {
-        if (currentScrollY > lastScrollY && currentScrollY > 80) {
+      // Auto-hide header on scroll down for mobile/tablet/iPad (<= 1200px)
+      if (window.innerWidth <= 1200) {
+        // Only trigger hide if we scrolled down by at least 10px (prevents jitter)
+        if (currentScrollY > lastScrollY + 10 && currentScrollY > 80) {
           setIsVisible(false);
-        } else {
+        } else if (currentScrollY < lastScrollY - 10 || currentScrollY <= 80) {
           setIsVisible(true);
         }
       } else {
