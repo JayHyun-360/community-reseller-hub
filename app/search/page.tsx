@@ -345,15 +345,8 @@ export default function SearchPage() {
             >
               {tab === "products"
                 ? (results as Product[]).map((p, index) => (
-                    <motion.div
+                    <div
                       key={p.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{
-                        duration: 0.4,
-                        delay: index * 0.05,
-                        ease: "easeOut",
-                      }}
                       onClick={() => setSelectedProduct(p)}
                       className="cursor-pointer break-inside-avoid"
                     >
@@ -364,7 +357,7 @@ export default function SearchPage() {
                         onLikeChange={handleLikeChange}
                         viewerUserId={currentUser?.id ?? null}
                       />
-                    </motion.div>
+                    </div>
                   ))
                 : (results as any[]).map((s, index) => (
                     <motion.div

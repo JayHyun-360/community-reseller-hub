@@ -11,7 +11,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { getPreferredPlatform } from "@/lib/messaging-preference";
 import { X } from "lucide-react";
-import { ProductCard } from "./ProductCard";
+import { RelatedProductTile } from "./RelatedProductTile";
 import { Skeleton } from "./Skeleton";
 import {
   OwnerProductActions,
@@ -69,6 +69,12 @@ export function ProductModal({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const overlayScrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setCurrentImageIndex(0);
+    setImgError(false);
+  }, [product?.id]);
 
   useEffect(() => {
     setLikeCount(product?.likeCount || 0);
@@ -200,7 +206,7 @@ export function ProductModal({
       .select("*")
       .neq("id", product.id)
       .eq("status", "active")
-      .limit(6);
+      .limit(12);
 
     if (ownerView) {
       query = query.eq("seller_id", product.sellerId);
@@ -295,6 +301,11 @@ export function ProductModal({
     !!seller?.username && pathname === `/${seller.username}`;
   const showVisitSeller = !onOwnStorefront && !!seller?.username;
 
+  const handleRelatedClick = (next: Product) => {
+    onProductClick?.(next);
+    overlayScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   const handleShare = async () => {
     if (navigator.share) {
       await navigator.share({
@@ -317,29 +328,34 @@ export function ProductModal({
   return (
     <AnimatePresence>
       <motion.div
+        ref={overlayScrollRef}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       >
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.9, opacity: 0 }}
-          transition={{ type: "spring", damping: 25, stiffness: 300 }}
-          className="bg-white rounded-t-3xl sm:rounded-3xl overflow-hidden max-w-4xl w-full max-h-[92vh] sm:max-h-[90vh] flex flex-col md:flex-row shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-10 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg transition-colors"
+        <div className="min-h-full flex justify-center px-0 sm:px-4 py-0 sm:py-8">
+          <motion.div
+            key={product.id}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 16 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="relative bg-white rounded-t-3xl sm:rounded-3xl overflow-hidden w-full max-w-5xl shadow-2xl my-0 sm:my-auto"
+            onClick={(e) => e.stopPropagation()}
           >
-            <X className="w-5 h-5 text-zinc-900" />
-          </button>
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 z-20 p-2 bg-white/95 hover:bg-white rounded-full shadow-lg transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5 text-zinc-900" />
+            </button>
 
-          <div className="relative w-full md:w-1/2 bg-zinc-100 flex-shrink-0">
-            <div className="aspect-[4/5] md:aspect-auto md:h-full md:min-h-[500px]">
+            <div className="flex flex-col lg:flex-row">
+              <div className="relative w-full lg:w-[52%] bg-zinc-100 flex-shrink-0">
+            <div className="aspect-[4/5] lg:aspect-auto lg:min-h-[420px] lg:max-h-[70vh]">
               <img
                 src={imgError ? fallbackImage : images[currentImageIndex]}
                 alt={product.title}
@@ -387,9 +403,9 @@ export function ProductModal({
                 </div>
               </>
             )}
-          </div>
+              </div>
 
-          <div className="w-full md:w-1/2 p-4 sm:p-6 flex flex-col overflow-y-auto min-h-0 flex-1 max-h-[48vh] sm:max-h-[55vh] md:max-h-none">
+              <div className="w-full lg:w-[48%] p-4 sm:p-6 flex flex-col lg:max-h-[70vh] lg:overflow-y-auto">
             <div className="space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div className="min-w-0">
@@ -494,34 +510,30 @@ export function ProductModal({
                 />
               )}
             </div>
+              </div>
+            </div>
 
             {relatedProducts.length > 0 && (
-              <div className="pt-6 mt-6 border-t border-zinc-100">
-                <h3 className="text-xs font-black text-zinc-400 uppercase tracking-wider mb-4">
+              <section className="px-4 sm:px-6 pb-6 sm:pb-8 pt-4 border-t border-zinc-100 bg-white">
+                <h3 className="text-sm font-black text-zinc-900 tracking-tight">
                   {isOwner ? "Your other listings" : "More like this"}
                 </h3>
-                <div className="flex gap-4 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-hide">
+                <p className="text-xs text-zinc-400 mt-1 mb-4">
+                  Tap a listing to view it above
+                </p>
+                <div className="columns-2 sm:columns-3 gap-3 sm:gap-4">
                   {relatedProducts.map((p) => (
-                    <div
+                    <RelatedProductTile
                       key={p.id}
-                      className="flex-shrink-0 w-44 md:w-48 cursor-pointer"
-                      onClick={() => {
-                        onClose();
-                        onProductClick?.(p);
-                      }}
-                    >
-                      <ProductCard
-                        product={p}
-                        showSeller={false}
-                        viewerUserId={viewerUserId ?? null}
-                      />
-                    </div>
+                      product={p}
+                      onClick={() => handleRelatedClick(p)}
+                    />
                   ))}
                 </div>
-              </div>
+              </section>
             )}
-          </div>
-        </motion.div>
+          </motion.div>
+        </div>
 
         {fullscreenImage && (
           <motion.div
