@@ -19,6 +19,7 @@ import {
   Phone,
 } from "lucide-react";
 import { ProductCard } from "./ProductCard";
+import { Skeleton } from "./Skeleton";
 
 interface ProductModalProps {
   product: Product | null;
@@ -303,7 +304,7 @@ export function ProductModal({
               </div>
 
               <div className="flex items-center gap-3">
-                {seller && (
+                {seller ? (
                   <>
                     <img
                       src={seller.avatarUrl}
@@ -317,6 +318,14 @@ export function ProductModal({
                       <p className="text-xs text-zinc-500">
                         @{seller.username}
                       </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Skeleton className="w-10 h-10 rounded-full" />
+                    <div className="space-y-1.5 flex-1">
+                      <Skeleton className="h-3.5 w-24 rounded-full" />
+                      <Skeleton className="h-3 w-16 rounded-full" />
                     </div>
                   </>
                 )}
@@ -361,7 +370,15 @@ export function ProductModal({
                   <Heart className={`w-5 h-5 ${isLiked ? "fill-white" : ""}`} />
                   {likeCount}
                 </button>
-                {hasContact ? (
+                {!seller ? (
+                  <button
+                    disabled
+                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 rounded-full font-black text-sm text-zinc-400 cursor-not-allowed"
+                  >
+                    <MessageCircle className="w-5 h-5 animate-pulse" />
+                    Loading Contact...
+                  </button>
+                ) : hasContact ? (
                   showDropdown ? (
                     <div className="flex-1 relative">
                       <button
@@ -439,11 +456,12 @@ export function ProductModal({
                   Share
                 </button>
                 <button
-                  onClick={() => router.push(`/${seller?.username}`)}
-                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 rounded-full font-black text-sm text-zinc-900 transition-colors"
+                  onClick={() => seller?.username && router.push(`/${seller.username}`)}
+                  disabled={!seller?.username}
+                  className="flex-1 flex items-center justify-center gap-2 py-3 bg-zinc-100 hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed rounded-full font-black text-sm text-zinc-900 transition-colors"
                 >
                   <ExternalLink className="w-5 h-5" />
-                  Visit Seller
+                  {seller ? "Visit Seller" : "Loading..."}
                 </button>
               </div>
             </div>

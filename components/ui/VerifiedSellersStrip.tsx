@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { Seller } from "@/lib/types";
 import { motion } from "motion/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import Link from "next/link";
 
 interface VerifiedSellersStripProps {
   sellers: Seller[];
@@ -50,29 +51,30 @@ export function VerifiedSellersStrip({ sellers }: VerifiedSellersStripProps) {
         className="flex gap-6 overflow-x-auto px-8 pb-4 hide-scrollbar"
       >
         {sellers.map((seller) => (
-          <motion.div
-            key={seller.id}
-            whileHover={{ y: -4 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex flex-col items-center gap-3 flex-shrink-0 cursor-pointer"
-          >
-            <div className="relative w-20 h-20 rounded-full p-1 border-2 border-zinc-100">
-              <img
-                src={seller.avatarUrl}
-                alt={seller.displayName}
-                className="w-full h-full rounded-full object-cover border-4 border-white"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-            <div className="flex flex-col items-center">
-              <span className="text-[11px] font-black text-zinc-900 text-center leading-tight max-w-[80px] line-clamp-1">
-                {seller.displayName}
-              </span>
-              <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest mt-0.5">
-                @{seller.username}
-              </span>
-            </div>
-          </motion.div>
+          <Link key={seller.id} href={`/${encodeURIComponent(seller.username)}`}>
+            <motion.div
+              whileHover={{ y: -4 }}
+              whileTap={{ scale: 0.95 }}
+              className="flex flex-col items-center gap-3 flex-shrink-0 cursor-pointer"
+            >
+              <div className="relative w-20 h-20 rounded-full p-1 border-2 border-zinc-100">
+                <img
+                  src={seller.avatarUrl}
+                  alt={seller.displayName}
+                  className="w-full h-full rounded-full object-cover border-4 border-white"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <div className="flex flex-col items-center">
+                <span className="text-[11px] font-black text-zinc-900 text-center leading-tight max-w-[80px] line-clamp-1">
+                  {seller.displayName}
+                </span>
+                <span className="text-[9px] font-bold text-zinc-300 uppercase tracking-widest mt-0.5">
+                  @{seller.username}
+                </span>
+              </div>
+            </motion.div>
+          </Link>
         ))}
       </div>
     </div>

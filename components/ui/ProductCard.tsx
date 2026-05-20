@@ -260,12 +260,12 @@ function ProductCardComponent({
           </span>
         </div>
 
-        {showSeller && seller && (
+        {showSeller && seller?.username && (
           <div
             className="mt-1.5 flex items-center gap-2 cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
-              router.push(`/${seller?.username}`);
+              router.push(`/${seller.username}`);
             }}
           >
             <img
