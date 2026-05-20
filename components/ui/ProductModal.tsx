@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import {
+  fetchProductLikeCount,
+  toggleFavorite,
+} from "@/lib/favorites";
 import { useRouter } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
@@ -27,7 +31,8 @@ interface ProductModalProps {
   product: Product | null;
   onClose: () => void;
   onProductClick?: (product: Product) => void;
-  onLikeChange?: (productId: string, isLiked: boolean) => void;
+  onLikeChange?: (productId: string, isLiked: boolean, changed?: boolean) => void;
+  isLiked?: boolean;
 }
 
 function formatTimeAgo(dateString: string): string {
@@ -50,12 +55,14 @@ export function ProductModal({
   onClose,
   onProductClick,
   onLikeChange,
+  isLiked: initialLiked = false,
 }: ProductModalProps) {
   const router = useRouter();
   const supabase = createClient();
   const [seller, setSeller] = useState<Seller | null>(null);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(0);
+  const isTogglingRef = useRef(false);
   const [imgError, setImgError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
@@ -65,20 +72,51 @@ export function ProductModal({
     setLikeCount(product?.likeCount || 0);
   }, [product?.likeCount]);
 
+  useEffect(() => {
+    setIsLiked(initialLiked);
+  }, [initialLiked, product?.id]);
+
   // Fetch fresh product data when modal opens
   useEffect(() => {
     if (!product) return;
 
-    supabase
-      .from("products")
-      .select("like_count")
-      .eq("id", product.id)
-      .single()
-      .then(({ data }) => {
-        if (data) {
-          setLikeCount(data.like_count || 0);
-        }
-      });
+    let cancelled = false;
+
+    Promise.all([
+      supabase
+        .from("products")
+        .select("like_count")
+        .eq("id", product.id)
+        .single(),
+      supabase.auth.getUser(),
+    ]).then(async ([productRes, authRes]) => {
+      if (cancelled) return;
+
+      if (productRes.data) {
+        setLikeCount(productRes.data.like_count || 0);
+      }
+
+      const user = authRes.data.user;
+      if (!user) {
+        setIsLiked(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("favorites")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("product_id", product.id)
+        .maybeSingle();
+
+      if (!cancelled && !error) {
+        setIsLiked(!!data);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [product?.id, supabase]);
 
   useEffect(() => {
@@ -106,22 +144,7 @@ export function ProductModal({
         }
       });
 
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) {
-        supabase
-          .from("favorites")
-          .select("id")
-          .eq("user_id", user.id)
-          .eq("product_id", product.id)
-          .maybeSingle()
-          .then(({ data, error }) => {
-            if (!error) {
-              setIsLiked(!!data);
-            }
-          });
-      }
-    });
-  }, [product, supabase]);
+  }, [product?.sellerId, supabase]);
 
   useEffect(() => {
     if (!product?.categoryId) return;
@@ -157,7 +180,7 @@ export function ProductModal({
   }, [product?.categoryId, supabase]);
 
   const handleLike = async () => {
-    if (!product) return;
+    if (!product || isTogglingRef.current) return;
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -166,34 +189,32 @@ export function ProductModal({
       return;
     }
 
-    if (isLiked) {
-      const { error } = await supabase
-        .from("favorites")
-        .delete()
-        .match({ user_id: user.id, product_id: product.id });
-      if (!error) {
-        setIsLiked(false);
-        const newCount = Math.max(0, likeCount - 1);
-        setLikeCount(newCount);
-        onLikeChange?.(product.id, false);
-      } else {
-        console.error("Error unliking product:", error);
+    isTogglingRef.current = true;
+    try {
+      const result = await toggleFavorite(
+        supabase,
+        user.id,
+        product.id,
+        isLiked,
+      );
+
+      if (!result.ok) {
+        console.error("Error toggling favorite:", result.error);
+        return;
       }
-    } else {
-      const { error } = await supabase
-        .from("favorites")
-        .insert({ user_id: user.id, product_id: product.id });
-      if (!error) {
-        setIsLiked(true);
-        const newCount = likeCount + 1;
-        setLikeCount(newCount);
-        onLikeChange?.(product.id, true);
-      } else if (error.code === "23505") {
-        setIsLiked(true);
-        onLikeChange?.(product.id, true);
+
+      setIsLiked(result.isLiked);
+      if (result.changed) {
+        setLikeCount((c) =>
+          result.isLiked ? c + 1 : Math.max(0, c - 1),
+        );
       } else {
-        console.error("Error liking product:", error);
+        const count = await fetchProductLikeCount(supabase, product.id);
+        setLikeCount(count);
       }
+      onLikeChange?.(product.id, result.isLiked, result.changed);
+    } finally {
+      isTogglingRef.current = false;
     }
   };
 

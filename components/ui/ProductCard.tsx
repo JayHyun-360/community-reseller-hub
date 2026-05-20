@@ -1,6 +1,10 @@
 "use client";
 
-import { useState, useEffect, memo } from "react";
+import { useState, useEffect, useRef, memo } from "react";
+import {
+  fetchProductLikeCount,
+  toggleFavorite,
+} from "@/lib/favorites";
 import { useRouter } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion } from "motion/react";
@@ -22,7 +26,7 @@ import {
 interface ProductCardProps {
   product: Product;
   onNotifyMe?: (product: Product) => void;
-  onLikeChange?: (productId: string, isLiked: boolean) => void;
+  onLikeChange?: (productId: string, isLiked: boolean, changed?: boolean) => void;
   showSeller?: boolean;
   sellerData?: Seller;
   isLiked?: boolean;
@@ -39,6 +43,7 @@ function ProductCardComponent({
   const [imgError, setImgError] = useState(false);
   const [isLiked, setIsLiked] = useState(initialLiked);
   const [likeCount, setLikeCount] = useState(product.likeCount || 0);
+  const isTogglingRef = useRef(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -53,6 +58,8 @@ function ProductCardComponent({
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (isTogglingRef.current) return;
+
     const {
       data: { user },
     } = await supabase.auth.getUser();
@@ -61,36 +68,32 @@ function ProductCardComponent({
       return;
     }
 
-    // Check current state and toggle accordingly
-    if (isLiked) {
-      // Unlike - delete the favorite
-      const { error } = await supabase
-        .from("favorites")
-        .delete()
-        .match({ user_id: user.id, product_id: product.id });
-      if (!error) {
-        setIsLiked(false);
-        setLikeCount((c) => Math.max(0, c - 1));
-        onLikeChange?.(product.id, false);
-      } else {
-        console.error("Error deleting favorite:", error);
+    isTogglingRef.current = true;
+    try {
+      const result = await toggleFavorite(
+        supabase,
+        user.id,
+        product.id,
+        isLiked,
+      );
+
+      if (!result.ok) {
+        console.error("Error toggling favorite:", result.error);
+        return;
       }
-    } else {
-      // Like - insert a new favorite
-      const { error } = await supabase
-        .from("favorites")
-        .insert({ user_id: user.id, product_id: product.id });
-      if (!error) {
-        setIsLiked(true);
-        setLikeCount((c) => c + 1);
-        onLikeChange?.(product.id, true);
-      } else if (error.code === "23505") {
-        // If already exists, just update UI
-        setIsLiked(true);
-        onLikeChange?.(product.id, true);
+
+      setIsLiked(result.isLiked);
+      if (result.changed) {
+        setLikeCount((c) =>
+          result.isLiked ? c + 1 : Math.max(0, c - 1),
+        );
       } else {
-        console.error("Error inserting favorite:", error);
+        const count = await fetchProductLikeCount(supabase, product.id);
+        setLikeCount(count);
       }
+      onLikeChange?.(product.id, result.isLiked, result.changed);
+    } finally {
+      isTogglingRef.current = false;
     }
   };
 

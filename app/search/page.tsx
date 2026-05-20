@@ -14,6 +14,7 @@ import {
   ProductCardSkeleton,
   SellerCardSkeleton,
 } from "@/components/ui/Skeleton";
+import { applyLikeChange } from "@/lib/handle-like-change";
 import { Product, Seller, Category } from "@/lib/types";
 
 export default function SearchPage() {
@@ -35,37 +36,19 @@ export default function SearchPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const supabase = createClient();
 
-  const handleLikeChange = (productId: string, isLiked: boolean) => {
-    setLikedProductIds((prev) => {
-      const next = new Set(prev);
-      if (isLiked) {
-        next.add(productId);
-      } else {
-        next.delete(productId);
-      }
-      return next;
-    });
-
-    setProducts((prev) =>
-      prev.map((item) =>
-        item.id === productId
-          ? {
-              ...item,
-              likeCount: Math.max(0, (item.likeCount || 0) + (isLiked ? 1 : -1)),
-            }
-          : item
-      )
+  const handleLikeChange = (
+    productId: string,
+    isLiked: boolean,
+    changed = true,
+  ) => {
+    applyLikeChange(
+      productId,
+      isLiked,
+      changed,
+      setLikedProductIds,
+      setProducts,
+      setSelectedProduct,
     );
-
-    setSelectedProduct((prev) => {
-      if (prev && prev.id === productId) {
-        return {
-          ...prev,
-          likeCount: Math.max(0, (prev.likeCount || 0) + (isLiked ? 1 : -1)),
-        };
-      }
-      return prev;
-    });
   };
 
   useEffect(() => {
@@ -439,6 +422,9 @@ export default function SearchPage() {
 
       <ProductModal
         product={selectedProduct}
+        isLiked={
+          selectedProduct ? likedProductIds.has(selectedProduct.id) : false
+        }
         onClose={() => setSelectedProduct(null)}
         onProductClick={setSelectedProduct}
         onLikeChange={handleLikeChange}

@@ -9,6 +9,7 @@ import { CategoryFilter } from "@/components/ui/CategoryFilter";
 import { BrowseMoreSheet } from "@/components/ui/BrowseMoreSheet";
 import { Button } from "@/components/ui/Button";
 import { Share2, MessageCircle, Phone as WhatsApp, Instagram, Video } from "lucide-react";
+import { applyLikeChange } from "@/lib/handle-like-change";
 import { Product, Seller, Category } from "@/lib/types";
 
 export default function StorefrontPage({
@@ -33,37 +34,19 @@ export default function StorefrontPage({
   const [isNotSeller, setIsNotSeller] = useState(false);
   const supabase = createClient();
 
-  const handleLikeChange = (productId: string, isLiked: boolean) => {
-    setLikedProductIds((prev) => {
-      const next = new Set(prev);
-      if (isLiked) {
-        next.add(productId);
-      } else {
-        next.delete(productId);
-      }
-      return next;
-    });
-
-    setProducts((prev) =>
-      prev.map((item) =>
-        item.id === productId
-          ? {
-              ...item,
-              likeCount: Math.max(0, (item.likeCount || 0) + (isLiked ? 1 : -1)),
-            }
-          : item
-      )
+  const handleLikeChange = (
+    productId: string,
+    isLiked: boolean,
+    changed = true,
+  ) => {
+    applyLikeChange(
+      productId,
+      isLiked,
+      changed,
+      setLikedProductIds,
+      setProducts,
+      setSelectedProduct,
     );
-
-    setSelectedProduct((prev) => {
-      if (prev && prev.id === productId) {
-        return {
-          ...prev,
-          likeCount: Math.max(0, (prev.likeCount || 0) + (isLiked ? 1 : -1)),
-        };
-      }
-      return prev;
-    });
   };
 
   useEffect(() => {
@@ -431,6 +414,9 @@ export default function StorefrontPage({
 
       <ProductModal
         product={selectedProduct}
+        isLiked={
+          selectedProduct ? likedProductIds.has(selectedProduct.id) : false
+        }
         onClose={() => setSelectedProduct(null)}
         onProductClick={setSelectedProduct}
         onLikeChange={handleLikeChange}
