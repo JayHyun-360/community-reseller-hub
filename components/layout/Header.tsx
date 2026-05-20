@@ -81,6 +81,14 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         <div className="flex items-center gap-2">
+          <button 
+            onClick={() => router.push("/search")}
+            className="lg:hidden p-2 text-zinc-900 hover:bg-zinc-50 rounded-full transition-colors"
+            aria-label="Search"
+          >
+            <Search className="w-5 h-5" />
+          </button>
+
           {user && <NotificationBell userId={user.id} />}
 
           <div className="hidden lg:block h-6 w-px bg-zinc-100 mx-2" />
