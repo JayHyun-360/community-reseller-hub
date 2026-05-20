@@ -201,7 +201,8 @@ export default function SearchPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 pb-24 md:pb-12 pt-8">
-      <div className="sticky top-20 bg-white pt-2 pb-6 z-40 space-y-8">
+      {/* Non-sticky header elements */}
+      <div className="space-y-6 mb-6">
         
         {/* Mobile Search Bar */}
         <div className="lg:hidden w-full relative group">
@@ -235,7 +236,10 @@ export default function SearchPage() {
             </div>
           </button>
         )}
+      </div>
 
+      {/* Sticky Navigation Tabs & Filters */}
+      <div className="sticky top-20 bg-white pt-4 pb-6 z-40 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex gap-8 border-b border-zinc-100">
             <button
