@@ -26,6 +26,7 @@ import { getViewerUserId } from "@/lib/viewer-session";
 interface ProductModalProps {
   product: Product | null;
   onClose: () => void;
+  /** Swap the focused product in this same modal — do not mount a second ProductModal. */
   onProductClick?: (product: Product) => void;
   onLikeChange?: (productId: string, isLiked: boolean, changed?: boolean) => void;
   isLiked?: boolean;
@@ -68,6 +69,7 @@ export function ProductModal({
   const [imgError, setImgError] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [relatedLoading, setRelatedLoading] = useState(false);
   const [relatedCategoryName, setRelatedCategoryName] = useState<string | null>(
     null,
   );
@@ -191,17 +193,19 @@ export function ProductModal({
   useEffect(() => {
     if (!product) {
       setRelatedProducts([]);
+      setRelatedLoading(false);
       return;
     }
 
     setRelatedProducts([]);
+    setRelatedLoading(true);
 
     let cancelled = false;
 
     const mapRow = (p: {
       id: string;
       seller_id: string;
-      category_id: string;
+      category_id: string | null;
       title: string;
       description: string | null;
       price: number;
@@ -215,7 +219,7 @@ export function ProductModal({
     }): Product => ({
       id: p.id,
       sellerId: p.seller_id,
-      categoryId: p.category_id,
+      categoryId: p.category_id ?? "",
       title: p.title,
       description: p.description || "",
       price: p.price,
@@ -228,27 +232,49 @@ export function ProductModal({
       createdAt: p.created_at,
     });
 
-    const ownerView = isProductOwner(resolvedViewerId, product.sellerId);
+    const listableProducts = () =>
+      supabase
+        .from("products")
+        .select("*")
+        .neq("id", product.id)
+        .neq("status", "draft")
+        .order("created_at", { ascending: false })
+        .limit(12);
 
-    let query = supabase
-      .from("products")
-      .select("*")
-      .neq("id", product.id)
-      .eq("status", "active")
-      .order("created_at", { ascending: false })
-      .limit(12);
+    (async () => {
+      const ownerView = isProductOwner(resolvedViewerId, product.sellerId);
 
-    if (ownerView) {
-      query = query.eq("seller_id", product.sellerId);
-    } else if (product.categoryId) {
-      query = query.eq("category_id", product.categoryId);
-    }
+      const runQuery = async (scoped: ReturnType<typeof listableProducts>) => {
+        const { data, error } = await scoped;
+        if (error) {
+          console.error("[ProductModal] related products:", error.message);
+          return [] as Product[];
+        }
+        return (data ?? []).map(mapRow);
+      };
 
-    query.then(({ data }) => {
-      if (!cancelled && data) {
-        setRelatedProducts(data.map(mapRow));
+      let items: Product[] = [];
+
+      if (ownerView) {
+        items = await runQuery(
+          listableProducts().eq("seller_id", product.sellerId),
+        );
+      } else if (product.categoryId) {
+        items = await runQuery(
+          listableProducts().eq("category_id", product.categoryId),
+        );
+        if (items.length === 0) {
+          items = await runQuery(listableProducts());
+        }
+      } else {
+        items = await runQuery(listableProducts());
       }
-    });
+
+      if (!cancelled) {
+        setRelatedProducts(items);
+        setRelatedLoading(false);
+      }
+    })();
 
     return () => {
       cancelled = true;
@@ -386,7 +412,7 @@ export function ProductModal({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 16 }}
             transition={{ duration: 0.25, ease: "easeOut" }}
-            className="relative bg-white rounded-2xl sm:rounded-3xl overflow-hidden w-full max-w-lg sm:max-w-2xl lg:max-w-5xl shadow-2xl"
+            className="relative bg-white rounded-2xl sm:rounded-3xl w-full max-w-lg sm:max-w-2xl lg:max-w-5xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -557,15 +583,24 @@ export function ProductModal({
               </div>
             </div>
 
-            {relatedProducts.length > 0 && (
-              <section className="px-3 sm:px-6 pb-4 sm:pb-8 pt-3 sm:pt-4 border-t border-zinc-100 bg-white">
-                <h3 className="text-sm font-black text-zinc-900 tracking-tight">
-                  {relatedSectionTitle}
-                </h3>
-                <p className="text-xs text-zinc-400 mt-1 mb-3 sm:mb-4">
-                  {relatedSectionHint} · tap to open above
-                </p>
+            <section className="px-3 sm:px-6 pb-4 sm:pb-8 pt-3 sm:pt-4 border-t border-zinc-100 bg-white">
+              <h3 className="text-sm font-black text-zinc-900 tracking-tight">
+                {relatedSectionTitle}
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1 mb-3 sm:mb-4">
+                {relatedSectionHint} · tap to open above
+              </p>
+              {relatedLoading ? (
                 <div className="columns-2 sm:columns-3 gap-2 sm:gap-4">
+                  {[0, 1, 2, 3].map((i) => (
+                    <Skeleton
+                      key={i}
+                      className="w-full h-36 mb-3 sm:mb-4 break-inside-avoid rounded-2xl"
+                    />
+                  ))}
+                </div>
+              ) : relatedProducts.length > 0 ? (
+                <div className="columns-2 sm:columns-3 gap-2 sm:gap-4 [column-fill:balance]">
                   {relatedProducts.map((p) => (
                     <RelatedProductTile
                       key={p.id}
@@ -574,8 +609,14 @@ export function ProductModal({
                     />
                   ))}
                 </div>
-              </section>
-            )}
+              ) : (
+                <p className="text-xs text-zinc-400 py-2">
+                  {isOwner
+                    ? "List another product to show more here."
+                    : "No similar listings yet — check back as sellers add more."}
+                </p>
+              )}
+            </section>
           </motion.div>
         </div>
 
