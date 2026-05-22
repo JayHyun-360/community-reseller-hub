@@ -50,6 +50,7 @@ export async function GET(request: Request) {
           images: row.images,
           price: row.price,
           score: row.score,
+          match_type: row.match_type ?? null,
         });
       } else if (row.kind === "seller") {
         sellers.push({
@@ -58,6 +59,7 @@ export async function GET(request: Request) {
           full_name: row.full_name,
           avatar_url: row.avatar_url,
           score: row.score,
+          match_type: row.match_type ?? null,
         });
       }
     });
