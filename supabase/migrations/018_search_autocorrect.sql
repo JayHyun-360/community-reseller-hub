@@ -1,4 +1,7 @@
 -- Improve search_autocomplete scoring and return similarity scores
+-- Drop any existing function with the same signature to allow type changes
+DROP FUNCTION IF EXISTS public.search_autocomplete(text);
+
 CREATE OR REPLACE FUNCTION public.search_autocomplete(q text)
 RETURNS TABLE(kind text, id uuid, title text, username text, full_name text, avatar_url text, price numeric, images text[], score double precision)
 LANGUAGE plpgsql STABLE
