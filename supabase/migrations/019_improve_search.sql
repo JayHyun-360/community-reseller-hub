@@ -1,33 +1,67 @@
 -- ============================================
 -- 019: Improve search across the system
--- Adds full-text search vectors, tag-aware search,
--- dedicated search RPCs for products & sellers,
--- and improves the autocomplete function.
+-- Adds full-text search vectors (trigger-maintained),
+-- tag-aware search, dedicated search RPCs for
+-- products & sellers, and improves autocomplete.
 -- ============================================
 
--- 1. Full-text search vector column (auto-maintained via GENERATED ALWAYS)
+-- 1. FTS column on products (maintained by trigger)
 ALTER TABLE public.products
-  ADD COLUMN IF NOT EXISTS fts tsvector
-  GENERATED ALWAYS AS (
-    setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
-    setweight(to_tsvector('english', coalesce(description, '')), 'B') ||
-    setweight(to_tsvector('english', coalesce(array_to_string(tags, ' '), '')), 'C')
-  ) STORED;
+  ADD COLUMN IF NOT EXISTS fts tsvector;
 
 CREATE INDEX IF NOT EXISTS products_fts_idx ON public.products USING GIN (fts);
 
--- 2. Full-text search vector for profiles (username + full_name + bio)
+CREATE OR REPLACE FUNCTION public.products_fts_update() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.fts :=
+    setweight(to_tsvector('english', coalesce(NEW.title, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(NEW.description, '')), 'B') ||
+    setweight(to_tsvector('english', coalesce(array_to_string(NEW.tags, ' '), '')), 'C');
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_products_fts ON public.products;
+CREATE TRIGGER trg_products_fts
+  BEFORE INSERT OR UPDATE OF title, description, tags ON public.products
+  FOR EACH ROW EXECUTE FUNCTION public.products_fts_update();
+
+-- Backfill existing rows
+UPDATE public.products SET fts =
+  setweight(to_tsvector('english', coalesce(title, '')), 'A') ||
+  setweight(to_tsvector('english', coalesce(description, '')), 'B') ||
+  setweight(to_tsvector('english', coalesce(array_to_string(tags, ' '), '')), 'C');
+
+-- 2. FTS column on profiles (maintained by trigger)
 ALTER TABLE public.profiles
-  ADD COLUMN IF NOT EXISTS fts tsvector
-  GENERATED ALWAYS AS (
-    setweight(to_tsvector('simple', coalesce(username, '')), 'A') ||
-    setweight(to_tsvector('simple', coalesce(full_name, '')), 'A') ||
-    setweight(to_tsvector('english', coalesce(bio, '')), 'B')
-  ) STORED;
+  ADD COLUMN IF NOT EXISTS fts tsvector;
 
 CREATE INDEX IF NOT EXISTS profiles_fts_idx ON public.profiles USING GIN (fts);
 
--- 3. Improved search_autocomplete (now includes tag search + location)
+CREATE OR REPLACE FUNCTION public.profiles_fts_update() RETURNS trigger
+LANGUAGE plpgsql AS $$
+BEGIN
+  NEW.fts :=
+    setweight(to_tsvector('simple', coalesce(NEW.username, '')), 'A') ||
+    setweight(to_tsvector('simple', coalesce(NEW.full_name, '')), 'A') ||
+    setweight(to_tsvector('english', coalesce(NEW.bio, '')), 'B');
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_profiles_fts ON public.profiles;
+CREATE TRIGGER trg_profiles_fts
+  BEFORE INSERT OR UPDATE OF username, full_name, bio ON public.profiles
+  FOR EACH ROW EXECUTE FUNCTION public.profiles_fts_update();
+
+-- Backfill existing rows
+UPDATE public.profiles SET fts =
+  setweight(to_tsvector('simple', coalesce(username, '')), 'A') ||
+  setweight(to_tsvector('simple', coalesce(full_name, '')), 'A') ||
+  setweight(to_tsvector('english', coalesce(bio, '')), 'B');
+
+-- 3. Improved search_autocomplete (tag search + FTS + draft exclusion)
 DROP FUNCTION IF EXISTS public.search_autocomplete(text);
 
 CREATE OR REPLACE FUNCTION public.search_autocomplete(q text)
@@ -137,8 +171,7 @@ BEGIN
 END;
 $$;
 
--- 4. New RPC: search_products (used by the search page)
---    Supports optional text query, optional category filter, pagination.
+-- 4. New RPC: search_products (server-side search with category filter + pagination)
 CREATE OR REPLACE FUNCTION public.search_products(
   q text DEFAULT '',
   cat_id uuid DEFAULT NULL,
@@ -222,7 +255,7 @@ BEGIN
 END;
 $$;
 
--- 5. New RPC: search_sellers (used by the search page)
+-- 5. New RPC: search_sellers (server-side seller search with pagination)
 CREATE OR REPLACE FUNCTION public.search_sellers(
   q text DEFAULT '',
   result_limit int DEFAULT 50,
