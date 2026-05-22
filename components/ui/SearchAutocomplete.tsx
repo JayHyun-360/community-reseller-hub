@@ -18,8 +18,14 @@ const RECENT_KEY = "recent_searches_v1";
 
 export default function SearchAutocomplete({
   initial = "",
+  className = "",
+  inputClassName = "",
+  placeholder = "Search",
 }: {
   initial?: string;
+  className?: string;
+  inputClassName?: string;
+  placeholder?: string;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState(initial);
@@ -213,13 +219,13 @@ export default function SearchAutocomplete({
   const startsWithCount = startsWithItems.length;
 
   return (
-    <div className="relative w-full" ref={containerRef}>
-      <div className="lg:hidden w-full relative group">
+    <div className={`relative w-full ${className}`} ref={containerRef}>
+      <div className="w-full relative group">
         <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
         <span
           className={`absolute left-14 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none transition-opacity ${isFocused || query ? "opacity-0" : "opacity-60"}`}
         >
-          Search
+          {placeholder}
         </span>
         <input
           type="text"
@@ -232,7 +238,7 @@ export default function SearchAutocomplete({
               ? `${listboxIdRef.current}-item-${activeIndex}`
               : undefined
           }
-          className="w-full bg-zinc-100 border-none rounded-full py-3.5 pl-14 pr-4 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-zinc-900/5 focus:bg-zinc-200 transition-all"
+          className={`w-full bg-zinc-100 border-none rounded-full py-3.5 pl-14 pr-4 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-zinc-900/5 focus:bg-zinc-200 transition-all ${inputClassName}`}
           value={query}
           onChange={(e) => {
             setQuery(e.currentTarget.value);
@@ -263,7 +269,7 @@ export default function SearchAutocomplete({
         />
       </div>
 
-      {open && (
+      {open && visibleItems.length > 0 && (
         <div className="absolute z-40 left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border overflow-hidden">
           <div className="px-3 py-2 border-b flex items-center justify-between">
             <div className="text-sm text-zinc-500">Suggestions</div>
