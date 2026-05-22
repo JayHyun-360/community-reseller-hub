@@ -156,31 +156,48 @@ export function SearchAutocomplete({ initial = "" }: { initial?: string }) {
       {open && items.length > 0 && (
         <div className="absolute z-40 left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border overflow-hidden">
           <ul className="max-h-64 overflow-auto">
-            {items.map((it, idx) => (
-              <li
-                key={`${it.type}-${it.id}-${idx}`}
-                className={`px-4 py-3 text-sm cursor-pointer hover:bg-zinc-50 flex justify-between items-center ${activeIndex === idx ? "bg-zinc-50" : ""}`}
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  handleSubmit(it.label);
-                }}
-              >
-                <span className="truncate">{it.label}</span>
-                {it.type === "recent" && (
-                  <button
-                    onMouseDown={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      handleClearRecent(it.label);
-                    }}
-                    className="ml-2 text-zinc-400 hover:text-zinc-600"
-                    aria-label={`Clear recent ${it.label}`}
-                  >
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
-              </li>
-            ))}
+            {items.map((it, idx) => {
+              const label = it.label || "";
+              const parts = query
+                ? label.split(new RegExp(`(${escapeRegExp(query)})`, "gi"))
+                : [label];
+
+              return (
+                <li
+                  key={`${it.type}-${it.id}-${idx}`}
+                  className={`px-4 py-3 text-sm cursor-pointer hover:bg-zinc-50 flex justify-between items-center ${activeIndex === idx ? "bg-zinc-50" : ""}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSubmit(it.label);
+                  }}
+                >
+                  <span className="truncate">
+                    {parts.map((part, i) =>
+                      part.toLowerCase() === (query || "").toLowerCase() ? (
+                        <mark key={i} className="bg-yellow-200 px-0.5 rounded">
+                          {part}
+                        </mark>
+                      ) : (
+                        <span key={i}>{part}</span>
+                      ),
+                    )}
+                  </span>
+                  {it.type === "recent" && (
+                    <button
+                      onMouseDown={(e) => {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        handleClearRecent(it.label);
+                      }}
+                      className="ml-2 text-zinc-400 hover:text-zinc-600"
+                      aria-label={`Clear recent ${it.label}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
@@ -189,3 +206,7 @@ export function SearchAutocomplete({ initial = "" }: { initial?: string }) {
 }
 
 export default SearchAutocomplete;
+
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
