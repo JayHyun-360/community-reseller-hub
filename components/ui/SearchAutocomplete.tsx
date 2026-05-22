@@ -47,6 +47,8 @@ export default function SearchAutocomplete({
   const listboxIdRef = useRef<string>(
     `search-autocomplete-${Math.random().toString(36).slice(2)}`,
   );
+  const lastShortQueryTimeRef = useRef<number>(0);
+  const [isFocused, setIsFocused] = useState(false);
 
   // Close on outside click
   useEffect(() => {
@@ -79,6 +81,16 @@ export default function SearchAutocomplete({
     const q = query.trim();
     if (!q) return;
 
+    // Throttle short single-letter queries to avoid spamming the server
+    const now = Date.now();
+    if (q.length === 1) {
+      if (now - lastShortQueryTimeRef.current < 400) {
+        setLoading(false);
+        return;
+      }
+      lastShortQueryTimeRef.current = now;
+    }
+
     if (cache.current.has(q)) {
       const cached = cache.current.get(q);
       setSuggestions({
@@ -91,6 +103,7 @@ export default function SearchAutocomplete({
 
     setLoading(true);
     if (debouncedRef.current) window.clearTimeout(debouncedRef.current);
+    const debounceDelay = q.length <= 1 ? 75 : 150;
     debouncedRef.current = window.setTimeout(async () => {
       if (abortRef.current) abortRef.current.abort();
       abortRef.current = new AbortController();
@@ -112,7 +125,7 @@ export default function SearchAutocomplete({
       } finally {
         setLoading(false);
       }
-    }, 150);
+    }, debounceDelay);
   }, [query]);
 
   const saveRecent = (term: string) => {
@@ -157,10 +170,57 @@ export default function SearchAutocomplete({
     return [...recentItems, ...productItems, ...sellerItems];
   }, [suggestions, recent]);
 
+  const startsWith = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q)
+      return { products: [] as Suggestion[], sellers: [] as Suggestion[] };
+    const p = suggestions.products.filter((pr) =>
+      (pr.title || "").toLowerCase().startsWith(q),
+    );
+    const s = suggestions.sellers.filter((sr) =>
+      (sr.username || sr.full_name || "").toLowerCase().startsWith(q),
+    );
+    return { products: p, sellers: s };
+  }, [suggestions, query]);
+
+  const otherItems = useMemo(() => {
+    const startProductIds = new Set(startsWith.products.map((p) => p.id));
+    const startSellerIds = new Set(startsWith.sellers.map((s) => s.id));
+    return items.filter((it) => {
+      if (it.type === "product" && startProductIds.has(it.id)) return false;
+      if (it.type === "seller" && startSellerIds.has(it.id)) return false;
+      return true;
+    });
+  }, [items, startsWith]);
+
+  const startsWithItems = useMemo(() => {
+    const p = startsWith.products.map((pr) => ({
+      type: "product",
+      id: pr.id,
+      label: pr.title || "",
+    }));
+    const s = startsWith.sellers.map((sr) => ({
+      type: "seller",
+      id: sr.id,
+      label: sr.username || sr.full_name || "",
+    }));
+    return [...p, ...s];
+  }, [startsWith]);
+
+  const visibleItems = useMemo(() => {
+    return [...startsWithItems, ...otherItems];
+  }, [startsWithItems, otherItems]);
+  const startsWithCount = startsWithItems.length;
+
   return (
     <div className="relative w-full" ref={containerRef}>
       <div className="lg:hidden w-full relative group">
         <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+        <span
+          className={`absolute left-14 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none transition-opacity ${isFocused || query ? "opacity-0" : "opacity-60"}`}
+        >
+          Search
+        </span>
         <input
           type="text"
           aria-label="Search"
@@ -178,18 +238,20 @@ export default function SearchAutocomplete({
             setQuery(e.currentTarget.value);
             setOpen(true);
           }}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              if (activeIndex >= 0 && items[activeIndex]) {
-                handleSubmit(items[activeIndex].label);
+              if (activeIndex >= 0 && visibleItems[activeIndex]) {
+                handleSubmit(visibleItems[activeIndex].label);
               } else {
                 handleSubmit();
               }
             } else if (e.key === "ArrowDown") {
               e.preventDefault();
               setOpen(true);
-              setActiveIndex((i) => Math.min(i + 1, items.length - 1));
+              setActiveIndex((i) => Math.min(i + 1, visibleItems.length - 1));
             } else if (e.key === "ArrowUp") {
               e.preventDefault();
               setActiveIndex((i) => Math.max(i - 1, 0));
@@ -236,7 +298,46 @@ export default function SearchAutocomplete({
             role="listbox"
             className="max-h-64 overflow-auto"
           >
-            {items.length === 0 && !loading ? (
+            {startsWithCount > 0 && (
+              <li className="px-4 py-2 text-xs font-black text-zinc-500">
+                Starts with
+              </li>
+            )}
+
+            {startsWithItems.map((it, idx) => {
+              const label = it.label || "";
+              const parts = query
+                ? label.split(new RegExp(`(${escapeRegExp(query)})`, "gi"))
+                : [label];
+              const isActive = activeIndex === idx;
+              return (
+                <li
+                  id={`${listboxIdRef.current}-item-${idx}`}
+                  key={`${it.type}-${it.id}-${idx}`}
+                  role="option"
+                  aria-selected={isActive}
+                  className={`px-4 py-3 text-sm cursor-pointer hover:bg-zinc-50 flex justify-between items-center ${isActive ? "bg-zinc-50" : ""}`}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSubmit(it.label);
+                  }}
+                >
+                  <span className="truncate">
+                    {parts.map((part, i) =>
+                      part.toLowerCase() === (query || "").toLowerCase() ? (
+                        <mark key={i} className="bg-yellow-200 px-0.5 rounded">
+                          {part}
+                        </mark>
+                      ) : (
+                        <span key={i}>{part}</span>
+                      ),
+                    )}
+                  </span>
+                </li>
+              );
+            })}
+
+            {otherItems.length === 0 && startsWithCount === 0 && !loading ? (
               <li className="px-4 py-3 text-sm text-zinc-500">
                 No suggestions —{" "}
                 <button
@@ -251,7 +352,8 @@ export default function SearchAutocomplete({
               </li>
             ) : null}
 
-            {items.map((it, idx) => {
+            {otherItems.map((it, oIdx) => {
+              const idx = startsWithCount + oIdx;
               const label = it.label || "";
               const parts = query
                 ? label.split(new RegExp(`(${escapeRegExp(query)})`, "gi"))
