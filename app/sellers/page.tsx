@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+import Link from "next/link";
 import { 
   Store, 
   Camera, 
@@ -341,12 +342,12 @@ export default function SellerResourcesPage() {
           continuous learning and adapting to customer needs.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button className="px-6 py-3 bg-white text-zinc-900 rounded-full font-black hover:bg-zinc-100 transition-colors">
+          <Link href="/dashboard" className="px-6 py-3 bg-white text-zinc-900 rounded-full font-black hover:bg-zinc-100 transition-colors inline-block text-center">
             Go to Shop Manager
-          </button>
-          <button className="px-6 py-3 bg-zinc-800 text-white rounded-full font-black hover:bg-zinc-700 transition-colors">
+          </Link>
+          <Link href="/help" className="px-6 py-3 bg-zinc-800 text-white rounded-full font-black hover:bg-zinc-700 transition-colors inline-block text-center">
             Browse Help Center
-          </button>
+          </Link>
         </div>
         <p className="text-sm text-zinc-400 mt-6">
           De La Salle John Bosco College • Supporting Student Entrepreneurs
