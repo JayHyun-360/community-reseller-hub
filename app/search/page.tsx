@@ -12,6 +12,7 @@ import { Search as SearchIcon, X, Filter, Store } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
+import SearchAutocomplete from "@/components/ui/SearchAutocomplete";
 import { ProductModal } from "@/components/ui/ProductModalLazy";
 import { SellerCard } from "@/components/ui/SellerCard";
 import { CategoryFilter } from "@/components/ui/CategoryFilter";
