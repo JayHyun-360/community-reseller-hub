@@ -2,13 +2,13 @@
 
 import {
   useState,
-  useMemo,
   useEffect,
   useCallback,
   useRef,
   useLayoutEffect,
+  useMemo,
 } from "react";
-import { Search as SearchIcon, X, Filter, Store } from "lucide-react";
+import { Store } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -24,7 +24,42 @@ import {
 import { applyLikeChange } from "@/lib/handle-like-change";
 import { useProductModalStack } from "@/lib/use-product-modal-stack";
 import { getViewerUserId } from "@/lib/viewer-session";
+import { useDebounce } from "@/lib/use-debounce";
 import { Product, Seller, Category } from "@/lib/types";
+
+function mapProductRow(p: any): Product {
+  return {
+    id: p.id,
+    sellerId: p.seller_id,
+    categoryId: p.category_id,
+    title: p.title,
+    description: p.description,
+    price: p.price,
+    images: p.images || [],
+    stockQty: p.stock_qty,
+    status: p.status,
+    isFeatured: p.is_featured,
+    likeCount: p.like_count || 0,
+    viewCount: p.view_count,
+    tags: p.tags || [],
+    createdAt: p.created_at,
+  };
+}
+
+function mapSellerRow(s: any): Seller {
+  return {
+    id: s.id,
+    username: s.username,
+    fullName: s.full_name,
+    displayName: s.full_name || s.username,
+    avatarUrl: s.avatar_url,
+    role: s.role,
+    whatsappNum: s.whatsapp_num,
+    messengerUrl: s.messenger_url,
+    instagramHandle: s.instagram_handle,
+    tiktokHandle: s.tiktok_handle,
+  };
+}
 
 export default function SearchPage() {
   const router = useRouter();
@@ -87,9 +122,9 @@ export default function SearchPage() {
     );
   };
 
+  // Load user, categories and favorites once on mount
   useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
+    async function loadStatic() {
       try {
         const userId = await getViewerUserId(supabase);
         const {
@@ -109,60 +144,19 @@ export default function SearchPage() {
           setCurrentProfile(profile);
         }
 
-        const [productsRes, profilesRes, categoriesRes, favoritesRes] =
-          await Promise.all([
-            supabase.from("products").select("*"),
-            supabase.from("profiles").select("*"),
-            supabase.from("categories").select("*"),
-            userId
-              ? supabase
-                  .from("favorites")
-                  .select("product_id")
-                  .eq("user_id", userId)
-              : Promise.resolve({ data: [] }),
-          ]);
+        const [categoriesRes, favoritesRes] = await Promise.all([
+          supabase.from("categories").select("*"),
+          userId
+            ? supabase
+                .from("favorites")
+                .select("product_id")
+                .eq("user_id", userId)
+            : Promise.resolve({ data: [] }),
+        ]);
 
         if (favoritesRes.data) {
           setLikedProductIds(
             new Set(favoritesRes.data.map((f: any) => f.product_id)),
-          );
-        }
-
-        if (productsRes.data) {
-          setProducts(
-            productsRes.data.map((p) => ({
-              id: p.id,
-              sellerId: p.seller_id,
-              categoryId: p.category_id,
-              title: p.title,
-              description: p.description,
-              price: p.price,
-              images: p.images || [],
-              stockQty: p.stock_qty,
-              status: p.status,
-              isFeatured: p.is_featured,
-              likeCount: p.like_count || 0,
-              createdAt: p.created_at,
-            })),
-          );
-        }
-
-        if (profilesRes.data) {
-          setSellers(
-            profilesRes.data
-              .filter((s) => s.role === "seller")
-              .map((s) => ({
-                id: s.id,
-                username: s.username,
-                fullName: s.full_name,
-                displayName: s.full_name || s.username,
-                avatarUrl: s.avatar_url,
-                role: s.role,
-                whatsappNum: s.whatsapp_num,
-                messengerUrl: s.messenger_url,
-                instagramHandle: s.instagram_handle,
-                tiktokHandle: s.tiktok_handle,
-              })),
           );
         }
 
@@ -177,98 +171,141 @@ export default function SearchPage() {
           );
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
+        console.error("Error fetching static data:", error);
       }
     }
-    fetchData();
+    loadStatic();
   }, []);
-
-  const useDebounce = (value: string, delay: number) => {
-    const [debouncedValue, setDebouncedValue] = useState(value);
-
-    useEffect(() => {
-      const handler = setTimeout(() => {
-        setDebouncedValue(value);
-      }, delay);
-
-      return () => {
-        clearTimeout(handler);
-      };
-    }, [value, delay]);
-
-    return debouncedValue;
-  };
 
   const debouncedQuery = useDebounce(query, 300);
 
-  // Keep `query` state in sync with the URL `q` param so navigation updates results
+  // Keep `query` state in sync with the URL `q` param
   useEffect(() => {
     const q = searchParams.get("q") || "";
     setQuery(q);
   }, [searchParams]);
 
-  const normalizedProducts = useMemo(
-    () =>
-      products.map((p) => ({
-        ...p,
-        titleLower: (p.title || "").toLowerCase(),
-        descriptionLower: (p.description || "").toLowerCase(),
-      })),
-    [products],
-  );
+  // Server-side search: call RPCs when query, tab, or category changes
+  useEffect(() => {
+    let cancelled = false;
 
-  const normalizedSellers = useMemo(
-    () =>
-      sellers.map((s) => ({
-        ...s,
-        fullNameLower: (s.fullName || "").toLowerCase(),
-        usernameLower: (s.username || "").toLowerCase(),
-      })),
-    [sellers],
-  );
+    async function runSearch() {
+      setLoading(true);
+      try {
+        const q = debouncedQuery.trim();
+        const catId =
+          selectedCat !== "all" &&
+          selectedCat !== "suggested" &&
+          selectedCat !== "trending"
+            ? selectedCat
+            : undefined;
+
+        if (tab === "products") {
+          // Try the search_products RPC first, fallback to direct query
+          const { data: rpcData, error: rpcError } = await supabase.rpc(
+            "search_products",
+            {
+              q: q || "",
+              cat_id: catId ?? null,
+              result_limit: 50,
+              result_offset: 0,
+            },
+          );
+
+          if (!cancelled) {
+            if (rpcError) {
+              console.warn(
+                "search_products RPC failed, falling back to direct query",
+                rpcError,
+              );
+              let qb = supabase
+                .from("products")
+                .select("*")
+                .neq("status", "draft")
+                .order("created_at", { ascending: false })
+                .limit(50);
+
+              if (q) {
+                qb = qb.or(
+                  `title.ilike.%${q}%,description.ilike.%${q}%`,
+                );
+              }
+              if (catId) {
+                qb = qb.eq("category_id", catId);
+              }
+
+              const { data } = await qb;
+              if (!cancelled && data) {
+                setProducts(data.map(mapProductRow));
+              }
+            } else {
+              setProducts((rpcData || []).map(mapProductRow));
+            }
+          }
+        }
+
+        if (tab === "sellers") {
+          const { data: rpcData, error: rpcError } = await supabase.rpc(
+            "search_sellers",
+            {
+              q: q || "",
+              result_limit: 50,
+              result_offset: 0,
+            },
+          );
+
+          if (!cancelled) {
+            if (rpcError) {
+              console.warn(
+                "search_sellers RPC failed, falling back to direct query",
+                rpcError,
+              );
+              let qb = supabase
+                .from("profiles")
+                .select("*")
+                .eq("role", "seller")
+                .order("created_at", { ascending: false })
+                .limit(50);
+
+              if (q) {
+                qb = qb.or(
+                  `username.ilike.%${q}%,full_name.ilike.%${q}%`,
+                );
+              }
+
+              const { data } = await qb;
+              if (!cancelled && data) {
+                setSellers(data.map(mapSellerRow));
+              }
+            } else {
+              setSellers((rpcData || []).map(mapSellerRow));
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error running search:", error);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    runSearch();
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedQuery, tab, selectedCat]);
 
   const sellersById = useMemo(
     () => new Map(sellers.map((s) => [s.id, s])),
     [sellers],
   );
 
-  const results = useMemo(() => {
-    const q = debouncedQuery.toLowerCase();
-
-    if (tab === "products") {
-      let items = normalizedProducts;
-
-      if (q) {
-        items = items.filter(
-          (p) => p.titleLower.includes(q) || p.descriptionLower.includes(q),
-        );
-      }
-
-      if (selectedCat !== "all") {
-        items = items.filter((p) => p.categoryId === selectedCat);
-      }
-
-      return items;
-    } else {
-      let items = normalizedSellers;
-
-      if (q) {
-        items = items.filter(
-          (s) => s.fullNameLower.includes(q) || s.usernameLower.includes(q),
-        );
-      }
-
-      return items;
-    }
-  }, [debouncedQuery, tab, selectedCat, normalizedProducts, normalizedSellers]);
+  const results = tab === "products" ? products : sellers;
 
   return (
     <div className="max-w-7xl mx-auto px-4 md:px-6 pb-24 md:pb-12 pt-8">
       {/* Non-sticky header elements */}
       <div className="space-y-6 mb-6">
-        {/* Mobile Search Bar */}
         <SearchAutocomplete initial={query} />
 
         {currentProfile?.role === "seller" && (
@@ -336,11 +373,8 @@ export default function SearchPage() {
 
           <div className="flex items-center gap-3">
             <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-              {results.length} results matching "{query || "everything"}"
+              {results.length} results matching &quot;{query || "everything"}&quot;
             </span>
-            <button className="p-2.5 bg-white border border-zinc-200 rounded-xl text-zinc-500 hover:text-indigo-600 transition-all shadow-sm">
-              <Filter className="w-5 h-5" />
-            </button>
           </div>
         </div>
 
@@ -360,11 +394,19 @@ export default function SearchPage() {
         {loading ? (
           <div
             key="loading"
-            className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
+            className={
+              tab === "products"
+                ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
+                : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            }
           >
             {Array.from({ length: 8 }).map((_, i) => (
               <div key={i} className="break-inside-avoid">
-                <ProductCardSkeleton />
+                {tab === "products" ? (
+                  <ProductCardSkeleton />
+                ) : (
+                  <SellerCardSkeleton />
+                )}
               </div>
             ))}
           </div>
@@ -378,7 +420,7 @@ export default function SearchPage() {
             }
           >
             {tab === "products"
-              ? (results as Product[]).map((p, index) => (
+              ? (results as Product[]).map((p) => (
                   <div
                     key={p.id}
                     onClick={() => productModal.open(p)}
@@ -394,7 +436,7 @@ export default function SearchPage() {
                     />
                   </div>
                 ))
-              : (results as any[]).map((s) => (
+              : (results as Seller[]).map((s) => (
                   <div key={s.id}>
                     <SellerCard seller={s} />
                   </div>
@@ -418,6 +460,7 @@ export default function SearchPage() {
               onClick={() => {
                 setQuery("");
                 setSelectedCat("all");
+                router.push("/search");
               }}
               className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-colors"
             >

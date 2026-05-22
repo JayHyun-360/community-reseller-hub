@@ -24,6 +24,7 @@ export async function GET(request: Request) {
       const productsRes = await supabase
         .from("products")
         .select("id,title,images,price")
+        .neq("status", "draft")
         .ilike("title", `%${q}%`)
         .limit(6);
 
@@ -64,13 +65,12 @@ export async function GET(request: Request) {
       }
     });
 
-    // Simple autocorrect suggestion: if top product title has high similarity
     let correction: string | null = null;
     if (products.length > 0) {
       const top = products[0];
       if (
         top.title &&
-        top.score >= 0.7 &&
+        top.score >= 0.6 &&
         top.title.toLowerCase() !== q.toLowerCase() &&
         q.length > 2
       ) {
