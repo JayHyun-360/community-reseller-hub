@@ -202,6 +202,12 @@ export default function SearchPage() {
 
   const debouncedQuery = useDebounce(query, 300);
 
+  // Keep `query` state in sync with the URL `q` param so navigation updates results
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    setQuery(q);
+  }, [searchParams]);
+
   const normalizedProducts = useMemo(
     () =>
       products.map((p) => ({
@@ -268,7 +274,8 @@ export default function SearchPage() {
             type="text"
             placeholder="Search local finds..."
             className="w-full bg-zinc-100 border-none rounded-full py-3.5 pl-14 pr-4 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-zinc-900/5 focus:bg-zinc-200 transition-all"
-            defaultValue={query}
+            value={query}
+            onChange={(e) => setQuery(e.currentTarget.value)}
             onKeyDown={(e) => {
               if (e.key === "Enter" && e.currentTarget.value) {
                 router.push(
