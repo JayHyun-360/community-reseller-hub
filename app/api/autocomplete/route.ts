@@ -40,8 +40,8 @@ export async function GET(request: Request) {
       });
     }
 
-    const products = [];
-    const sellers = [];
+    const products: any[] = [];
+    const sellers: any[] = [];
     (rpcData || []).forEach((row: any) => {
       if (row.kind === "product") {
         products.push({
@@ -49,6 +49,7 @@ export async function GET(request: Request) {
           title: row.title,
           images: row.images,
           price: row.price,
+          score: row.score,
         });
       } else if (row.kind === "seller") {
         sellers.push({
@@ -56,11 +57,26 @@ export async function GET(request: Request) {
           username: row.username,
           full_name: row.full_name,
           avatar_url: row.avatar_url,
+          score: row.score,
         });
       }
     });
 
-    return NextResponse.json({ products, sellers });
+    // Simple autocorrect suggestion: if top product title has high similarity
+    let correction: string | null = null;
+    if (products.length > 0) {
+      const top = products[0];
+      if (
+        top.title &&
+        top.score >= 0.7 &&
+        top.title.toLowerCase() !== q.toLowerCase() &&
+        q.length > 2
+      ) {
+        correction = top.title;
+      }
+    }
+
+    return NextResponse.json({ products, sellers, correction });
   } catch (error) {
     console.error("Autocomplete error", error);
     return NextResponse.json({ products: [], sellers: [] }, { status: 500 });
