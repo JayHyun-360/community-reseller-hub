@@ -91,7 +91,9 @@ export default function SearchPage() {
       setLoading(true);
       try {
         const userId = await getViewerUserId(supabase);
-        const { data: { session } } = await supabase.auth.getSession();
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
         const user = session?.user ?? null;
         setCurrentUser(user);
 
@@ -204,8 +206,8 @@ export default function SearchPage() {
     () =>
       products.map((p) => ({
         ...p,
-        titleLower: p.title.toLowerCase(),
-        descriptionLower: p.description.toLowerCase(),
+        titleLower: (p.title || "").toLowerCase(),
+        descriptionLower: (p.description || "").toLowerCase(),
       })),
     [products],
   );
@@ -259,7 +261,6 @@ export default function SearchPage() {
     <div className="max-w-7xl mx-auto px-4 md:px-6 pb-24 md:pb-12 pt-8">
       {/* Non-sticky header elements */}
       <div className="space-y-6 mb-6">
-        
         {/* Mobile Search Bar */}
         <div className="lg:hidden w-full relative group">
           <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-zinc-900 transition-colors" />
@@ -270,7 +271,9 @@ export default function SearchPage() {
             defaultValue={query}
             onKeyDown={(e) => {
               if (e.key === "Enter" && e.currentTarget.value) {
-                router.push(`/search?q=${encodeURIComponent(e.currentTarget.value)}`);
+                router.push(
+                  `/search?q=${encodeURIComponent(e.currentTarget.value)}`,
+                );
               }
             }}
           />
@@ -362,74 +365,74 @@ export default function SearchPage() {
       </div>
 
       <div className="mt-8 min-h-[40vh]">
-          {loading ? (
-            <div
-              key="loading"
-              className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
-            >
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="break-inside-avoid">
-                  <ProductCardSkeleton />
-                </div>
-              ))}
-            </div>
-          ) : results.length > 0 ? (
-            <div
-              key={`${tab}-${selectedCat}-${debouncedQuery}`}
-              className={
-                tab === "products"
-                  ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6 [content-visibility:auto]"
-                  : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-              }
-            >
-              {tab === "products"
-                ? (results as Product[]).map((p, index) => (
-                    <div
-                      key={p.id}
-                      onClick={() => productModal.open(p)}
-                      className="cursor-pointer break-inside-avoid"
-                    >
-                      <ProductCard
-                        product={p}
-                        sellerData={sellersById.get(p.sellerId)}
-                        onNotifyMe={setNotifyProduct}
-                        isLiked={likedProductIds.has(p.id)}
-                        onLikeChange={handleLikeChange}
-                        viewerUserId={currentUser?.id ?? null}
-                      />
-                    </div>
-                  ))
-                : (results as any[]).map((s) => (
-                    <div key={s.id}>
-                      <SellerCard seller={s} />
-                    </div>
-                  ))}
-            </div>
-          ) : (
-            <div className="py-40 text-center flex flex-col items-center gap-8">
-              <div className="w-24 h-24 bg-white rounded-[2rem] border border-zinc-100 flex items-center justify-center text-5xl shadow-sm filter grayscale opacity-20">
-                🔍
+        {loading ? (
+          <div
+            key="loading"
+            className="columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
+          >
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="break-inside-avoid">
+                <ProductCardSkeleton />
               </div>
-              <div className="space-y-2">
-                <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
-                  No results found
-                </h3>
-                <p className="text-sm font-medium text-zinc-400 max-w-xs mx-auto leading-relaxed">
-                  We couldn&apos;t find anything matching your search. Try
-                  broadening your keywords.
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  setQuery("");
-                  setSelectedCat("all");
-                }}
-                className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-colors"
-              >
-                Clear Filters
-              </button>
+            ))}
+          </div>
+        ) : results.length > 0 ? (
+          <div
+            key={`${tab}-${selectedCat}-${debouncedQuery}`}
+            className={
+              tab === "products"
+                ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6 [content-visibility:auto]"
+                : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            }
+          >
+            {tab === "products"
+              ? (results as Product[]).map((p, index) => (
+                  <div
+                    key={p.id}
+                    onClick={() => productModal.open(p)}
+                    className="cursor-pointer break-inside-avoid"
+                  >
+                    <ProductCard
+                      product={p}
+                      sellerData={sellersById.get(p.sellerId)}
+                      onNotifyMe={setNotifyProduct}
+                      isLiked={likedProductIds.has(p.id)}
+                      onLikeChange={handleLikeChange}
+                      viewerUserId={currentUser?.id ?? null}
+                    />
+                  </div>
+                ))
+              : (results as any[]).map((s) => (
+                  <div key={s.id}>
+                    <SellerCard seller={s} />
+                  </div>
+                ))}
+          </div>
+        ) : (
+          <div className="py-40 text-center flex flex-col items-center gap-8">
+            <div className="w-24 h-24 bg-white rounded-[2rem] border border-zinc-100 flex items-center justify-center text-5xl shadow-sm filter grayscale opacity-20">
+              🔍
             </div>
-          )}
+            <div className="space-y-2">
+              <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
+                No results found
+              </h3>
+              <p className="text-sm font-medium text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                We couldn&apos;t find anything matching your search. Try
+                broadening your keywords.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setQuery("");
+                setSelectedCat("all");
+              }}
+              className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-colors"
+            >
+              Clear Filters
+            </button>
+          </div>
+        )}
       </div>
 
       <NotifyMeSheet
