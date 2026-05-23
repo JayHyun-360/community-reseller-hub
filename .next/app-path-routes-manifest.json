@@ -1,18 +1,19 @@
 {
-  "/_not-found/page": "/_not-found",
+  "/api/autocomplete/route": "/api/autocomplete",
   "/auth/callback/route": "/auth/callback",
+  "/_not-found/page": "/_not-found",
   "/[username]/page": "/[username]",
-  "/dashboard/products/[id]/page": "/dashboard/products/[id]",
-  "/dashboard/products/new/page": "/dashboard/products/new",
   "/dashboard/page": "/dashboard",
   "/account/page": "/account",
+  "/dashboard/products/[id]/page": "/dashboard/products/[id]",
   "/login/page": "/login",
-  "/page": "/",
+  "/dashboard/products/new/page": "/dashboard/products/new",
   "/onboarding/page": "/onboarding",
+  "/page": "/",
   "/search/page": "/search",
   "/about/page": "/about",
   "/help/page": "/help",
   "/safety/page": "/safety",
-  "/terms/page": "/terms",
-  "/sellers/page": "/sellers"
+  "/sellers/page": "/sellers",
+  "/terms/page": "/terms"
 }
