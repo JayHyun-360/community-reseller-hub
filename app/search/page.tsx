@@ -319,7 +319,10 @@ export default function SearchPage() {
   }, [results, tab]);
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-20 md:pb-12 pt-4 md:pt-8">
+    <div
+      className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-20 md:pb-12 pt-4 md:pt-8"
+      data-search-page
+    >
       {/* Mobile Search Input */}
       <div className="lg:hidden mb-4">
         <SearchAutocomplete
