@@ -84,6 +84,7 @@ export default function SearchPage() {
   const sellersTabRef = useRef<HTMLButtonElement>(null);
   const [tabUnderline, setTabUnderline] = useState({ left: 0, width: 0 });
   const [tabUnderlineReady, setTabUnderlineReady] = useState(false);
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
 
   const measureTabUnderline = useCallback(() => {
     const active =
@@ -298,8 +299,37 @@ export default function SearchPage() {
 
   const results = tab === "products" ? products : sellers;
 
+  // Extract suggested tags from products
+  useEffect(() => {
+    if (tab === "products" && results.length > 0) {
+      const tagFreq = new Map<string, number>();
+      (results as Product[]).forEach((p) => {
+        (p.tags || []).forEach((tag) => {
+          tagFreq.set(tag, (tagFreq.get(tag) || 0) + 1);
+        });
+      });
+      const topTags = Array.from(tagFreq.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([tag]) => tag);
+      setSuggestedTags(topTags);
+    } else {
+      setSuggestedTags([]);
+    }
+  }, [results, tab]);
+
   return (
     <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-20 md:pb-12 pt-4 md:pt-8">
+      {/* Mobile Search Input */}
+      <div className="lg:hidden mb-4">
+        <SearchAutocomplete
+          initial={query}
+          placeholder="Search local finds..."
+          size="lg"
+          className="w-full"
+        />
+      </div>
+
       {/* Seller Profile Button */}
       {currentProfile?.role === "seller" && (
         <div className="mb-4 md:mb-6">
