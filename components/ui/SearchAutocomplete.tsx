@@ -20,12 +20,14 @@ export default function SearchAutocomplete({
   initial = "",
   className = "",
   inputClassName = "",
-  placeholder = "Search",
+  placeholder = "Search local finds...",
+  size = "md",
 }: {
   initial?: string;
   className?: string;
   inputClassName?: string;
   placeholder?: string;
+  size?: "sm" | "md" | "lg";
 }) {
   const router = useRouter();
   const [query, setQuery] = useState(initial);
@@ -221,9 +223,23 @@ export default function SearchAutocomplete({
   return (
     <div className={`relative w-full ${className}`} ref={containerRef}>
       <div className="w-full relative group">
-        <SearchIcon className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+        <SearchIcon
+          className={`absolute top-1/2 -translate-y-1/2 text-zinc-400 group-focus-within:text-zinc-900 transition-colors ${
+            size === "lg"
+              ? "left-6 w-5 h-5"
+              : size === "md"
+                ? "left-5 w-4 h-4"
+                : "left-4 w-4 h-4"
+          }`}
+        />
         <span
-          className={`absolute left-14 top-1/2 -translate-y-1/2 text-sm text-zinc-400 pointer-events-none transition-opacity ${isFocused || query ? "opacity-0" : "opacity-60"}`}
+          className={`absolute top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none transition-opacity ${
+            size === "lg"
+              ? "left-16 text-base"
+              : size === "md"
+                ? "left-14 text-sm"
+                : "left-12 text-xs"
+          } ${isFocused || query ? "opacity-0" : "opacity-60"}`}
         >
           {placeholder}
         </span>
@@ -238,7 +254,13 @@ export default function SearchAutocomplete({
               ? `${listboxIdRef.current}-item-${activeIndex}`
               : undefined
           }
-          className={`w-full bg-zinc-100 border-none rounded-full py-3.5 pl-14 pr-4 text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-zinc-900/5 focus:bg-zinc-200 transition-all ${inputClassName}`}
+          className={`w-full bg-zinc-100 border-none rounded-full text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-4 focus:ring-zinc-900/5 focus:bg-zinc-200 transition-all font-semibold ${
+            size === "lg"
+              ? "py-4 pl-16 pr-6 text-base"
+              : size === "md"
+                ? "py-3.5 pl-14 pr-4 text-sm"
+                : "py-3 pl-12 pr-4 text-sm"
+          } ${inputClassName}`}
           value={query}
           onChange={(e) => {
             setQuery(e.currentTarget.value);

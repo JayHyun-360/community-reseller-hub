@@ -226,9 +226,7 @@ export default function SearchPage() {
                 .limit(50);
 
               if (q) {
-                qb = qb.or(
-                  `title.ilike.%${q}%,description.ilike.%${q}%`,
-                );
+                qb = qb.or(`title.ilike.%${q}%,description.ilike.%${q}%`);
               }
               if (catId) {
                 qb = qb.eq("category_id", catId);
@@ -268,9 +266,7 @@ export default function SearchPage() {
                 .limit(50);
 
               if (q) {
-                qb = qb.or(
-                  `username.ilike.%${q}%,full_name.ilike.%${q}%`,
-                );
+                qb = qb.or(`username.ilike.%${q}%,full_name.ilike.%${q}%`);
               }
 
               const { data } = await qb;
@@ -303,59 +299,59 @@ export default function SearchPage() {
   const results = tab === "products" ? products : sellers;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 md:px-6 pb-24 md:pb-12 pt-8">
-      {/* Non-sticky header elements */}
-      <div className="space-y-6 mb-6">
-        <SearchAutocomplete initial={query} />
-
-        {currentProfile?.role === "seller" && (
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-20 md:pb-12 pt-4 md:pt-8">
+      {/* Seller Profile Button */}
+      {currentProfile?.role === "seller" && (
+        <div className="mb-4 md:mb-6">
           <button
             onClick={() => router.push(`/${currentProfile.username}`)}
-            className="flex items-center gap-3 w-full p-4 bg-zinc-900 text-white rounded-[2rem] hover:bg-zinc-800 transition-all shadow-lg"
+            className="flex items-center gap-3 w-full p-3 md:p-4 bg-zinc-900 text-white rounded-2xl md:rounded-[2rem] hover:bg-zinc-800 transition-all shadow-lg"
           >
-            <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-zinc-800 rounded-full flex items-center justify-center flex-shrink-0">
               <Store className="w-5 h-5" />
             </div>
-            <div className="text-left">
-              <p className="text-xs font-black uppercase tracking-widest text-zinc-400">
+            <div className="text-left min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
                 Your Store
               </p>
-              <p className="text-sm font-bold">View your seller profile</p>
+              <p className="text-xs md:text-sm font-bold truncate">
+                View your seller profile
+              </p>
             </div>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Navigation Tabs & Filters */}
-      <div className="bg-white pt-4 pb-6 space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-white pt-4 pb-4 md:pb-6 space-y-4 md:space-y-6 -mx-3 sm:-mx-4 md:mx-0 px-3 sm:px-4 md:px-0 sticky top-20 z-40 border-b border-zinc-100">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
           <div
             ref={tabsBarRef}
-            className="relative flex gap-8 border-b border-zinc-100"
+            className="relative flex gap-4 md:gap-8 border-b border-zinc-100"
           >
             <button
               ref={productsTabRef}
               type="button"
               onClick={() => setTab("products")}
-              className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
+              className={`pb-3 md:pb-4 text-xs font-black uppercase tracking-[0.15em] md:tracking-[0.2em] transition-colors duration-300 whitespace-nowrap ${
                 tab === "products"
                   ? "text-indigo-600"
                   : "text-zinc-400 hover:text-zinc-600"
               }`}
             >
-              Products ({products.length})
+              Products
             </button>
             <button
               ref={sellersTabRef}
               type="button"
               onClick={() => setTab("sellers")}
-              className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
+              className={`pb-3 md:pb-4 text-xs font-black uppercase tracking-[0.15em] md:tracking-[0.2em] transition-colors duration-300 whitespace-nowrap ${
                 tab === "sellers"
                   ? "text-indigo-600"
                   : "text-zinc-400 hover:text-zinc-600"
               }`}
             >
-              Sellers ({sellers.length})
+              Sellers
             </button>
             <div
               aria-hidden
@@ -372,32 +368,55 @@ export default function SearchPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">
-              {results.length} results matching &quot;{query || "everything"}&quot;
+            <span className="text-[9px] md:text-[10px] font-bold text-zinc-400 uppercase tracking-widest flex-1 md:flex-none">
+              {results.length} result{results.length !== 1 ? "s" : ""}
             </span>
           </div>
         </div>
 
         {tab === "products" && (
-          <div className="pt-2">
-            <CategoryFilter
-              categories={categories}
-              selectedId={selectedCat}
-              onSelect={setSelectedCat}
-              showVirtualCategories={true}
-            />
+          <div className="space-y-4">
+            <div>
+              <CategoryFilter
+                categories={categories}
+                selectedId={selectedCat}
+                onSelect={setSelectedCat}
+                showVirtualCategories={true}
+              />
+            </div>
+
+            {/* Guided Search Filter Chips */}
+            {query && suggestedTags.length > 0 && (
+              <div className="flex flex-wrap gap-2 items-center">
+                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest w-full md:w-auto">
+                  Related:
+                </span>
+                {suggestedTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => {
+                      const newQuery = `${query} ${tag}`;
+                      router.push(`/search?q=${encodeURIComponent(newQuery)}`);
+                    }}
+                    className="px-2.5 md:px-3 py-1 md:py-1.5 bg-zinc-100 hover:bg-indigo-100 text-zinc-700 hover:text-indigo-700 rounded-full text-[11px] md:text-xs font-semibold transition-all border border-zinc-200 hover:border-indigo-300 whitespace-nowrap"
+                  >
+                    + {tag}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="mt-8 min-h-[40vh]">
+      <div className="mt-6 md:mt-8 min-h-[40vh]">
         {loading ? (
           <div
             key="loading"
             className={
               tab === "products"
-                ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6"
-                : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                ? "columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6 space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6"
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
             }
           >
             {Array.from({ length: 8 }).map((_, i) => (
@@ -415,8 +434,8 @@ export default function SearchPage() {
             key={`${tab}-${selectedCat}-${debouncedQuery}`}
             className={
               tab === "products"
-                ? "columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6 [content-visibility:auto]"
-                : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+                ? "columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-2 sm:gap-3 md:gap-4 lg:gap-6 space-y-2 sm:space-y-3 md:space-y-4 lg:space-y-6 [content-visibility:auto]"
+                : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8"
             }
           >
             {tab === "products"
@@ -443,15 +462,15 @@ export default function SearchPage() {
                 ))}
           </div>
         ) : (
-          <div className="py-40 text-center flex flex-col items-center gap-8">
-            <div className="w-24 h-24 bg-white rounded-[2rem] border border-zinc-100 flex items-center justify-center text-5xl shadow-sm filter grayscale opacity-20">
+          <div className="py-20 md:py-40 text-center flex flex-col items-center gap-6 md:gap-8">
+            <div className="w-16 md:w-24 h-16 md:h-24 bg-white rounded-2xl md:rounded-[2rem] border border-zinc-100 flex items-center justify-center text-3xl md:text-5xl shadow-sm filter grayscale opacity-20">
               🔍
             </div>
             <div className="space-y-2">
-              <h3 className="text-2xl font-black text-zinc-900 tracking-tight">
+              <h3 className="text-xl md:text-2xl font-black text-zinc-900 tracking-tight">
                 No results found
               </h3>
-              <p className="text-sm font-medium text-zinc-400 max-w-xs mx-auto leading-relaxed">
+              <p className="text-xs md:text-sm font-medium text-zinc-400 max-w-xs mx-auto leading-relaxed">
                 We couldn&apos;t find anything matching your search. Try
                 broadening your keywords.
               </p>
@@ -462,7 +481,7 @@ export default function SearchPage() {
                 setSelectedCat("all");
                 router.push("/search");
               }}
-              className="px-8 py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-colors"
+              className="px-6 md:px-8 py-2.5 md:py-3 bg-zinc-900 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-zinc-800 transition-colors"
             >
               Clear Filters
             </button>
