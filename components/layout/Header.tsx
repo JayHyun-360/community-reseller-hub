@@ -59,11 +59,14 @@ export function Header({ onMenuClick }: HeaderProps) {
         </div>
 
         <div className="hidden lg:block flex-grow max-w-2xl">
-          <SearchAutocomplete placeholder="Search local finds..." />
+          <SearchAutocomplete
+            placeholder="Search local finds..."
+            showClearButton
+          />
         </div>
 
         <div className="flex items-center gap-2">
-          <button 
+          <button
             onClick={() => router.push("/search")}
             className="lg:hidden p-2 text-zinc-900 hover:bg-zinc-50 rounded-full transition-colors"
             aria-label="Search"

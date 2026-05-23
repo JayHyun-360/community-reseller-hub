@@ -299,6 +299,33 @@ export default function SearchPage() {
 
   const results = tab === "products" ? products : sellers;
 
+  const [filtersBarVisible, setFiltersBarVisible] = useState(true);
+
+  useEffect(() => {
+    let lastY = window.scrollY;
+
+    const onScroll = () => {
+      const currentY = window.scrollY;
+      const delta = currentY - lastY;
+
+      // Always show near the top
+      if (currentY < 140) {
+        setFiltersBarVisible(true);
+        lastY = currentY;
+        return;
+      }
+
+      // Scrolling down -> hide, scrolling up -> show
+      if (delta > 6) setFiltersBarVisible(false);
+      if (delta < -6) setFiltersBarVisible(true);
+
+      lastY = currentY;
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   // Extract suggested tags from products
   useEffect(() => {
     if (tab === "products" && results.length > 0) {
@@ -322,27 +349,13 @@ export default function SearchPage() {
     <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 pb-20 md:pb-12 pt-4 md:pt-8">
       {/* Mobile Search Input */}
       <div className="lg:hidden mb-4">
-        <div className="relative w-full">
-          <SearchAutocomplete
-            initial={query}
-            placeholder="Search local finds..."
-            size="lg"
-            className="w-full"
-          />
-          {query.trim().length > 0 && (
-            <button
-              type="button"
-              aria-label="Clear search"
-              onClick={() => {
-                setQuery("");
-                router.push("/search");
-              }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 flex items-center justify-center"
-            >
-              ✕
-            </button>
-          )}
-        </div>
+        <SearchAutocomplete
+          initial={query}
+          placeholder="Search local finds..."
+          size="lg"
+          className="w-full"
+          showClearButton
+        />
       </div>
 
       {/* Seller Profile Button */}
@@ -368,7 +381,16 @@ export default function SearchPage() {
       )}
 
       {/* Navigation Tabs & Filters */}
-      <div className="bg-white/95 backdrop-blur-md pt-3 pb-3 md:pb-4 space-y-3 md:space-y-4 -mx-3 sm:-mx-4 md:mx-0 px-3 sm:px-4 md:px-0 sticky top-[80px] z-40 border-b border-zinc-100 shadow-sm">
+      <div
+        className="bg-white/95 backdrop-blur-md pt-3 pb-3 md:pb-4 space-y-3 md:space-y-4 -mx-3 sm:-mx-4 md:mx-0 px-3 sm:px-4 md:px-0 z-40 border-b border-zinc-100 shadow-sm transition-all duration-300 will-change-transform"
+        style={{
+          transform: filtersBarVisible
+            ? "translateY(0px)"
+            : "translateY(-120px)",
+          opacity: filtersBarVisible ? 1 : 0,
+          pointerEvents: filtersBarVisible ? "auto" : "none",
+        }}
+      >
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 md:gap-6">
           <div
             ref={tabsBarRef}

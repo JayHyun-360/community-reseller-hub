@@ -22,12 +22,14 @@ export default function SearchAutocomplete({
   inputClassName = "",
   placeholder = "Search local finds...",
   size = "md",
+  showClearButton = false,
 }: {
   initial?: string;
   className?: string;
   inputClassName?: string;
   placeholder?: string;
   size?: "sm" | "md" | "lg";
+  showClearButton?: boolean;
 }) {
   const router = useRouter();
   const [query, setQuery] = useState(initial);
@@ -289,6 +291,22 @@ export default function SearchAutocomplete({
             }
           }}
         />
+
+        {showClearButton && query.trim().length > 0 && (
+          <button
+            type="button"
+            aria-label="Clear search"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              setQuery("");
+              setOpen(false);
+              setActiveIndex(-1);
+            }}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 flex items-center justify-center text-zinc-600"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
       </div>
 
       {open && visibleItems.length > 0 && (
