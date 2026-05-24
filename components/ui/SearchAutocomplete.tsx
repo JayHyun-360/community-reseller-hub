@@ -301,6 +301,7 @@ export default function SearchAutocomplete({
               setQuery("");
               setOpen(false);
               setActiveIndex(-1);
+              router.push("/search");
             }}
             className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 flex items-center justify-center text-zinc-600"
           >
