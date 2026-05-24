@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/Button";
 import { LocationInput } from "@/components/ui/LocationInput";
 import { ProductCard } from "@/components/ui/ProductCard";
 import { MessagingPreferenceSheet } from "@/components/ui/MessagingPreferenceSheet";
-import { Camera, Save, LogOut, Heart, Settings } from "lucide-react";
+import { Camera, Save, LogOut, Heart, Settings, Check } from "lucide-react";
 import { Product } from "@/lib/types";
 import { SELLER_CONTACTS_HASH } from "@/lib/seller-contacts";
+import { useDebounce } from "@/lib/use-debounce";
 
 export default function AccountPage() {
   const router = useRouter();
@@ -18,6 +19,9 @@ export default function AccountPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<
+    "idle" | "saving" | "saved"
+  >("idle");
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [originalProfile, setOriginalProfile] = useState<any>(null);
@@ -26,6 +30,9 @@ export default function AccountPage() {
   const [favorites, setFavorites] = useState<Product[]>([]);
   const [favoritesLoading, setFavoritesLoading] = useState(true);
   const [showMessagingPreference, setShowMessagingPreference] = useState(false);
+
+  // Debounce profile changes for auto-save
+  const debouncedProfile = useDebounce(JSON.stringify(profile), 1500);
 
   const hasChanges =
     originalProfile &&
@@ -97,6 +104,71 @@ export default function AccountPage() {
     }
     fetchData();
   }, [router, supabase]);
+
+  // Auto-save effect
+  useEffect(() => {
+    const autoSave = async () => {
+      if (!user || !profile || loading) return;
+
+      // Don't auto-save if nothing has changed from original
+      if (JSON.stringify(profile) === JSON.stringify(originalProfile)) {
+        return;
+      }
+
+      setAutoSaveStatus("saving");
+
+      const cleanInstagram = profile.instagram_handle
+        ? profile.instagram_handle.trim().replace(/^@/, "")
+        : null;
+      const cleanTikTok = profile.tiktok_handle
+        ? profile.tiktok_handle.trim().replace(/^@/, "")
+        : null;
+      const cleanWhatsApp = profile.whatsapp_num
+        ? profile.whatsapp_num.trim()
+        : null;
+      const cleanMessenger = profile.messenger_url
+        ? profile.messenger_url.trim()
+        : null;
+
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          username: profile.username?.trim(),
+          full_name: profile.full_name?.trim(),
+          bio: profile.bio,
+          whatsapp_num: cleanWhatsApp,
+          messenger_url: cleanMessenger,
+          instagram_handle: cleanInstagram,
+          tiktok_handle: cleanTikTok,
+          avatar_url: profile.avatar_url,
+          location: profile.location,
+          latitude: profile.latitude,
+          longitude: profile.longitude,
+        })
+        .eq("id", user.id);
+
+      if (error) {
+        setAutoSaveStatus("idle");
+      } else {
+        setAutoSaveStatus("saved");
+        const updatedProfile = {
+          ...profile,
+          instagram_handle: cleanInstagram,
+          tiktok_handle: cleanTikTok,
+          whatsapp_num: cleanWhatsApp,
+          messenger_url: cleanMessenger,
+          username: profile.username?.trim(),
+          full_name: profile.full_name?.trim(),
+        };
+        setOriginalProfile(updatedProfile);
+
+        // Reset status after 2 seconds
+        setTimeout(() => setAutoSaveStatus("idle"), 2000);
+      }
+    };
+
+    autoSave();
+  }, [debouncedProfile, user, loading]);
 
   const handleSave = async () => {
     if (!user || !profile) return;
@@ -233,9 +305,23 @@ export default function AccountPage() {
     <div className="max-w-2xl mx-auto px-4 md:px-6 py-12">
       <div className="bg-white border border-zinc-100 rounded-[2.5rem] p-8 shadow-xl">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-2xl font-black text-zinc-900">
-            Account Settings
-          </h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-black text-zinc-900">
+              Account Settings
+            </h1>
+            {autoSaveStatus === "saving" && (
+              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <div className="w-3 h-3 border-2 border-zinc-300 border-t-zinc-900 rounded-full animate-spin" />
+                <span>Saving...</span>
+              </div>
+            )}
+            {autoSaveStatus === "saved" && (
+              <div className="flex items-center gap-2 text-xs text-green-600">
+                <Check className="w-3 h-3" />
+                <span>Saved</span>
+              </div>
+            )}
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -531,8 +617,8 @@ export default function AccountPage() {
             )}
           </div>
 
-          {/* Save Button */}
-          {hasChanges && (
+          {/* Save Button - Hidden since we auto-save now */}
+          {false && hasChanges && (
             <div className="pt-4">
               <Button
                 onClick={handleSave}
