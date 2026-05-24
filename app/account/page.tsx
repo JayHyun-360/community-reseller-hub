@@ -103,10 +103,18 @@ export default function AccountPage() {
     setSaving(true);
     setMessage("");
 
-    const cleanInstagram = profile.instagram_handle ? profile.instagram_handle.trim().replace(/^@/, "") : null;
-    const cleanTikTok = profile.tiktok_handle ? profile.tiktok_handle.trim().replace(/^@/, "") : null;
-    const cleanWhatsApp = profile.whatsapp_num ? profile.whatsapp_num.trim() : null;
-    const cleanMessenger = profile.messenger_url ? profile.messenger_url.trim() : null;
+    const cleanInstagram = profile.instagram_handle
+      ? profile.instagram_handle.trim().replace(/^@/, "")
+      : null;
+    const cleanTikTok = profile.tiktok_handle
+      ? profile.tiktok_handle.trim().replace(/^@/, "")
+      : null;
+    const cleanWhatsApp = profile.whatsapp_num
+      ? profile.whatsapp_num.trim()
+      : null;
+    const cleanMessenger = profile.messenger_url
+      ? profile.messenger_url.trim()
+      : null;
 
     const updatedProfile = {
       ...profile,
@@ -172,8 +180,20 @@ export default function AccountPage() {
       if (uploadError) throw uploadError;
 
       const { data } = supabase.storage.from("avatars").getPublicUrl(filePath);
+      const avatarUrl = data.publicUrl;
 
-      setProfile({ ...profile, avatar_url: data.publicUrl });
+      // Save avatar URL to database immediately
+      const { error: updateError } = await supabase
+        .from("profiles")
+        .update({ avatar_url: avatarUrl })
+        .eq("id", user.id);
+
+      if (updateError) throw updateError;
+
+      const updatedProfile = { ...profile, avatar_url: avatarUrl };
+      setProfile(updatedProfile);
+      setOriginalProfile(updatedProfile);
+      setMessage("Avatar updated successfully!");
     } catch (err: any) {
       setMessage("Error uploading avatar: " + err.message);
     } finally {
