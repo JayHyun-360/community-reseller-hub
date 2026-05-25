@@ -64,10 +64,10 @@ export default function LoginPage() {
             <ShoppingBag className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-black tracking-tight mb-2 text-zinc-900">
-            Start discovery smarter
+            Explore
           </h1>
           <p className="text-zinc-400 font-bold text-xs uppercase tracking-widest">
-            Share your portfolio with one link.
+            Your favorite community sellers and unique finds, all in one spot.
           </p>
         </div>
 
@@ -101,7 +101,7 @@ export default function LoginPage() {
 
         <div className="mt-12 text-center relative border-t border-zinc-100 pt-8">
           <p className="text-[10px] font-black text-zinc-300 uppercase tracking-[0.2em] mb-4">
-            Connecting your neighborhood
+            MADE FOR COMMUNITY SELLERS
           </p>
           <div className="flex justify-center -space-x-3">
             {[1, 2, 3, 4, 5].map((i) => (
