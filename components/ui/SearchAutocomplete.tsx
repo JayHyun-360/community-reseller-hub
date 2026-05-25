@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { Search as SearchIcon, X } from "lucide-react";
+import { Search as SearchIcon, X, Clock, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Suggestion {
@@ -311,9 +311,13 @@ export default function SearchAutocomplete({
       </div>
 
       {open && visibleItems.length > 0 && (
-        <div className="absolute z-40 left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border overflow-hidden">
-          <div className="px-3 py-2 border-b flex items-center justify-between">
-            <div className="text-sm text-zinc-500">Suggestions</div>
+        <div className="absolute z-50 left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-[70vh] flex flex-col">
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-zinc-50 to-white">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4 text-zinc-600" />
+              <span className="text-sm font-bold text-zinc-700">Discover</span>
+            </div>
             <div className="text-xs text-zinc-400">
               {loading ? (
                 <span className="animate-spin inline-block w-3 h-3 border-2 border-zinc-400 border-t-transparent rounded-full" />
@@ -321,12 +325,13 @@ export default function SearchAutocomplete({
             </div>
           </div>
 
+          {/* Spelling Correction */}
           {correction && correction.toLowerCase() !== query.toLowerCase() && (
-            <div className="px-4 py-2 text-sm bg-zinc-50 border-b flex items-center justify-between">
-              <div className="text-zinc-700">
+            <div className="px-6 py-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between">
+              <div className="text-sm text-blue-700">
                 Did you mean{" "}
                 <button
-                  className="underline font-medium ml-1"
+                  className="font-bold text-blue-900 ml-1 hover:underline"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     setQuery(correction || "");
@@ -340,124 +345,251 @@ export default function SearchAutocomplete({
             </div>
           )}
 
-          <ul
-            id={listboxIdRef.current}
-            role="listbox"
-            className="max-h-64 overflow-auto"
-          >
-            {startsWithCount > 0 && (
-              <li className="px-4 py-2 text-xs font-black text-zinc-500">
-                Starts with
-              </li>
-            )}
+          {/* Multi-column content */}
+          <div className="flex-1 overflow-auto">
+            <div className="grid grid-cols-3 gap-6 p-6">
+              {/* Left Column - Recent Searches */}
+              {recent.length > 0 && (
+                <div className="col-span-1 border-r border-gray-100 pr-4">
+                  <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
+                    Recent
+                  </div>
+                  <div className="space-y-1">
+                    {recent.slice(0, 5).map((r) => (
+                      <button
+                        key={r}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          handleSubmit(r);
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 hover:bg-gray-50 rounded-xl transition-colors duration-200 group"
+                      >
+                        <Clock className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0" />
+                        <span className="truncate">{r}</span>
+                        <button
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            handleClearRecent(r);
+                          }}
+                          className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                          aria-label={`Clear recent ${r}`}
+                        >
+                          <X className="w-3 h-3 text-zinc-400" />
+                        </button>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            {startsWithItems.map((it, idx) => {
-              const label = it.label || "";
-              const parts = query
-                ? label.split(new RegExp(`(${escapeRegExp(query)})`, "gi"))
-                : [label];
-              const isActive = activeIndex === idx;
-              return (
-                <li
-                  id={`${listboxIdRef.current}-item-${idx}`}
-                  key={`${it.type}-${it.id}-${idx}`}
-                  role="option"
-                  aria-selected={isActive}
-                  className={`px-4 py-3 text-sm cursor-pointer hover:bg-zinc-50 flex justify-between items-center ${isActive ? "bg-zinc-50" : ""}`}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleSubmit(it.label);
-                  }}
-                >
-                  <span className="truncate">
-                    {parts.map((part, i) =>
-                      part.toLowerCase() === (query || "").toLowerCase() ? (
-                        <mark key={i} className="bg-yellow-200 px-0.5 rounded">
-                          {part}
-                        </mark>
-                      ) : (
-                        <span key={i}>{part}</span>
-                      ),
-                    )}
-                  </span>
-                </li>
-              );
-            })}
+              {/* Right Columns - Live Suggestions */}
+              <div className={recent.length > 0 ? "col-span-2" : "col-span-3"}>
+                {/* Products Section */}
+                {startsWithItems.filter((it) => it.type === "product").length >
+                  0 && (
+                  <div className="mb-6">
+                    <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                      Products Match
+                    </div>
+                    <div className="space-y-1">
+                      {startsWithItems
+                        .filter((it) => it.type === "product")
+                        .map((it, idx) => {
+                          const label = it.label || "";
+                          const parts = query
+                            ? label.split(
+                                new RegExp(`(${escapeRegExp(query)})`, "gi"),
+                              )
+                            : [label];
+                          const isActive = activeIndex === idx;
+                          return (
+                            <button
+                              key={`${it.type}-${it.id}-${idx}`}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleSubmit(it.label);
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl transition-colors duration-200 text-sm ${
+                                isActive ? "bg-gray-100" : "hover:bg-gray-50"
+                              }`}
+                            >
+                              <span className="truncate">
+                                {parts.map((part, i) =>
+                                  part.toLowerCase() ===
+                                  (query || "").toLowerCase() ? (
+                                    <span
+                                      key={i}
+                                      className="font-bold text-zinc-900"
+                                    >
+                                      {part}
+                                    </span>
+                                  ) : (
+                                    <span key={i} className="text-gray-500">
+                                      {part}
+                                    </span>
+                                  ),
+                                )}
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
 
-            {otherItems.length === 0 && startsWithCount === 0 && !loading ? (
-              <li className="px-4 py-3 text-sm text-zinc-500">
-                No suggestions —{" "}
-                <button
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    router.push(`/search?q=${encodeURIComponent(query)}`);
-                  }}
-                  className="underline"
-                >
-                  see full results
-                </button>
-              </li>
-            ) : null}
+                {/* Sellers Section */}
+                {startsWithItems.filter((it) => it.type === "seller").length >
+                  0 && (
+                  <div className="mb-6">
+                    <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                      Sellers Match
+                    </div>
+                    <div className="space-y-1">
+                      {startsWithItems
+                        .filter((it) => it.type === "seller")
+                        .map((it, idx) => {
+                          const label = it.label || "";
+                          const parts = query
+                            ? label.split(
+                                new RegExp(`(${escapeRegExp(query)})`, "gi"),
+                              )
+                            : [label];
+                          const actualIdx = startsWithItems.findIndex(
+                            (item) => item.id === it.id,
+                          );
+                          const isActive = activeIndex === actualIdx;
+                          return (
+                            <button
+                              key={`${it.type}-${it.id}-${idx}`}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleSubmit(it.label);
+                              }}
+                              className={`w-full text-left px-3 py-2 rounded-xl transition-colors duration-200 text-sm ${
+                                isActive ? "bg-gray-100" : "hover:bg-gray-50"
+                              }`}
+                            >
+                              <span className="truncate">
+                                {parts.map((part, i) =>
+                                  part.toLowerCase() ===
+                                  (query || "").toLowerCase() ? (
+                                    <span
+                                      key={i}
+                                      className="font-bold text-zinc-900"
+                                    >
+                                      {part}
+                                    </span>
+                                  ) : (
+                                    <span key={i} className="text-gray-500">
+                                      {part}
+                                    </span>
+                                  ),
+                                )}
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                )}
 
-            {otherItems.map((it, oIdx) => {
-              const idx = startsWithCount + oIdx;
-              const label = it.label || "";
-              const parts = query
-                ? label.split(new RegExp(`(${escapeRegExp(query)})`, "gi"))
-                : [label];
-              const isActive = activeIndex === idx;
-              return (
-                <li
-                  id={`${listboxIdRef.current}-item-${idx}`}
-                  key={`${it.type}-${it.id}-${idx}`}
-                  role="option"
-                  aria-selected={isActive}
-                  className={`px-4 py-3 text-sm cursor-pointer hover:bg-zinc-50 flex justify-between items-center ${isActive ? "bg-zinc-50" : ""}`}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    handleSubmit(it.label);
-                  }}
-                >
-                  <span className="truncate">
-                    {parts.map((part, i) =>
-                      part.toLowerCase() === (query || "").toLowerCase() ? (
-                        <mark key={i} className="bg-yellow-200 px-0.5 rounded">
-                          {part}
-                        </mark>
-                      ) : (
-                        <span key={i}>{part}</span>
-                      ),
-                    )}
-                  </span>
-                  {it.type === "recent" && (
+                {/* Other Items Section */}
+                {otherItems.length > 0 && (
+                  <div className="mb-6">
+                    <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                      More Results
+                    </div>
+                    <div className="space-y-1">
+                      {otherItems.slice(0, 8).map((it, oIdx) => {
+                        const idx = startsWithCount + oIdx;
+                        const label = it.label || "";
+                        const parts = query
+                          ? label.split(
+                              new RegExp(`(${escapeRegExp(query)})`, "gi"),
+                            )
+                          : [label];
+                        const isActive = activeIndex === idx;
+                        return (
+                          <button
+                            key={`${it.type}-${it.id}-${idx}`}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              handleSubmit(it.label);
+                            }}
+                            className={`w-full text-left px-3 py-2 rounded-xl transition-colors duration-200 text-sm flex justify-between items-center group ${
+                              isActive ? "bg-gray-100" : "hover:bg-gray-50"
+                            }`}
+                          >
+                            <span className="truncate">
+                              {parts.map((part, i) =>
+                                part.toLowerCase() ===
+                                (query || "").toLowerCase() ? (
+                                  <span
+                                    key={i}
+                                    className="font-bold text-zinc-900"
+                                  >
+                                    {part}
+                                  </span>
+                                ) : (
+                                  <span key={i} className="text-gray-500">
+                                    {part}
+                                  </span>
+                                ),
+                              )}
+                            </span>
+                            {it.type === "recent" && (
+                              <button
+                                onMouseDown={(e) => {
+                                  e.stopPropagation();
+                                  e.preventDefault();
+                                  handleClearRecent(it.label);
+                                }}
+                                className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                aria-label={`Clear recent ${it.label}`}
+                              >
+                                <X className="w-3 h-3 text-zinc-400" />
+                              </button>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                {otherItems.length === 0 &&
+                startsWithCount === 0 &&
+                !loading ? (
+                  <div className="px-3 py-4 text-sm text-center text-gray-500">
+                    No suggestions —{" "}
                     <button
                       onMouseDown={(e) => {
-                        e.stopPropagation();
                         e.preventDefault();
-                        handleClearRecent(it.label);
+                        router.push(`/search?q=${encodeURIComponent(query)}`);
                       }}
-                      className="ml-2 text-zinc-400 hover:text-zinc-600"
-                      aria-label={`Clear recent ${it.label}`}
+                      className="text-zinc-700 font-bold hover:underline"
                     >
-                      <X className="w-3 h-3" />
+                      see full results
                     </button>
-                  )}
-                </li>
-              );
-            })}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </div>
 
-            <li className="px-4 py-2 border-t text-sm text-zinc-600">
-              <button
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  router.push(`/search?q=${encodeURIComponent(query)}`);
-                }}
-                className="w-full text-left font-medium"
-              >
-                See all results
-              </button>
-            </li>
-          </ul>
+          {/* Footer */}
+          <div className="px-6 py-3 border-t border-gray-100 bg-gray-50">
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                router.push(`/search?q=${encodeURIComponent(query)}`);
+              }}
+              className="w-full text-left text-sm font-bold text-zinc-900 hover:text-zinc-700 transition-colors"
+            >
+              See all results →
+            </button>
+          </div>
         </div>
       )}
     </div>
