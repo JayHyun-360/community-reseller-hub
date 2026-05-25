@@ -531,7 +531,7 @@ export default function SearchPage() {
                 ))
               : (results as Seller[]).map((s) => (
                   <div key={s.id}>
-                    <SellerCard seller={s} />
+                    <SellerCard seller={s} products={products} />
                   </div>
                 ))}
           </div>

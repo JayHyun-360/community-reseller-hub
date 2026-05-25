@@ -28,18 +28,29 @@ export function ProductCardSkeleton() {
 
 export function SellerCardSkeleton() {
   return (
-    <div className="bg-white border border-zinc-200 rounded-[2rem] p-6 space-y-4">
-      <div className="flex items-center gap-4">
-        <Skeleton className="w-14 h-14 rounded-2xl" />
-        <div className="flex-1 space-y-2">
-          <Skeleton className="h-4 w-24 rounded-full" />
-          <Skeleton className="h-3 w-16 rounded-full" />
+    <div className="bg-white border border-gray-100 rounded-2xl shadow-sm overflow-hidden max-h-[140px] flex">
+      {/* Left Content */}
+      <div className="flex-1 p-4 flex flex-col justify-between">
+        {/* Header */}
+        <div className="flex items-start gap-3 mb-2">
+          <Skeleton className="w-12 h-12 rounded-xl flex-shrink-0" />
+          <div className="flex-1 space-y-2 min-w-0">
+            <Skeleton className="h-3 w-24 rounded-full" />
+            <Skeleton className="h-2.5 w-20 rounded-full" />
+          </div>
+        </div>
+
+        {/* Metadata Badge */}
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-6 w-32 rounded-md" />
         </div>
       </div>
-      <Skeleton className="h-3 w-full rounded-full" />
-      <div className="flex justify-between pt-4 border-t border-zinc-100">
-        <Skeleton className="h-6 w-16 rounded-full" />
-        <Skeleton className="h-6 w-16 rounded-full" />
+
+      {/* Right Content: Thumbnail Skeletons */}
+      <div className="flex-shrink-0 px-3 py-4 flex items-center gap-2 bg-gray-50/50 border-l border-gray-100">
+        <Skeleton className="w-12 h-12 rounded-lg" />
+        <Skeleton className="w-12 h-12 rounded-lg" />
+        <Skeleton className="w-12 h-12 rounded-lg" />
       </div>
     </div>
   );
