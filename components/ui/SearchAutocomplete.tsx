@@ -357,28 +357,33 @@ export default function SearchAutocomplete({
                     </div>
                     <div className="space-y-1">
                       {recent.slice(0, 5).map((r) => (
-                        <button
-                          key={r}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            handleSubmit(r);
-                          }}
-                          className="w-full flex items-center gap-2 px-3 py-3 md:py-2 text-sm text-zinc-600 hover:bg-gray-50 rounded-xl transition-colors duration-200 group"
-                        >
-                          <Clock className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0" />
-                          <span className="truncate">{r}</span>
+                        <div key={r} className="w-full group py-1">
                           <button
+                            type="button"
                             onMouseDown={(e) => {
-                              e.stopPropagation();
                               e.preventDefault();
-                              handleClearRecent(r);
+                              handleSubmit(r);
                             }}
-                            className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
-                            aria-label={`Clear recent ${r}`}
+                            className="w-full flex items-center justify-between px-3 py-3 md:py-2 text-sm text-zinc-600 hover:bg-gray-50 rounded-xl transition-colors duration-200"
                           >
-                            <X className="w-3 h-3 text-zinc-400" />
+                            <span className="flex items-center gap-2 min-w-0">
+                              <Clock className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0" />
+                              <span className="truncate">{r}</span>
+                            </span>
+                            <button
+                              type="button"
+                              onMouseDown={(e) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                handleClearRecent(r);
+                              }}
+                              className="md:opacity-0 md:group-hover:opacity-100 opacity-100 transition-opacity"
+                              aria-label={`Clear recent ${r}`}
+                            >
+                              <X className="w-3.5 h-3.5 text-gray-400 hover:text-gray-600" />
+                            </button>
                           </button>
-                        </button>
+                        </div>
                       ))}
                     </div>
                   </div>
