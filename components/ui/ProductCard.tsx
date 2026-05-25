@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, memo } from "react";
-import {
-  fetchProductLikeCount,
-  toggleFavorite,
-} from "@/lib/favorites";
+import { fetchProductLikeCount, toggleFavorite } from "@/lib/favorites";
 import { getViewerUserId } from "@/lib/viewer-session";
 import { useRouter } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
@@ -34,7 +31,11 @@ import {
 interface ProductCardProps {
   product: Product;
   onNotifyMe?: (product: Product) => void;
-  onLikeChange?: (productId: string, isLiked: boolean, changed?: boolean) => void;
+  onLikeChange?: (
+    productId: string,
+    isLiked: boolean,
+    changed?: boolean,
+  ) => void;
   showSeller?: boolean;
   sellerData?: Seller;
   isLiked?: boolean;
@@ -105,9 +106,7 @@ function ProductCardComponent({
 
       setIsLiked(result.isLiked);
       if (result.changed) {
-        setLikeCount((c) =>
-          result.isLiked ? c + 1 : Math.max(0, c - 1),
-        );
+        setLikeCount((c) => (result.isLiked ? c + 1 : Math.max(0, c - 1)));
       } else {
         const count = await fetchProductLikeCount(supabase, product.id);
         setLikeCount(count);
@@ -176,7 +175,9 @@ function ProductCardComponent({
   const hasInstagram = seller?.instagramHandle;
   const hasTikTok = seller?.tiktokHandle;
   const hasContact = sellerHasContact(seller);
-  const showDropdown = [hasMessenger, hasWhatsApp, hasInstagram, hasTikTok].filter(Boolean).length > 1;
+  const showDropdown =
+    [hasMessenger, hasWhatsApp, hasInstagram, hasTikTok].filter(Boolean)
+      .length > 1;
   const preferredPlatform = getPreferredPlatform(!!hasMessenger, !!hasWhatsApp);
 
   return (
@@ -185,14 +186,14 @@ function ProductCardComponent({
       onMouseLeave={() => setIsHovered(false)}
       className="flex flex-col group cursor-zoom-in"
     >
-      <div className="relative aspect-[4/5] rounded-[1.5rem] overflow-hidden bg-zinc-50 [@media(hover:hover)]:group-hover:brightness-90 transition-[filter] duration-300">
+      <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-50 [@media(hover:hover)]:group-hover:brightness-90 transition-[filter] duration-300 w-full">
         <ProductImage
           src={product.images[0]}
           alt={product.title}
-          fill
           width={480}
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
-          className="object-cover [@media(hover:hover)]:group-hover:scale-105 [@media(hover:hover)]:transition-transform [@media(hover:hover)]:duration-500"
+          height={600}
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          className="w-full h-auto rounded-[1.5rem] object-cover [@media(hover:hover)]:group-hover:scale-105 [@media(hover:hover)]:transition-transform [@media(hover:hover)]:duration-500"
         />
 
         <div
@@ -247,7 +248,9 @@ function ProductCardComponent({
                         ? "bg-white/90 hover:bg-white text-zinc-900"
                         : "bg-amber-500 hover:bg-amber-600 text-white"
                     }`}
-                    title={hasContact ? "Manage contact links" : "Add contact links"}
+                    title={
+                      hasContact ? "Manage contact links" : "Add contact links"
+                    }
                   >
                     <Link2 className="w-4 h-4" />
                   </button>

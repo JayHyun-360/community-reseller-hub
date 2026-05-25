@@ -272,11 +272,11 @@ export default function HomePage() {
 
           <div
             key={selectedCat}
-            className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1.5 md:gap-3 lg:gap-4 space-y-1.5 md:space-y-3 lg:space-y-4 [content-visibility:auto]"
+            className="min-h-[40vh] md:min-h-[50vh] grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-1.5 md:gap-3 lg:gap-4 auto-rows-max [content-visibility:auto]"
           >
             {loading
               ? Array.from({ length: 8 }).map((_, i) => (
-                  <div key={`skeleton-${i}`} className="break-inside-avoid">
+                  <div key={`skeleton-${i}`}>
                     <ProductCardSkeleton />
                   </div>
                 ))
@@ -284,7 +284,7 @@ export default function HomePage() {
                   <div
                     key={p.id}
                     onClick={() => productModal.open(p)}
-                    className="cursor-pointer break-inside-avoid"
+                    className="cursor-pointer"
                   >
                     <ProductCard
                       product={p}
