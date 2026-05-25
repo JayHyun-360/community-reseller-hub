@@ -272,7 +272,7 @@ export default function HomePage() {
 
           <div
             key={selectedCat}
-            className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-2 md:gap-4 lg:gap-6 space-y-2 md:space-y-4 lg:space-y-6 [content-visibility:auto]"
+            className="min-h-[40vh] md:min-h-[50vh] columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-1.5 md:gap-3 lg:gap-4 space-y-1.5 md:space-y-3 lg:space-y-4 [content-visibility:auto]"
           >
             {loading
               ? Array.from({ length: 8 }).map((_, i) => (
