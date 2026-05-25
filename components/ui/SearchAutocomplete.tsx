@@ -163,17 +163,17 @@ export default function SearchAutocomplete({
 
   const items = useMemo(() => {
     const productItems = suggestions.products.map((p) => ({
-      type: "product",
+      type: "product" as const,
       id: p.id,
       label: p.title || "",
     }));
     const sellerItems = suggestions.sellers.map((s) => ({
-      type: "seller",
+      type: "seller" as const,
       id: s.id,
       label: s.username || s.full_name || "",
     }));
     const recentItems = recent.map((r) => ({
-      type: "recent",
+      type: "recent" as const,
       id: r,
       label: r,
     }));
@@ -205,12 +205,12 @@ export default function SearchAutocomplete({
 
   const startsWithItems = useMemo(() => {
     const p = startsWith.products.map((pr) => ({
-      type: "product",
+      type: "product" as const,
       id: pr.id,
       label: pr.title || "",
     }));
     const s = startsWith.sellers.map((sr) => ({
-      type: "seller",
+      type: "seller" as const,
       id: sr.id,
       label: sr.username || sr.full_name || "",
     }));
@@ -311,9 +311,9 @@ export default function SearchAutocomplete({
       </div>
 
       {open && visibleItems.length > 0 && (
-        <div className="absolute z-50 left-0 right-0 mt-3 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-[70vh] flex flex-col">
+        <div className="absolute z-50 left-0 right-0 w-full mt-3 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-[70vh] flex flex-col">
           {/* Header */}
-          <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-zinc-50 to-white">
+          <div className="px-4 md:px-6 py-4 md:py-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-zinc-50 to-white">
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-zinc-600" />
               <span className="text-sm font-bold text-zinc-700">Discover</span>
@@ -327,9 +327,9 @@ export default function SearchAutocomplete({
 
           {/* Spelling Correction */}
           {correction && correction.toLowerCase() !== query.toLowerCase() && (
-            <div className="px-6 py-3 bg-blue-50 border-b border-blue-100 flex items-center justify-between">
-              <div className="text-sm text-blue-700">
-                Did you mean{" "}
+            <div className="w-full px-4 md:px-6 py-3 bg-blue-50 border-b border-blue-100">
+              <div className="text-sm text-blue-700 w-full">
+                <span className="block w-full">Did you mean </span>
                 <button
                   className="font-bold text-blue-900 ml-1 hover:underline"
                   onMouseDown={(e) => {
@@ -347,55 +347,163 @@ export default function SearchAutocomplete({
 
           {/* Multi-column content */}
           <div className="flex-1 overflow-auto">
-            <div className="grid grid-cols-3 gap-6 p-6">
-              {/* Left Column - Recent Searches */}
-              {recent.length > 0 && (
-                <div className="col-span-1 border-r border-gray-100 pr-4">
-                  <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
-                    Recent
-                  </div>
-                  <div className="space-y-1">
-                    {recent.slice(0, 5).map((r) => (
-                      <button
-                        key={r}
-                        onMouseDown={(e) => {
-                          e.preventDefault();
-                          handleSubmit(r);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-zinc-600 hover:bg-gray-50 rounded-xl transition-colors duration-200 group"
-                      >
-                        <Clock className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0" />
-                        <span className="truncate">{r}</span>
-                        <button
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                            e.preventDefault();
-                            handleClearRecent(r);
-                          }}
-                          className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
-                          aria-label={`Clear recent ${r}`}
-                        >
-                          <X className="w-3 h-3 text-zinc-400" />
-                        </button>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Right Columns - Live Suggestions */}
-              <div className={recent.length > 0 ? "col-span-2" : "col-span-3"}>
-                {/* Products Section */}
-                {startsWithItems.filter((it) => it.type === "product").length >
-                  0 && (
-                  <div className="mb-6">
-                    <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-                      Products Match
+            <div className="p-4 md:p-6">
+              <div className="flex flex-col md:flex-row md:gap-6">
+                {/* Left Column - Recent Searches */}
+                {recent.length > 0 && (
+                  <div className="md:w-[33%] md:border-r md:border-gray-100 md:pr-4 order-1">
+                    <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-3">
+                      Recent
                     </div>
                     <div className="space-y-1">
-                      {startsWithItems
-                        .filter((it) => it.type === "product")
-                        .map((it, idx) => {
+                      {recent.slice(0, 5).map((r) => (
+                        <button
+                          key={r}
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleSubmit(r);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-3 md:py-2 text-sm text-zinc-600 hover:bg-gray-50 rounded-xl transition-colors duration-200 group"
+                        >
+                          <Clock className="w-3.5 h-3.5 text-zinc-400 group-hover:text-zinc-600 flex-shrink-0" />
+                          <span className="truncate">{r}</span>
+                          <button
+                            onMouseDown={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              handleClearRecent(r);
+                            }}
+                            className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                            aria-label={`Clear recent ${r}`}
+                          >
+                            <X className="w-3 h-3 text-zinc-400" />
+                          </button>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Right Column - Live Suggestions */}
+                <div className="flex-1 min-w-0 order-2">
+                  {/* Products Section */}
+                  {startsWithItems.filter((it) => it.type === "product")
+                    .length > 0 && (
+                    <div className="mb-6">
+                      <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                        Products Match
+                      </div>
+                      <div className="space-y-1">
+                        {startsWithItems
+                          .filter((it) => it.type === "product")
+                          .map((it, idx) => {
+                            const label = it.label || "";
+                            const parts = query
+                              ? label.split(
+                                  new RegExp(`(${escapeRegExp(query)})`, "gi"),
+                                )
+                              : [label];
+                            const isActive = activeIndex === idx;
+                            return (
+                              <button
+                                key={`${it.type}-${it.id}-${idx}`}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  handleSubmit(it.label);
+                                }}
+                                className={`w-full text-left px-3 py-3 md:py-2 rounded-xl transition-colors duration-200 text-sm ${
+                                  isActive ? "bg-gray-100" : "hover:bg-gray-50"
+                                }`}
+                              >
+                                <span className="truncate">
+                                  {parts.map((part, i) =>
+                                    part.toLowerCase() ===
+                                    (query || "").toLowerCase() ? (
+                                      <span
+                                        key={i}
+                                        className="font-bold text-zinc-900"
+                                      >
+                                        {part}
+                                      </span>
+                                    ) : (
+                                      <span key={i} className="text-gray-500">
+                                        {part}
+                                      </span>
+                                    ),
+                                  )}
+                                </span>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sellers Section */}
+                  {startsWithItems.filter((it) => it.type === "seller").length >
+                    0 && (
+                    <div className="mb-6">
+                      <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                        Sellers Match
+                      </div>
+                      <div className="space-y-1">
+                        {startsWithItems
+                          .filter((it) => it.type === "seller")
+                          .map((it, idx) => {
+                            const label = it.label || "";
+                            const parts = query
+                              ? label.split(
+                                  new RegExp(`(${escapeRegExp(query)})`, "gi"),
+                                )
+                              : [label];
+                            const actualIdx = startsWithItems.findIndex(
+                              (item) => item.id === it.id,
+                            );
+                            const isActive = activeIndex === actualIdx;
+                            return (
+                              <button
+                                key={`${it.type}-${it.id}-${idx}`}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  handleSubmit(it.label);
+                                }}
+                                className={`w-full text-left px-3 py-3 md:py-2 rounded-xl transition-colors duration-200 text-sm ${
+                                  isActive ? "bg-gray-100" : "hover:bg-gray-50"
+                                }`}
+                              >
+                                <span className="truncate">
+                                  {parts.map((part, i) =>
+                                    part.toLowerCase() ===
+                                    (query || "").toLowerCase() ? (
+                                      <span
+                                        key={i}
+                                        className="font-bold text-zinc-900"
+                                      >
+                                        {part}
+                                      </span>
+                                    ) : (
+                                      <span key={i} className="text-gray-500">
+                                        {part}
+                                      </span>
+                                    ),
+                                  )}
+                                </span>
+                              </button>
+                            );
+                          })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Other Items Section */}
+                  {otherItems.length > 0 && (
+                    <div className="mb-6">
+                      <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
+                        More Results
+                      </div>
+                      <div className="space-y-1">
+                        {otherItems.slice(0, 8).map((it, oIdx) => {
+                          const idx = startsWithCount + oIdx;
                           const label = it.label || "";
                           const parts = query
                             ? label.split(
@@ -410,7 +518,7 @@ export default function SearchAutocomplete({
                                 e.preventDefault();
                                 handleSubmit(it.label);
                               }}
-                              className={`w-full text-left px-3 py-2 rounded-xl transition-colors duration-200 text-sm ${
+                              className={`w-full text-left px-3 py-3 md:py-2 rounded-xl transition-colors duration-200 text-sm flex justify-between items-center group ${
                                 isActive ? "bg-gray-100" : "hover:bg-gray-50"
                               }`}
                             >
@@ -431,155 +539,51 @@ export default function SearchAutocomplete({
                                   ),
                                 )}
                               </span>
-                            </button>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Sellers Section */}
-                {startsWithItems.filter((it) => it.type === "seller").length >
-                  0 && (
-                  <div className="mb-6">
-                    <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-                      Sellers Match
-                    </div>
-                    <div className="space-y-1">
-                      {startsWithItems
-                        .filter((it) => it.type === "seller")
-                        .map((it, idx) => {
-                          const label = it.label || "";
-                          const parts = query
-                            ? label.split(
-                                new RegExp(`(${escapeRegExp(query)})`, "gi"),
-                              )
-                            : [label];
-                          const actualIdx = startsWithItems.findIndex(
-                            (item) => item.id === it.id,
-                          );
-                          const isActive = activeIndex === actualIdx;
-                          return (
-                            <button
-                              key={`${it.type}-${it.id}-${idx}`}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                handleSubmit(it.label);
-                              }}
-                              className={`w-full text-left px-3 py-2 rounded-xl transition-colors duration-200 text-sm ${
-                                isActive ? "bg-gray-100" : "hover:bg-gray-50"
-                              }`}
-                            >
-                              <span className="truncate">
-                                {parts.map((part, i) =>
-                                  part.toLowerCase() ===
-                                  (query || "").toLowerCase() ? (
-                                    <span
-                                      key={i}
-                                      className="font-bold text-zinc-900"
-                                    >
-                                      {part}
-                                    </span>
-                                  ) : (
-                                    <span key={i} className="text-gray-500">
-                                      {part}
-                                    </span>
-                                  ),
-                                )}
-                              </span>
-                            </button>
-                          );
-                        })}
-                    </div>
-                  </div>
-                )}
-
-                {/* Other Items Section */}
-                {otherItems.length > 0 && (
-                  <div className="mb-6">
-                    <div className="text-xs font-black text-zinc-400 uppercase tracking-widest mb-2">
-                      More Results
-                    </div>
-                    <div className="space-y-1">
-                      {otherItems.slice(0, 8).map((it, oIdx) => {
-                        const idx = startsWithCount + oIdx;
-                        const label = it.label || "";
-                        const parts = query
-                          ? label.split(
-                              new RegExp(`(${escapeRegExp(query)})`, "gi"),
-                            )
-                          : [label];
-                        const isActive = activeIndex === idx;
-                        return (
-                          <button
-                            key={`${it.type}-${it.id}-${idx}`}
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              handleSubmit(it.label);
-                            }}
-                            className={`w-full text-left px-3 py-2 rounded-xl transition-colors duration-200 text-sm flex justify-between items-center group ${
-                              isActive ? "bg-gray-100" : "hover:bg-gray-50"
-                            }`}
-                          >
-                            <span className="truncate">
-                              {parts.map((part, i) =>
-                                part.toLowerCase() ===
-                                (query || "").toLowerCase() ? (
-                                  <span
-                                    key={i}
-                                    className="font-bold text-zinc-900"
-                                  >
-                                    {part}
-                                  </span>
-                                ) : (
-                                  <span key={i} className="text-gray-500">
-                                    {part}
-                                  </span>
-                                ),
+                              {it.type === "recent" && (
+                                <button
+                                  onMouseDown={(e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    handleClearRecent(it.label);
+                                  }}
+                                  className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  aria-label={`Clear recent ${it.label}`}
+                                >
+                                  <X className="w-3 h-3 text-zinc-400" />
+                                </button>
                               )}
-                            </span>
-                            {it.type === "recent" && (
-                              <button
-                                onMouseDown={(e) => {
-                                  e.stopPropagation();
-                                  e.preventDefault();
-                                  handleClearRecent(it.label);
-                                }}
-                                className="ml-2 opacity-0 group-hover:opacity-100 transition-opacity"
-                                aria-label={`Clear recent ${it.label}`}
-                              >
-                                <X className="w-3 h-3 text-zinc-400" />
-                              </button>
-                            )}
-                          </button>
-                        );
-                      })}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {otherItems.length === 0 &&
-                startsWithCount === 0 &&
-                !loading ? (
-                  <div className="px-3 py-4 text-sm text-center text-gray-500">
-                    No suggestions —{" "}
-                    <button
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        router.push(`/search?q=${encodeURIComponent(query)}`);
-                      }}
-                      className="text-zinc-700 font-bold hover:underline"
-                    >
-                      see full results
-                    </button>
-                  </div>
-                ) : null}
+                  {otherItems.length === 0 &&
+                    startsWithCount === 0 &&
+                    !loading && (
+                      <div className="px-3 py-4 text-sm text-center text-gray-500">
+                        No suggestions —{" "}
+                        <button
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            router.push(
+                              `/search?q=${encodeURIComponent(query)}`,
+                            );
+                          }}
+                          className="text-zinc-700 font-bold hover:underline"
+                        >
+                          see full results
+                        </button>
+                      </div>
+                    )}
+                </div>
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-3 border-t border-gray-100 bg-gray-50">
+          <div className="px-4 md:px-6 py-3 border-t border-gray-100 bg-gray-50">
             <button
               onMouseDown={(e) => {
                 e.preventDefault();
