@@ -491,23 +491,32 @@ export function ProductModal({
                     }
                   }}
                 >
-                  <ProductImage
-                    src={
-                      imgError
-                        ? PRODUCT_IMAGE_FALLBACK
-                        : images[currentImageIndex]
-                    }
-                    alt={product.title}
-                    fill
-                    width={800}
-                    sizes="(max-width: 1024px) 100vw, 800px"
-                    priority
-                    className="object-cover cursor-zoom-in rounded-[inherit]"
-                    onClick={() =>
-                      setFullscreenImage(images[currentImageIndex])
-                    }
-                    onImageError={() => setImgError(true)}
-                  />
+                  <motion.div
+                    key={currentImageIndex}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="relative w-full h-full"
+                  >
+                    <ProductImage
+                      src={
+                        imgError
+                          ? PRODUCT_IMAGE_FALLBACK
+                          : images[currentImageIndex]
+                      }
+                      alt={product.title}
+                      fill
+                      width={800}
+                      sizes="(max-width: 1024px) 100vw, 800px"
+                      priority
+                      className="object-cover cursor-zoom-in rounded-[inherit]"
+                      onClick={() =>
+                        setFullscreenImage(images[currentImageIndex])
+                      }
+                      onImageError={() => setImgError(true)}
+                    />
+                  </motion.div>
                 </div>
 
                 {hasMultipleImages && (
