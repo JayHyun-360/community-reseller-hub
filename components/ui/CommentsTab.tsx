@@ -44,6 +44,68 @@ export function CommentsTab({
 
       if (productError) throw productError;
 
+      // Debug: log what we received
+      console.log("[CommentsTab] Product data:", {
+        productId: product.id,
+        overall_rating: productData.overall_rating,
+        rating_count: productData.rating_count,
+        comment_count: productData.comment_count,
+      });
+
+      // If aggregates are NULL/0, calculate them directly from source tables
+      // (in case triggers haven't been set up yet)
+      let finalRatingCount = productData.rating_count ?? 0;
+      let finalOverallRating = productData.overall_rating ?? null;
+      let finalCommentCount = productData.comment_count ?? 0;
+
+      // If counts are 0, verify by querying the actual tables
+      if (finalRatingCount === 0 || finalCommentCount === 0) {
+        const [ratingsResult, commentsResult] = await Promise.all([
+          supabase
+            .from("product_ratings")
+            .select("id", { count: "exact", head: true })
+            .eq("product_id", product.id),
+          supabase
+            .from("product_comments")
+            .select("id", { count: "exact", head: true })
+            .eq("product_id", product.id),
+        ]);
+
+        if (!ratingsResult.error && ratingsResult.count !== null) {
+          finalRatingCount = ratingsResult.count;
+          console.log(
+            "[CommentsTab] Actual rating count from table:",
+            finalRatingCount,
+          );
+        }
+
+        if (!commentsResult.error && commentsResult.count !== null) {
+          finalCommentCount = commentsResult.count;
+          console.log(
+            "[CommentsTab] Actual comment count from table:",
+            finalCommentCount,
+          );
+        }
+
+        // If we found ratings, calculate the actual average
+        if (finalRatingCount > 0) {
+          const { data: ratingsData, error: ratingsError } = await supabase
+            .from("product_ratings")
+            .select("rating")
+            .eq("product_id", product.id);
+
+          if (!ratingsError && ratingsData && ratingsData.length > 0) {
+            const sum = ratingsData.reduce((acc, r: any) => acc + r.rating, 0);
+            finalOverallRating =
+              Math.round((sum / ratingsData.length) * 10) / 10; // Round to 1 decimal
+            console.log(
+              "[CommentsTab] Calculated average rating:",
+              finalOverallRating,
+            );
+          }
+        }
+      }
+
       // Fetch current user's comment and rating if exists
       const userId = await getViewerUserId(supabase);
       let userComment: ProductComment | undefined;
@@ -80,13 +142,25 @@ export function CommentsTab({
             updatedAt: commentData.updated_at,
             rating: userRating,
           };
+        } else if (userRating && !userComment) {
+          // User has a rating but no comment yet - create a synthetic comment object
+          // so the form can still show the pre-filled rating
+          userComment = {
+            id: "", // Empty ID indicates this is a synthetic object
+            userId: userId,
+            productId: product.id,
+            commentText: "", // No comment text yet
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            rating: userRating,
+          };
         }
       }
 
       setRatingSummary({
-        overallRating: productData.overall_rating,
-        ratingCount: productData.rating_count || 0,
-        commentCount: productData.comment_count || 0,
+        overallRating: finalOverallRating,
+        ratingCount: finalRatingCount,
+        commentCount: finalCommentCount,
         userRating,
         userComment,
       });

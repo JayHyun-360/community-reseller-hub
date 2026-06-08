@@ -30,7 +30,7 @@ export function CommentForm({
 
   // Sync form when existingComment changes (pre-populate on edit)
   React.useEffect(() => {
-    if (existingComment?.id) {
+    if (existingComment) {
       setRating(existingComment.rating || 0);
       setComment(existingComment.commentText || "");
     } else {
