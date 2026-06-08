@@ -28,6 +28,22 @@ export function CommentForm({
   const [error, setError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
+  // Sync form when existingComment changes (pre-populate on edit)
+  React.useEffect(() => {
+    if (existingComment?.id) {
+      setRating(existingComment.rating || 0);
+      setComment(existingComment.commentText || "");
+    } else {
+      // Clear form if no existing comment
+      setRating(0);
+      setComment("");
+    }
+  }, [
+    existingComment?.id,
+    existingComment?.commentText,
+    existingComment?.rating,
+  ]);
+
   if (!isAuthenticated) {
     return (
       <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">

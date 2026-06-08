@@ -11,6 +11,7 @@ interface CommentsListProps {
   productId: string;
   onCommentDeleted?: () => void;
   viewerUserId?: string | null;
+  refreshKey?: number;
 }
 
 const COMMENTS_PER_PAGE = 5;
@@ -19,6 +20,7 @@ export function CommentsList({
   productId,
   onCommentDeleted,
   viewerUserId,
+  refreshKey = 0,
 }: CommentsListProps) {
   const supabase = createClient();
   const [comments, setComments] = useState<ProductComment[]>([]);
@@ -28,7 +30,7 @@ export function CommentsList({
 
   useEffect(() => {
     loadComments(0);
-  }, [productId]);
+  }, [productId, refreshKey]);
 
   const loadComments = async (pageNum: number) => {
     setLoading(true);

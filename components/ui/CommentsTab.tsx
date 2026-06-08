@@ -50,6 +50,19 @@ export function CommentsTab({
       let userRating: number | undefined;
 
       if (userId) {
+        // Fetch rating first
+        const { data: ratingData, error: ratingError } = await supabase
+          .from("product_ratings")
+          .select("rating")
+          .eq("product_id", product.id)
+          .eq("user_id", userId)
+          .maybeSingle();
+
+        if (!ratingError && ratingData) {
+          userRating = ratingData.rating;
+        }
+
+        // Then fetch comment
         const { data: commentData, error: commentError } = await supabase
           .from("product_comments")
           .select("id,user_id,product_id,comment_text,created_at,updated_at")
@@ -65,18 +78,8 @@ export function CommentsTab({
             commentText: commentData.comment_text,
             createdAt: commentData.created_at,
             updatedAt: commentData.updated_at,
+            rating: userRating,
           };
-        }
-
-        const { data: ratingData, error: ratingError } = await supabase
-          .from("product_ratings")
-          .select("rating")
-          .eq("product_id", product.id)
-          .eq("user_id", userId)
-          .maybeSingle();
-
-        if (!ratingError && ratingData) {
-          userRating = ratingData.rating;
         }
       }
 
@@ -95,8 +98,13 @@ export function CommentsTab({
   };
 
   const handleCommentAdded = () => {
-    setRefreshKey((prev) => prev + 1);
-    loadRatingSummary();
+    // Wait a bit for triggers to execute, then refetch fresh data
+    setTimeout(() => {
+      loadRatingSummary().then(() => {
+        // Update refresh key AFTER new data is loaded
+        setRefreshKey((prev) => prev + 1);
+      });
+    }, 500);
   };
 
   if (loading) {
@@ -174,6 +182,7 @@ export function CommentsTab({
           productId={product.id}
           onCommentDeleted={handleCommentAdded}
           viewerUserId={viewerUserId}
+          refreshKey={refreshKey}
         />
       </div>
     </div>
