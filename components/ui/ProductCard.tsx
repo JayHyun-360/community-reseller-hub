@@ -8,6 +8,7 @@ import { Product, Seller } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 import { mapProfileRowToSeller } from "@/lib/map-profile";
 import { ProductImage } from "./ProductImage";
+import { SwipeableImageGallery } from "./SwipeableImageGallery";
 import {
   getPreferredPlatform,
   setMessagingPreference,
@@ -187,14 +188,19 @@ function ProductCardComponent({
       className="flex flex-col group cursor-zoom-in"
     >
       <div className="relative rounded-[1.5rem] overflow-hidden bg-zinc-50 [@media(hover:hover)]:group-hover:brightness-90 transition-[filter] duration-300 w-full">
-        <ProductImage
-          src={product.images[0]}
-          alt={product.title}
+        <SwipeableImageGallery
+          images={product.images}
+          title={product.title}
           width={480}
           height={600}
           sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           className="w-full h-auto rounded-[1.5rem] object-cover [@media(hover:hover)]:group-hover:scale-105 [@media(hover:hover)]:transition-transform [@media(hover:hover)]:duration-500"
         />
+
+        {/* Image count badge for desktop */}
+        <div className="hidden md:block absolute top-3 right-3 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs font-bold">
+          📷 {product.images.length}
+        </div>
 
         <div
           className={`absolute inset-0 bg-black/20 flex flex-col justify-between p-4 transition-opacity duration-300 ${
