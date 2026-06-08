@@ -64,10 +64,10 @@ export default function LoginPage() {
             <ShoppingBag className="w-8 h-8" />
           </div>
           <h1 className="text-3xl font-black tracking-tight mb-2 text-zinc-900">
-            Explore your unique interests
+            Welcome to NearByt
           </h1>
           <p className="text-zinc-400 font-bold text-xs uppercase tracking-widest">
-            Your favorite community sellers and unique finds, all in one spot.
+            Discover community sellers and unique finds, all in one spot.
           </p>
         </div>
 
