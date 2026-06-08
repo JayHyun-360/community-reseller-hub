@@ -34,6 +34,9 @@ export interface Product {
   likeCount?: number;
   viewCount?: number;
   tags?: string[];
+  overallRating?: number | null; // decimal like 4.5, null if no ratings
+  ratingCount?: number;
+  commentCount?: number;
   createdAt: string;
 }
 
@@ -53,3 +56,31 @@ export interface CategoryFilterItem {
 }
 
 export type StockStatus = "available" | "low" | "sold_out";
+
+export interface ProductRating {
+  id: string;
+  userId: string;
+  productId: string;
+  rating: number; // 1.0 to 5.0
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductComment {
+  id: string;
+  userId: string;
+  productId: string;
+  commentText: string;
+  createdAt: string;
+  updatedAt: string;
+  author?: Seller; // User info (populated on retrieval)
+  rating?: number; // Current user's rating if viewing their own comment
+}
+
+export interface ProductRatingSummary {
+  overallRating: number | null; // decimal like 4.5, null if no ratings
+  ratingCount: number;
+  commentCount: number;
+  userRating?: number; // current user's rating if exists
+  userComment?: ProductComment; // current user's comment if exists
+}

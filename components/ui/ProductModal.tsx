@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import {
-  fetchProductLikeCount,
-  toggleFavorite,
-} from "@/lib/favorites";
+import { fetchProductLikeCount, toggleFavorite } from "@/lib/favorites";
 import { useRouter, usePathname } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
@@ -17,10 +14,9 @@ import {
   OwnerProductActions,
   VisitorProductActions,
 } from "./ProductModalActions";
-import {
-  isProductOwner,
-  sellerHasContact,
-} from "@/lib/seller-contacts";
+import { TabBar } from "./TabBar";
+import { CommentsTab } from "./CommentsTab";
+import { isProductOwner, sellerHasContact } from "@/lib/seller-contacts";
 import { getViewerUserId } from "@/lib/viewer-session";
 import { mapProfileRowToSeller } from "@/lib/map-profile";
 import {
@@ -105,7 +101,11 @@ interface ProductModalProps {
   canGoBack?: boolean;
   /** Push onto the modal stack — do not mount a second ProductModal. */
   onProductClick?: (product: Product) => void;
-  onLikeChange?: (productId: string, isLiked: boolean, changed?: boolean) => void;
+  onLikeChange?: (
+    productId: string,
+    isLiked: boolean,
+    changed?: boolean,
+  ) => void;
   isLiked?: boolean;
   viewerUserId?: string | null;
 }
@@ -153,6 +153,7 @@ export function ProductModal({
     null,
   );
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"details" | "comments">("details");
   const overlayScrollRef = useRef<HTMLDivElement>(null);
 
   const resolvedViewerId =
@@ -161,6 +162,7 @@ export function ProductModal({
   useEffect(() => {
     setCurrentImageIndex(0);
     setImgError(false);
+    setActiveTab("details");
   }, [product?.id]);
 
   useEffect(() => {
@@ -293,7 +295,13 @@ export function ProductModal({
     return () => {
       cancelled = true;
     };
-  }, [product?.id, product?.categoryId, product?.sellerId, viewerUserIdProp, supabase]);
+  }, [
+    product?.id,
+    product?.categoryId,
+    product?.sellerId,
+    viewerUserIdProp,
+    supabase,
+  ]);
 
   const handleLike = async () => {
     if (!product || isTogglingRef.current) return;
@@ -319,9 +327,7 @@ export function ProductModal({
 
       setIsLiked(result.isLiked);
       if (result.changed) {
-        setLikeCount((c) =>
-          result.isLiked ? c + 1 : Math.max(0, c - 1),
-        );
+        setLikeCount((c) => (result.isLiked ? c + 1 : Math.max(0, c - 1)));
       } else {
         const count = await fetchProductLikeCount(supabase, product.id);
         setLikeCount(count);
@@ -334,7 +340,9 @@ export function ProductModal({
 
   const [showContactMenu, setShowContactMenu] = useState(false);
 
-  const handleMessageSeller = (via: "messenger" | "whatsapp" | "instagram" | "tiktok") => {
+  const handleMessageSeller = (
+    via: "messenger" | "whatsapp" | "instagram" | "tiktok",
+  ) => {
     if (!seller) return;
 
     if (via === "instagram" && seller.instagramHandle) {
@@ -366,7 +374,9 @@ export function ProductModal({
   const hasInstagram = seller?.instagramHandle;
   const hasTikTok = seller?.tiktokHandle;
   const hasContact = sellerHasContact(seller);
-  const showDropdown = [hasMessenger, hasWhatsApp, hasInstagram, hasTikTok].filter(Boolean).length > 1;
+  const showDropdown =
+    [hasMessenger, hasWhatsApp, hasInstagram, hasTikTok].filter(Boolean)
+      .length > 1;
   const preferredPlatform = getPreferredPlatform(!!hasMessenger, !!hasWhatsApp);
   const isOwner = isProductOwner(resolvedViewerId, product?.sellerId);
 
@@ -450,163 +460,191 @@ export function ProductModal({
             <div className="flex flex-col lg:flex-row">
               <div className="relative w-full lg:w-[52%] flex-shrink-0 overflow-hidden rounded-t-2xl sm:rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200/90">
                 <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit]">
-              <ProductImage
-                src={imgError ? PRODUCT_IMAGE_FALLBACK : images[currentImageIndex]}
-                alt={product.title}
-                fill
-                width={800}
-                sizes="(max-width: 1024px) 100vw, 800px"
-                priority
-                className="object-cover cursor-zoom-in rounded-[inherit]"
-                onClick={() => setFullscreenImage(images[currentImageIndex])}
-                onImageError={() => setImgError(true)}
-              />
-            </div>
+                  <ProductImage
+                    src={
+                      imgError
+                        ? PRODUCT_IMAGE_FALLBACK
+                        : images[currentImageIndex]
+                    }
+                    alt={product.title}
+                    fill
+                    width={800}
+                    sizes="(max-width: 1024px) 100vw, 800px"
+                    priority
+                    className="object-cover cursor-zoom-in rounded-[inherit]"
+                    onClick={() =>
+                      setFullscreenImage(images[currentImageIndex])
+                    }
+                    onImageError={() => setImgError(true)}
+                  />
+                </div>
 
-            {hasMultipleImages && (
-              <>
-                <button
-                  onClick={() =>
-                    setCurrentImageIndex((i) =>
-                      i > 0 ? i - 1 : images.length - 1,
-                    )
-                  }
-                  className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg"
-                >
-                  <span className="text-lg">‹</span>
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentImageIndex((i) =>
-                      i < images.length - 1 ? i + 1 : 0,
-                    )
-                  }
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg"
-                >
-                  <span className="text-lg">›</span>
-                </button>
-                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                  {images.map((_, idx) => (
+                {hasMultipleImages && (
+                  <>
                     <button
-                      key={idx}
-                      onClick={() => setCurrentImageIndex(idx)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        idx === currentImageIndex
-                          ? "bg-white w-4"
-                          : "bg-white/50"
-                      }`}
-                    />
-                  ))}
-                </div>
-              </>
-            )}
-              </div>
-
-              <div className="w-full lg:w-[48%] p-3 sm:p-6 flex flex-col lg:max-h-[65vh] lg:overflow-y-auto">
-            <div className="space-y-3 sm:space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  {isOwner && (
-                    <span className="inline-block mb-2 text-[10px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full">
-                      Your listing
-                    </span>
-                  )}
-                  <h2 className="text-lg sm:text-xl font-black text-zinc-900 leading-snug">
-                    {product.title}
-                  </h2>
-                </div>
-                <span className="text-lg sm:text-xl font-black text-zinc-900 whitespace-nowrap shrink-0">
-                  ₱{product.price?.toLocaleString()}
-                </span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {seller ? (
-                  <>
-                    <img
-                      src={seller.avatarUrl}
-                      alt={seller.displayName}
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                    <div>
-                      <p className="text-sm font-bold text-zinc-900">
-                        {seller.displayName}
-                      </p>
-                      <p className="text-xs text-zinc-500">
-                        @{seller.username}
-                      </p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Skeleton className="w-10 h-10 rounded-full" />
-                    <div className="space-y-1.5 flex-1">
-                      <Skeleton className="h-3.5 w-24 rounded-full" />
-                      <Skeleton className="h-3 w-16 rounded-full" />
+                      onClick={() =>
+                        setCurrentImageIndex((i) =>
+                          i > 0 ? i - 1 : images.length - 1,
+                        )
+                      }
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg"
+                    >
+                      <span className="text-lg">‹</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setCurrentImageIndex((i) =>
+                          i < images.length - 1 ? i + 1 : 0,
+                        )
+                      }
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg"
+                    >
+                      <span className="text-lg">›</span>
+                    </button>
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
+                      {images.map((_, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setCurrentImageIndex(idx)}
+                          className={`w-2 h-2 rounded-full transition-all ${
+                            idx === currentImageIndex
+                              ? "bg-white w-4"
+                              : "bg-white/50"
+                          }`}
+                        />
+                      ))}
                     </div>
                   </>
                 )}
               </div>
 
-              <div className="text-xs text-zinc-400">
-                Posted {formatTimeAgo(product.createdAt)}
-              </div>
-
-              {product.description && (
-                <div className="pt-4 border-t border-zinc-100">
-                  <h3 className="text-xs font-black text-zinc-400 uppercase tracking-wider mb-2">
-                    Description
-                  </h3>
-                  <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
-                    {product.description}
-                  </p>
-                </div>
-              )}
-
-              {product.stockQty !== undefined && (
-                <div className="pt-4 border-t border-zinc-100">
-                  <p className="text-sm text-zinc-500">
-                    {product.stockQty > 0
-                      ? `${product.stockQty} in stock`
-                      : "Out of stock"}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            <div className="pt-6 mt-6 border-t border-zinc-100 space-y-3">
-              {isOwner ? (
-                <OwnerProductActions
-                  productId={product.id}
-                  likeCount={likeCount}
-                  hasContact={hasContact}
-                  onShare={handleShare}
-                  onVisitStorefront={() =>
-                    seller?.username && router.push(`/${seller.username}`)
-                  }
-                  showVisitStorefront={showVisitSeller}
+              <div className="w-full lg:w-[48%] flex flex-col lg:max-h-[65vh] lg:overflow-y-auto">
+                {/* Tab Bar */}
+                <TabBar
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  commentCount={product.commentCount || 0}
                 />
-              ) : (
-                <VisitorProductActions
-                  seller={seller}
-                  hasContact={hasContact}
-                  showDropdown={showDropdown}
-                  showContactMenu={showContactMenu}
-                  setShowContactMenu={setShowContactMenu}
-                  preferredPlatform={preferredPlatform}
-                  onMessage={handleMessageSeller}
-                  isLiked={isLiked}
-                  likeCount={likeCount}
-                  onLike={handleLike}
-                  onShare={handleShare}
-                  onVisitSeller={() =>
-                    seller?.username && router.push(`/${seller.username}`)
-                  }
-                  showVisitSeller={showVisitSeller}
-                  sellerLoading={!seller}
-                />
-              )}
-            </div>
+
+                {/* Details Tab */}
+                {activeTab === "details" && (
+                  <div className="p-3 sm:p-6 flex flex-col space-y-3 sm:space-y-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        {isOwner && (
+                          <span className="inline-block mb-2 text-[10px] font-black uppercase tracking-widest text-amber-700 bg-amber-50 border border-amber-100 px-2.5 py-1 rounded-full">
+                            Your listing
+                          </span>
+                        )}
+                        <h2 className="text-lg sm:text-xl font-black text-zinc-900 leading-snug">
+                          {product.title}
+                        </h2>
+                      </div>
+                      <span className="text-lg sm:text-xl font-black text-zinc-900 whitespace-nowrap shrink-0">
+                        ₱{product.price?.toLocaleString()}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {seller ? (
+                        <>
+                          <img
+                            src={seller.avatarUrl}
+                            alt={seller.displayName}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                          <div>
+                            <p className="text-sm font-bold text-zinc-900">
+                              {seller.displayName}
+                            </p>
+                            <p className="text-xs text-zinc-500">
+                              @{seller.username}
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Skeleton className="w-10 h-10 rounded-full" />
+                          <div className="space-y-1.5 flex-1">
+                            <Skeleton className="h-3.5 w-24 rounded-full" />
+                            <Skeleton className="h-3 w-16 rounded-full" />
+                          </div>
+                        </>
+                      )}
+                    </div>
+
+                    <div className="text-xs text-zinc-400">
+                      Posted {formatTimeAgo(product.createdAt)}
+                    </div>
+
+                    {product.description && (
+                      <div className="pt-4 border-t border-zinc-100">
+                        <h3 className="text-xs font-black text-zinc-400 uppercase tracking-wider mb-2">
+                          Description
+                        </h3>
+                        <p className="text-sm text-zinc-600 leading-relaxed whitespace-pre-wrap">
+                          {product.description}
+                        </p>
+                      </div>
+                    )}
+
+                    {product.stockQty !== undefined && (
+                      <div className="pt-4 border-t border-zinc-100">
+                        <p className="text-sm text-zinc-500">
+                          {product.stockQty > 0
+                            ? `${product.stockQty} in stock`
+                            : "Out of stock"}
+                        </p>
+                      </div>
+                    )}
+
+                    <div className="pt-6 mt-6 border-t border-zinc-100 space-y-3">
+                      {isOwner ? (
+                        <OwnerProductActions
+                          productId={product.id}
+                          likeCount={likeCount}
+                          hasContact={hasContact}
+                          onShare={handleShare}
+                          onVisitStorefront={() =>
+                            seller?.username &&
+                            router.push(`/${seller.username}`)
+                          }
+                          showVisitStorefront={showVisitSeller}
+                        />
+                      ) : (
+                        <VisitorProductActions
+                          seller={seller}
+                          hasContact={hasContact}
+                          showDropdown={showDropdown}
+                          showContactMenu={showContactMenu}
+                          setShowContactMenu={setShowContactMenu}
+                          preferredPlatform={preferredPlatform}
+                          onMessage={handleMessageSeller}
+                          isLiked={isLiked}
+                          likeCount={likeCount}
+                          onLike={handleLike}
+                          onShare={handleShare}
+                          onVisitSeller={() =>
+                            seller?.username &&
+                            router.push(`/${seller.username}`)
+                          }
+                          showVisitSeller={showVisitSeller}
+                          sellerLoading={!seller}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Comments Tab */}
+                {activeTab === "comments" && (
+                  <div className="p-3 sm:p-6 space-y-4 overflow-y-auto">
+                    <CommentsTab
+                      product={product}
+                      viewerUserId={resolvedViewerId}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
