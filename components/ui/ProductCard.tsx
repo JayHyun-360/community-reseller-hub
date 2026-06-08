@@ -197,10 +197,20 @@ function ProductCardComponent({
           className="w-full h-auto rounded-[1.5rem] object-cover [@media(hover:hover)]:group-hover:scale-105 [@media(hover:hover)]:transition-transform [@media(hover:hover)]:duration-500"
         />
 
-        {/* Image count badge for desktop */}
-        <div className="hidden md:block absolute top-3 right-3 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs font-bold">
-          📷 {product.images.length}
-        </div>
+        {/* Image count badge */}
+        {product.images.length > 1 && (
+          <div className="absolute top-3 right-3 bg-black/60 text-white px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1">
+            <svg
+              className="w-3.5 h-3.5"
+              fill="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z" />
+            </svg>
+            {product.images.length}
+          </div>
+        )}
 
         <div
           className={`absolute inset-0 bg-black/20 flex flex-col justify-between p-4 transition-opacity duration-300 ${

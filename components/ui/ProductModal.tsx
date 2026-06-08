@@ -156,6 +156,10 @@ export function ProductModal({
   const [activeTab, setActiveTab] = useState<"details" | "comments">("details");
   const overlayScrollRef = useRef<HTMLDivElement>(null);
 
+  // Touch swipe tracking for smooth image navigation
+  const touchStartXRef = useRef(0);
+  const touchStartTimeRef = useRef(0);
+
   const resolvedViewerId =
     viewerUserId !== undefined ? viewerUserId : (viewerUserIdProp ?? null);
 
@@ -459,7 +463,34 @@ export function ProductModal({
 
             <div className="flex flex-col lg:flex-row">
               <div className="relative w-full lg:w-[52%] flex-shrink-0 overflow-hidden rounded-t-2xl sm:rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200/90">
-                <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit]">
+                <div
+                  className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit]"
+                  onTouchStart={(e) => {
+                    touchStartXRef.current = e.touches[0].clientX;
+                    touchStartTimeRef.current = Date.now();
+                  }}
+                  onTouchEnd={(e) => {
+                    if (!product?.images || product.images.length <= 1) return;
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const timeDiff = Date.now() - touchStartTimeRef.current;
+                    const distance = touchStartXRef.current - touchEndX;
+                    const isSwipe = Math.abs(distance) > 30 && timeDiff < 300;
+
+                    if (isSwipe) {
+                      if (distance > 0) {
+                        // Swiped left → next image
+                        setCurrentImageIndex((i) =>
+                          i < product.images.length - 1 ? i + 1 : 0,
+                        );
+                      } else {
+                        // Swiped right → previous image
+                        setCurrentImageIndex((i) =>
+                          i > 0 ? i - 1 : product.images.length - 1,
+                        );
+                      }
+                    }
+                  }}
+                >
                   <ProductImage
                     src={
                       imgError
