@@ -139,11 +139,11 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="hidden sm:flex p-3 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 rounded-full transition-all relative"
+        className="p-2.5 sm:p-3 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 rounded-full transition-all relative"
       >
-        <Bell className="w-6 h-6" />
+        <Bell className="w-5 sm:w-6 h-5 sm:h-6" />
         {unreadCount > 0 && (
-          <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></div>
+          <div className="absolute top-2 right-2 w-2 h-2 sm:w-2.5 sm:h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></div>
         )}
       </button>
 
@@ -162,7 +162,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
               transition={{ duration: 0.15 }}
-              className="absolute right-0 top-full mt-2 w-80 bg-white rounded-3xl shadow-xl border border-zinc-100 z-50 overflow-hidden"
+              className="fixed sm:absolute right-0 sm:right-0 left-0 sm:left-auto top-auto sm:top-full bottom-20 sm:bottom-auto sm:mt-2 w-full sm:w-96 bg-white rounded-t-3xl sm:rounded-3xl shadow-xl border border-zinc-100 z-50 overflow-hidden"
             >
               <div className="flex items-center justify-between p-4 border-b border-zinc-100">
                 <h3 className="font-black text-zinc-900">Notifications</h3>

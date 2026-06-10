@@ -42,9 +42,7 @@ export function BottomNav() {
               )}
               <span
                 className={`text-[8px] font-black uppercase tracking-widest transition-all ${
-                  isActive
-                    ? "opacity-100"
-                    : "opacity-0 scale-75 h-0"
+                  isActive ? "opacity-100" : "opacity-0 scale-75 h-0"
                 }`}
               >
                 {item.label}
