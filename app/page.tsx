@@ -40,6 +40,7 @@ export default function HomePage() {
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
   const searchParams = useSearchParams();
+  const openedProductRef = useRef<string | null>(null);
 
   const handleLikeChange = (
     productId: string,
@@ -143,9 +144,14 @@ export default function HomePage() {
   // Handle query param to open product from notification clicks
   useEffect(() => {
     const productId = searchParams.get("product");
-    if (productId && products.length > 0) {
+    if (
+      productId &&
+      products.length > 0 &&
+      openedProductRef.current !== productId
+    ) {
       const product = products.find((p) => p.id === productId);
       if (product) {
+        openedProductRef.current = productId;
         productModal.open(product);
       }
     }

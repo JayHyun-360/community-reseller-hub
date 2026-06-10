@@ -309,10 +309,10 @@ export function Sidebar({ isOpen, onClose, unreadCount = 0 }: SidebarProps) {
               );
             })}
 
-            {/* Notifications Tab */}
+            {/* Notifications Tab - Mobile Only */}
             <button
               onClick={() => setShowNotifications(true)}
-              className="flex items-center gap-4 px-5 py-3.5 rounded-full transition-colors duration-200 font-bold w-full overflow-hidden text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 relative text-left"
+              className="flex items-center gap-4 px-5 py-3.5 rounded-full transition-colors duration-200 font-bold w-full overflow-hidden text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900 relative text-left sm:hidden"
             >
               <Bell className="w-5 h-5 flex-shrink-0" />
               <span className="text-[13px] tracking-wide truncate">
