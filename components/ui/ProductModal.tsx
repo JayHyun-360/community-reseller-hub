@@ -494,7 +494,12 @@ export function ProductModal({
                     }}
                     initial={{ x: -currentImageIndex * 100 + "%" }}
                     animate={{ x: -currentImageIndex * 100 + "%" }}
-                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                    transition={{
+                      type: "spring",
+                      damping: 40,
+                      stiffness: 300,
+                      mass: 1,
+                    }}
                     className="flex h-full"
                     style={{ width: `${images.length * 100}%` }}
                   >
@@ -512,7 +517,11 @@ export function ProductModal({
                           alt={`${product.title} - Image ${idx + 1}`}
                           fill
                           width={800}
-                          sizes="(max-width: 1024px) 100vw, 800px"
+                          sizes={
+                            hasMultipleImages
+                              ? "(max-width: 1024px) 100vw, 60vw"
+                              : "(max-width: 1024px) 100vw, 800px"
+                          }
                           priority={idx === currentImageIndex}
                           className="object-cover cursor-zoom-in rounded-[inherit]"
                           onClick={() => setFullscreenImage(image)}
