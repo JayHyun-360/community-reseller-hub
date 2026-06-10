@@ -208,21 +208,6 @@ export default function DashboardPage() {
         </div>
 
         <div className="space-y-6">
-          <h2 className="text-xl font-bold tracking-tight text-zinc-900 px-2">
-            Engagement
-          </h2>
-          <div className="bg-white border border-zinc-200 rounded-[2rem] p-8 flex flex-col items-center gap-6 text-center shadow-sm">
-            <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-500 border border-rose-100">
-              <Heart className="w-8 h-8" />
-            </div>
-            <div className="space-y-2">
-              <h4 className="text-base font-bold text-zinc-900">
-                Your Total Likes (From products)
-              </h4>
-              <p className="text-2xl font-black text-rose-500">{totalViews}</p>
-            </div>
-          </div>
-
           <div className="bg-zinc-900 rounded-[2.5rem] p-8 text-white shadow-xl">
             <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-[0.2em] mb-6">
               Top Products
