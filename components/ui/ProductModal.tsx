@@ -463,11 +463,15 @@ export function ProductModal({
 
             <div className="flex flex-col lg:flex-row">
               <div className="relative w-full lg:w-[52%] flex-shrink-0 overflow-hidden rounded-t-2xl sm:rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200/90">
-                <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit]">
+                <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit] overscroll-behavior-x-contain">
                   <motion.div
                     drag={hasMultipleImages ? "x" : false}
                     dragElastic={0.15}
                     dragMomentum={true}
+                    onDragStart={(event) => {
+                      if (!hasMultipleImages) return;
+                      event.preventDefault?.();
+                    }}
                     onDragEnd={(event, info) => {
                       if (!hasMultipleImages) return;
                       const swipeThreshold = 50;
@@ -500,9 +504,10 @@ export function ProductModal({
                       stiffness: 300,
                       mass: 1,
                     }}
-                    className="flex gap-6 h-full"
+                    className="flex gap-6 h-full w-full"
                     style={{
                       width: `${images.length * 100 + (images.length - 1) * 10}%`,
+                      touchAction: "pan-y",
                     }}
                   >
                     {images.map((image, idx) => (
