@@ -40,7 +40,8 @@ export default function HomePage() {
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
   const searchParams = useSearchParams();
-  const lastOpenedProductIdRef = useRef<string | null>(null);
+  const router = useRouter();
+  const hasProcessedInitialRef = useRef(false);
 
   const handleLikeChange = (
     productId: string,
@@ -141,31 +142,26 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  // Handle query param to open product from notification clicks
-  // Only open if this is a different product than the last one we opened
+  // Handle query param to open product from notification clicks - ONLY ONCE
+  // When user clicks notification, it adds ?product=ID to URL
+  // This effect opens the modal ONCE, then cleans the URL
   useEffect(() => {
     const productId = searchParams.get("product");
 
-    // Only open if: has a product ID, products are loaded, and it's different from what we last opened
-    if (
-      productId &&
-      products.length > 0 &&
-      lastOpenedProductIdRef.current !== productId
-    ) {
-      const product = products.find((p) => p.id === productId);
-      if (product) {
-        lastOpenedProductIdRef.current = productId; // Mark this product as opened
-        productModal.open(product);
-        // Clean up URL - remove query param so refresh doesn't reopen
-        window.history.replaceState({}, "", "/");
-      }
+    // Only run this logic once per mount
+    if (!productId || hasProcessedInitialRef.current || products.length === 0) {
+      return;
     }
 
-    // If no product param in URL, reset the ref to allow opening again on next notification
-    if (!productId) {
-      lastOpenedProductIdRef.current = null;
+    const product = products.find((p) => p.id === productId);
+    if (product) {
+      hasProcessedInitialRef.current = true;
+      productModal.open(product);
+      // Use router.push to properly update state, not replaceState
+      // This ensures searchParams updates correctly
+      router.push("/", { scroll: false });
     }
-  }, [searchParams, products, productModal]);
+  }, [products]); // Only depend on products, not searchParams which causes infinite loops
 
   const getFilteredProducts = () => {
     switch (selectedCat) {
