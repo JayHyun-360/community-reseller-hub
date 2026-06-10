@@ -8,6 +8,7 @@ import { CommentsList } from "./CommentsList";
 import { Skeleton } from "./Skeleton";
 import { createClient } from "@/lib/supabase/client";
 import { getViewerUserId } from "@/lib/viewer-session";
+import { isProductOwner } from "@/lib/seller-contacts";
 
 interface CommentsTabProps {
   product: Product;
@@ -217,18 +218,31 @@ export function CommentsTab({
       {/* User's Comment Form */}
       {viewerUserId && (
         <div>
-          <h3 className="text-sm font-bold text-zinc-900 mb-3">
-            {ratingSummary.userComment
-              ? "Update your review"
-              : "Share your review"}
-          </h3>
-          <CommentForm
-            key={`form-${refreshKey}`}
-            productId={product.id}
-            existingComment={ratingSummary.userComment}
-            onCommentAdded={handleCommentAdded}
-            isAuthenticated={true}
-          />
+          {isProductOwner(viewerUserId, product.sellerId) ? (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+              <p className="text-sm text-amber-900 font-semibold">
+                You cannot rate or comment on your own product
+              </p>
+              <p className="text-xs text-amber-700 mt-1">
+                Only customers can leave reviews and ratings
+              </p>
+            </div>
+          ) : (
+            <>
+              <h3 className="text-sm font-bold text-zinc-900 mb-3">
+                {ratingSummary.userComment
+                  ? "Update your review"
+                  : "Share your review"}
+              </h3>
+              <CommentForm
+                key={`form-${refreshKey}`}
+                productId={product.id}
+                existingComment={ratingSummary.userComment}
+                onCommentAdded={handleCommentAdded}
+                isAuthenticated={true}
+              />
+            </>
+          )}
         </div>
       )}
 

@@ -41,8 +41,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Fetch product to get seller_id
+    const { data: product, error: productError } = await supabase
+      .from("products")
+      .select("seller_id")
+      .eq("id", productId)
+      .single();
+
+    if (productError || !product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
+    // Prevent product owner from rating/commenting on their own product
+    if (product.seller_id === user.id) {
+      return NextResponse.json(
+        { error: "You cannot rate or comment on your own product" },
+        { status: 403 },
+      );
+    }
+
     // Check if at least one of rating or comment is provided
-    const hasValidRating = rating && rating >= 1 && rating <= 5;
+    const hasValidRating =
+      rating !== undefined && rating !== null && rating >= 1 && rating <= 5;
     const hasValidComment = commentText?.trim();
 
     if (!hasValidRating && !hasValidComment) {
@@ -204,9 +224,25 @@ export async function PATCH(request: NextRequest) {
 
     const productId = comment.product_id;
 
+    // Fetch product to verify it still exists and get seller info
+    const { data: product, error: productFetchError } = await supabase
+      .from("products")
+      .select("seller_id")
+      .eq("id", productId)
+      .single();
+
+    if (productFetchError || !product) {
+      return NextResponse.json({ error: "Product not found" }, { status: 404 });
+    }
+
     // Check if at least one of rating or comment is being updated
-    const hasValidRating = rating && rating >= 1 && rating <= 5;
-    const hasValidComment = commentText?.trim();
+    // Note: We allow updating ONLY the rating OR ONLY the comment without requiring the other
+    const hasValidRating =
+      rating !== undefined && rating !== null && rating >= 1 && rating <= 5;
+    const hasValidComment =
+      commentText !== undefined &&
+      commentText !== null &&
+      commentText.trim() !== "";
 
     if (!hasValidRating && !hasValidComment) {
       return NextResponse.json(

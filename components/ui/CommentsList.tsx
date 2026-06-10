@@ -15,6 +15,7 @@ interface CommentsListProps {
 }
 
 const COMMENTS_PER_PAGE = 5;
+const MAX_PREVIEW_LENGTH = 200;
 
 export function CommentsList({
   productId,
@@ -27,6 +28,9 @@ export function CommentsList({
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(false);
+  const [expandedCommentIds, setExpandedCommentIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   useEffect(() => {
     loadComments(0);
@@ -37,7 +41,7 @@ export function CommentsList({
     try {
       const offset = pageNum * COMMENTS_PER_PAGE;
 
-      // Fetch comments with pagination
+      // Fetch comments with pagination (request one more to check if there are more)
       const { data: commentsData, error: commentsError } = await supabase
         .from("product_comments")
         .select("id,user_id,product_id,comment_text,created_at,updated_at")
@@ -94,7 +98,20 @@ export function CommentsList({
       }
 
       setPage(pageNum);
-      setHasMore((commentsData?.length || 0) === COMMENTS_PER_PAGE + 1);
+      // Check if there are more comments by seeing if we got more than COMMENTS_PER_PAGE
+      setHasMore((processedComments?.length || 0) > COMMENTS_PER_PAGE);
+
+      // If we have more, trim to COMMENTS_PER_PAGE
+      if ((processedComments?.length || 0) > COMMENTS_PER_PAGE) {
+        if (pageNum === 0) {
+          setComments(processedComments.slice(0, COMMENTS_PER_PAGE));
+        } else {
+          setComments((prev) => [
+            ...prev.slice(0, pageNum * COMMENTS_PER_PAGE),
+            ...processedComments.slice(0, COMMENTS_PER_PAGE),
+          ]);
+        }
+      }
     } catch (err) {
       console.error("Error loading comments:", err);
     } finally {
@@ -116,6 +133,35 @@ export function CommentsList({
     } catch (err) {
       console.error("Error deleting comment:", err);
     }
+  };
+
+  const toggleCommentExpanded = (commentId: string) => {
+    setExpandedCommentIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
+    });
+  };
+
+  const getCommentDisplay = (
+    commentText: string,
+    commentId: string,
+  ): { display: string; isTruncated: boolean } => {
+    const isTruncated = commentText.length > MAX_PREVIEW_LENGTH;
+    const isExpanded = expandedCommentIds.has(commentId);
+
+    if (!isTruncated || isExpanded) {
+      return { display: commentText, isTruncated: false };
+    }
+
+    return {
+      display: commentText.substring(0, MAX_PREVIEW_LENGTH).trim() + "...",
+      isTruncated: true,
+    };
   };
 
   if (loading && comments.length === 0) {
@@ -140,56 +186,73 @@ export function CommentsList({
 
   return (
     <div className="space-y-4">
-      {comments.map((comment) => (
-        <div
-          key={comment.id}
-          className="p-4 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
-        >
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
-              {comment.author?.avatarUrl && (
-                <img
-                  src={comment.author.avatarUrl}
-                  alt={comment.author.displayName}
-                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold text-zinc-900 truncate">
-                  {comment.author?.displayName || "Anonymous"}
-                </p>
-                <p className="text-xs text-zinc-500">
-                  {new Date(comment.createdAt).toLocaleDateString()}
-                </p>
+      {comments.map((comment) => {
+        const { display, isTruncated } = getCommentDisplay(
+          comment.commentText,
+          comment.id,
+        );
+        const isExpanded = expandedCommentIds.has(comment.id);
+
+        return (
+          <div
+            key={comment.id}
+            className="p-4 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-colors"
+          >
+            <div className="flex items-start justify-between gap-3 mb-3">
+              <div className="flex items-center gap-3 min-w-0 flex-1">
+                {comment.author?.avatarUrl && (
+                  <img
+                    src={comment.author.avatarUrl}
+                    alt={comment.author.displayName}
+                    className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold text-zinc-900 truncate">
+                    {comment.author?.displayName || "Anonymous"}
+                  </p>
+                  <p className="text-xs text-zinc-500">
+                    {new Date(comment.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
               </div>
+
+              {viewerUserId === comment.userId && (
+                <button
+                  onClick={() => handleDeleteComment(comment.id)}
+                  className="text-xs text-red-600 hover:text-red-700 font-semibold flex-shrink-0"
+                >
+                  Delete
+                </button>
+              )}
             </div>
 
-            {viewerUserId === comment.userId && (
+            {comment.rating && (
+              <div className="mb-2">
+                <RatingStars
+                  rating={comment.rating}
+                  count={0}
+                  interactive={false}
+                  size="sm"
+                />
+              </div>
+            )}
+
+            <p className="text-sm text-zinc-700 whitespace-pre-wrap break-words">
+              {display}
+            </p>
+
+            {isTruncated && (
               <button
-                onClick={() => handleDeleteComment(comment.id)}
-                className="text-xs text-red-600 hover:text-red-700 font-semibold flex-shrink-0"
+                onClick={() => toggleCommentExpanded(comment.id)}
+                className="text-xs font-semibold text-pink-600 hover:text-pink-700 mt-2"
               >
-                Delete
+                {isExpanded ? "Show less" : "See more"}
               </button>
             )}
           </div>
-
-          {comment.rating && (
-            <div className="mb-2">
-              <RatingStars
-                rating={comment.rating}
-                count={0}
-                interactive={false}
-                size="sm"
-              />
-            </div>
-          )}
-
-          <p className="text-sm text-zinc-700 whitespace-pre-wrap break-words">
-            {comment.commentText}
-          </p>
-        </div>
-      ))}
+        );
+      })}
 
       {hasMore && (
         <button
