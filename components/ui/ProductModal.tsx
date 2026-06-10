@@ -468,88 +468,97 @@ export function ProductModal({
                   ref={carouselContainerRef}
                   className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit] overscroll-behavior-x-contain"
                 >
-                  <motion.div
-                    drag={hasMultipleImages ? "x" : false}
-                    dragElastic={0.15}
-                    dragMomentum={true}
-                    dragConstraints={{
-                      left: carouselContainerRef.current
-                        ? -(images.length - 1) *
-                          carouselContainerRef.current.offsetWidth
-                        : 0,
-                      right: 0,
-                    }}
-                    onDragStart={(event) => {
-                      if (!hasMultipleImages) return;
-                      event.preventDefault?.();
-                    }}
-                    onDragEnd={(event, info) => {
-                      if (!hasMultipleImages) return;
-                      const swipeThreshold = 50;
-                      const swipeVelocityThreshold = 500;
+                  {carouselContainerRef.current && (
+                    <motion.div
+                      drag={hasMultipleImages ? "x" : false}
+                      dragElastic={0.15}
+                      dragMomentum={true}
+                      dragConstraints={{
+                        left:
+                          -(images.length - 1) *
+                          carouselContainerRef.current.offsetWidth,
+                        right: 0,
+                      }}
+                      onDragStart={(event) => {
+                        if (!hasMultipleImages) return;
+                        event.preventDefault?.();
+                      }}
+                      onDragEnd={(event, info) => {
+                        if (!hasMultipleImages) return;
+                        const swipeThreshold = 50;
+                        const swipeVelocityThreshold = 500;
 
-                      // Check if swipe was significant enough based on distance or velocity
-                      if (
-                        Math.abs(info.offset.x) > swipeThreshold ||
-                        Math.abs(info.velocity.x) > swipeVelocityThreshold
-                      ) {
-                        if (info.offset.x > 0) {
-                          // Swiped right → previous image (no wrap)
-                          if (currentImageIndex > 0) {
-                            setCurrentImageIndex(currentImageIndex - 1);
-                          }
-                        } else {
-                          // Swiped left → next image (no wrap)
-                          if (currentImageIndex < images.length - 1) {
-                            setCurrentImageIndex(currentImageIndex + 1);
+                        // Check if swipe was significant enough based on distance or velocity
+                        if (
+                          Math.abs(info.offset.x) > swipeThreshold ||
+                          Math.abs(info.velocity.x) > swipeVelocityThreshold
+                        ) {
+                          if (info.offset.x > 0) {
+                            // Swiped right → previous image (no wrap)
+                            if (currentImageIndex > 0) {
+                              setCurrentImageIndex(currentImageIndex - 1);
+                            }
+                          } else {
+                            // Swiped left → next image (no wrap)
+                            if (currentImageIndex < images.length - 1) {
+                              setCurrentImageIndex(currentImageIndex + 1);
+                            }
                           }
                         }
-                      }
-                      dragX.set(0);
-                    }}
-                    initial={{ x: -currentImageIndex * 100 + "%" }}
-                    animate={{ x: -currentImageIndex * 100 + "%" }}
-                    transition={{
-                      type: "spring",
-                      damping: 40,
-                      stiffness: 300,
-                      mass: 1,
-                    }}
-                    className="flex h-full w-full"
-                    style={{
-                      width: `${images.length * 100}%`,
-                      touchAction: "pan-y",
-                    }}
-                  >
-                    {images.map((image, idx) => (
-                      <div
-                        key={idx}
-                        className="relative flex-1 h-full flex-shrink-0 min-w-0"
-                      >
-                        <ProductImage
-                          src={
-                            imgError && idx === currentImageIndex
-                              ? PRODUCT_IMAGE_FALLBACK
-                              : image
-                          }
-                          alt={`${product.title} - Image ${idx + 1}`}
-                          fill
-                          width={800}
-                          sizes={
-                            hasMultipleImages
-                              ? "(max-width: 1024px) 100vw, 60vw"
-                              : "(max-width: 1024px) 100vw, 800px"
-                          }
-                          priority={idx === currentImageIndex}
-                          className="object-cover cursor-zoom-in rounded-[inherit]"
-                          onClick={() => setFullscreenImage(image)}
-                          onImageError={() => {
-                            if (idx === currentImageIndex) setImgError(true);
-                          }}
-                        />
-                      </div>
-                    ))}
-                  </motion.div>
+                        dragX.set(0);
+                      }}
+                      initial={{
+                        x:
+                          -currentImageIndex *
+                          carouselContainerRef.current.offsetWidth,
+                      }}
+                      animate={{
+                        x:
+                          -currentImageIndex *
+                          carouselContainerRef.current.offsetWidth,
+                      }}
+                      transition={{
+                        type: "spring",
+                        damping: 40,
+                        stiffness: 300,
+                        mass: 1,
+                      }}
+                      className="flex h-full w-full"
+                      style={{
+                        width: `${images.length * 100}%`,
+                        touchAction: "pan-y",
+                      }}
+                    >
+                      {images.map((image, idx) => (
+                        <div
+                          key={idx}
+                          className="relative flex-1 h-full flex-shrink-0 min-w-0"
+                        >
+                          <ProductImage
+                            src={
+                              imgError && idx === currentImageIndex
+                                ? PRODUCT_IMAGE_FALLBACK
+                                : image
+                            }
+                            alt={`${product.title} - Image ${idx + 1}`}
+                            fill
+                            width={800}
+                            sizes={
+                              hasMultipleImages
+                                ? "(max-width: 1024px) 100vw, 60vw"
+                                : "(max-width: 1024px) 100vw, 800px"
+                            }
+                            priority={idx === currentImageIndex}
+                            className="object-cover cursor-zoom-in rounded-[inherit]"
+                            onClick={() => setFullscreenImage(image)}
+                            onImageError={() => {
+                              if (idx === currentImageIndex) setImgError(true);
+                            }}
+                          />
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
                 </div>
 
                 {hasMultipleImages && (
