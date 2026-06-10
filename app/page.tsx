@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LatestProductsStrip } from "@/components/ui/LatestProductsStrip";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -38,6 +39,7 @@ export default function HomePage() {
   const [viewerUserId, setViewerUserId] = useState<string | null>(null);
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
+  const searchParams = useSearchParams();
 
   const handleLikeChange = (
     productId: string,
@@ -137,6 +139,17 @@ export default function HomePage() {
 
     fetchData();
   }, []);
+
+  // Handle query param to open product from notification clicks
+  useEffect(() => {
+    const productId = searchParams.get("product");
+    if (productId && products.length > 0) {
+      const product = products.find((p) => p.id === productId);
+      if (product) {
+        productModal.open(product);
+      }
+    }
+  }, [searchParams, products, productModal]);
 
   const getFilteredProducts = () => {
     switch (selectedCat) {
