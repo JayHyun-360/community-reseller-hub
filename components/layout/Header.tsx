@@ -11,9 +11,10 @@ import SearchAutocomplete from "@/components/ui/SearchAutocomplete";
 
 interface HeaderProps {
   onMenuClick?: () => void;
+  unreadCount?: number;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick, unreadCount = 0 }: HeaderProps) {
   const router = useRouter();
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
@@ -44,9 +45,12 @@ export function Header({ onMenuClick }: HeaderProps) {
         <div className="flex items-center gap-4 lg:hidden">
           <button
             onClick={onMenuClick}
-            className="p-2 text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors"
+            className="p-2 text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors relative"
           >
             <Menu className="w-6 h-6" />
+            {unreadCount > 0 && (
+              <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            )}
           </button>
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-md">
@@ -74,7 +78,9 @@ export function Header({ onMenuClick }: HeaderProps) {
             <Search className="w-5 h-5" />
           </button>
 
-          {user && <NotificationBell userId={user.id} />}
+          {user && (
+            <NotificationBell userId={user.id} className="hidden sm:flex" />
+          )}
 
           <div className="hidden lg:block h-6 w-px bg-zinc-100 mx-2" />
 

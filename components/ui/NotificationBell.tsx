@@ -9,9 +9,13 @@ import type { RealtimeChannel } from "@supabase/supabase-js";
 
 interface NotificationBellProps {
   userId: string;
+  className?: string;
 }
 
-export function NotificationBell({ userId }: NotificationBellProps) {
+export function NotificationBell({
+  userId,
+  className = "",
+}: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -139,7 +143,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="p-2.5 sm:p-3 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 rounded-full transition-all relative"
+        className={`p-2.5 sm:p-3 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50 rounded-full transition-all relative flex items-center justify-center ${className}`}
       >
         <Bell className="w-5 sm:w-6 h-5 sm:h-6" />
         {unreadCount > 0 && (
