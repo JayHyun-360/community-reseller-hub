@@ -509,7 +509,7 @@ export function ProductModal({
                       stiffness: 300,
                       mass: 1,
                     }}
-                    className="flex gap-6 h-full w-full"
+                    className="flex h-full w-full"
                     style={{
                       width: `${images.length * 100 + (images.length - 1) * 10}%`,
                       touchAction: "pan-y",
@@ -519,6 +519,9 @@ export function ProductModal({
                       <div
                         key={idx}
                         className="relative flex-1 h-full flex-shrink-0 min-w-0"
+                        style={{
+                          marginRight: idx < images.length - 1 ? "10%" : "0",
+                        }}
                       >
                         <ProductImage
                           src={
