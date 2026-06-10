@@ -175,6 +175,28 @@ export default function HomePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, products]); // Don't include productModal (causes infinite loops)
 
+  const getFilteredProducts = () => {
+    switch (selectedCat) {
+      case "all":
+        return products;
+      case "suggested":
+        if (suggestedCategoryIds.length > 0) {
+          return products.filter((p) =>
+            suggestedCategoryIds.includes(p.categoryId),
+          );
+        }
+        return products.slice(0, 8);
+      case "trending":
+        return [...products]
+          .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
+          .slice(0, 12);
+      default:
+        return products.filter((p) => p.categoryId === selectedCat);
+    }
+  };
+
+  const filteredProducts = getFilteredProducts();
+
   const sellersById = useMemo(
     () => new Map(sellers.map((s) => [s.id, s])),
     [sellers],
