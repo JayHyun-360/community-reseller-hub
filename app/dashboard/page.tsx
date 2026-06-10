@@ -4,15 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
-import {
-  TrendingUp,
-  ShoppingBag,
-  Eye,
-  Heart,
-  Plus,
-  Pencil,
-  Trash2,
-} from "lucide-react";
+import { ShoppingBag, Heart, Plus, Pencil, Trash2 } from "lucide-react";
 import { Product } from "@/lib/types";
 
 export default function DashboardPage() {
@@ -220,16 +212,14 @@ export default function DashboardPage() {
             Engagement
           </h2>
           <div className="bg-white border border-zinc-200 rounded-[2rem] p-8 flex flex-col items-center gap-6 text-center shadow-sm">
-            <div className="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100">
-              <TrendingUp className="w-8 h-8" />
+            <div className="w-16 h-16 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-500 border border-rose-100">
+              <Heart className="w-8 h-8" />
             </div>
             <div className="space-y-2">
               <h4 className="text-base font-bold text-zinc-900">
-                Total Profile Views
+                Your Total Likes (From products)
               </h4>
-              <p className="text-xs text-zinc-400 font-medium leading-relaxed">
-                Share your shop link to get more visibility!
-              </p>
+              <p className="text-2xl font-black text-rose-500">{totalViews}</p>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Bell, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
@@ -20,11 +20,12 @@ export function NotificationBell({
   const [notifications, setNotifications] = useState<any[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const fetchedRef = useRef(false);
   const router = useRouter();
   const supabase = createClient();
 
-  const fetchNotifications = async () => {
-    if (userId) {
+  const fetchNotifications = useCallback(async () => {
+    if (userId && !fetchedRef.current) {
       const { data } = await supabase
         .from("notifications")
         .select("*")
@@ -32,15 +33,21 @@ export function NotificationBell({
         .order("created_at", { ascending: false })
         .limit(10);
 
-      if (data) setNotifications(data);
+      if (data) {
+        setNotifications(data);
+        fetchedRef.current = true;
+      }
     }
-  };
+  }, [userId, supabase]);
 
   // Set up real-time subscription for new notifications
   useEffect(() => {
     if (!userId) return;
 
     fetchNotifications();
+
+    // Only subscribe if dropdown is open to save resources
+    if (!isOpen) return;
 
     // Subscribe to new notifications in real-time
     const channel = supabase
@@ -50,21 +57,29 @@ export function NotificationBell({
       .on(
         "postgres_changes",
         {
-          event: "*",
+          event: "INSERT",
           schema: "public",
           table: "notifications",
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
-          if (payload.eventType === "INSERT") {
-            // Add new notification to the top
-            setNotifications((prev) => [payload.new, ...prev]);
-          } else if (payload.eventType === "UPDATE") {
-            // Update existing notification
-            setNotifications((prev) =>
-              prev.map((n) => (n.id === payload.new.id ? payload.new : n)),
-            );
-          }
+          // Add new notification to the top
+          setNotifications((prev) => [payload.new, ...prev.slice(0, 9)]);
+        },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          // Update existing notification
+          setNotifications((prev) =>
+            prev.map((n) => (n.id === payload.new.id ? payload.new : n)),
+          );
         },
       );
 
@@ -76,11 +91,14 @@ export function NotificationBell({
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, [userId]);
+  }, [userId, isOpen, supabase, fetchNotifications]);
 
-  const unreadCount = notifications.filter((n) => !n.is_read).length;
+  const unreadCount = useMemo(
+    () => notifications.filter((n) => !n.is_read).length,
+    [notifications],
+  );
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = useCallback((type: string) => {
     switch (type) {
       case "rating":
         return "⭐";
@@ -93,26 +111,29 @@ export function NotificationBell({
       default:
         return "📢";
     }
-  };
+  }, []);
 
-  const handleNotificationClick = async (notif: any) => {
-    if (!notif.is_read) {
-      await supabase
-        .from("notifications")
-        .update({ is_read: true })
-        .eq("id", notif.id);
+  const handleNotificationClick = useCallback(
+    async (notif: any) => {
+      if (!notif.is_read) {
+        await supabase
+          .from("notifications")
+          .update({ is_read: true })
+          .eq("id", notif.id);
 
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n)),
-      );
-    }
-    if (notif.product_id) {
-      setIsOpen(false);
-      router.push(`/?product=${notif.product_id}`);
-    }
-  };
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n)),
+        );
+      }
+      if (notif.product_id) {
+        setIsOpen(false);
+        router.push(`/?product=${notif.product_id}`);
+      }
+    },
+    [supabase, router],
+  );
 
-  const formatTime = (dateStr: string) => {
+  const formatTime = useCallback((dateStr: string) => {
     const date = new Date(dateStr);
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
@@ -124,7 +145,7 @@ export function NotificationBell({
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
     return date.toLocaleDateString();
-  };
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
