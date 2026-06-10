@@ -159,6 +159,7 @@ export function ProductModal({
 
   // Framer Motion drag tracking for smooth image navigation
   const dragX = useMotionValue(0);
+  const carouselContainerRef = useRef<HTMLDivElement>(null);
 
   const resolvedViewerId =
     viewerUserId !== undefined ? viewerUserId : (viewerUserIdProp ?? null);
@@ -463,11 +464,15 @@ export function ProductModal({
 
             <div className="flex flex-col lg:flex-row">
               <div className="relative w-full lg:w-[52%] flex-shrink-0 overflow-hidden rounded-t-2xl sm:rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200/90">
-                <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit] overscroll-behavior-x-contain">
+                <div
+                  ref={carouselContainerRef}
+                  className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit] overscroll-behavior-x-contain"
+                >
                   <motion.div
                     drag={hasMultipleImages ? "x" : false}
                     dragElastic={0.15}
                     dragMomentum={true}
+                    dragConstraints={carouselContainerRef}
                     onDragStart={(event) => {
                       if (!hasMultipleImages) return;
                       event.preventDefault?.();
