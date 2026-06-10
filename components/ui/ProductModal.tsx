@@ -570,19 +570,6 @@ export function ProductModal({
                     >
                       <span className="text-lg">›</span>
                     </button>
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                      {images.map((_, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setCurrentImageIndex(idx)}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            idx === currentImageIndex
-                              ? "bg-white w-4"
-                              : "bg-white/50"
-                          }`}
-                        />
-                      ))}
-                    </div>
                   </>
                 )}
               </div>
