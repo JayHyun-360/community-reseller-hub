@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { LatestProductsStrip } from "@/components/ui/LatestProductsStrip";
 import { ProductCard } from "@/components/ui/ProductCard";
@@ -40,6 +40,7 @@ export default function HomePage() {
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
   const searchParams = useSearchParams();
+  const router = useRouter();
   const openedProductRef = useRef<string | null>(null);
 
   const handleLikeChange = (
@@ -153,13 +154,11 @@ export default function HomePage() {
       if (product) {
         openedProductRef.current = productId;
         productModal.open(product);
-        // Clean up URL after opening modal (don't persist query param on refresh)
-        if (typeof window !== "undefined") {
-          window.history.replaceState({}, "", "/");
-        }
+        // Clean up URL after opening modal using router.push to update browser URL
+        router.push("/", { scroll: false });
       }
     }
-  }, [searchParams, products, productModal]);
+  }, [searchParams, products, productModal, router]);
 
   const getFilteredProducts = () => {
     switch (selectedCat) {
