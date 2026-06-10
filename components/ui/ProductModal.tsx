@@ -466,7 +466,7 @@ export function ProductModal({
                 <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit]">
                   <motion.div
                     drag={hasMultipleImages ? "x" : false}
-                    dragElastic={0.2}
+                    dragElastic={0.15}
                     dragMomentum={true}
                     onDragEnd={(event, info) => {
                       if (!hasMultipleImages) return;
@@ -492,34 +492,36 @@ export function ProductModal({
                       }
                       dragX.set(0);
                     }}
-                    className="relative w-full h-full"
+                    initial={{ x: -currentImageIndex * 100 + "%" }}
+                    animate={{ x: -currentImageIndex * 100 + "%" }}
+                    transition={{ type: "spring", damping: 20, stiffness: 300 }}
+                    className="flex h-full"
+                    style={{ width: `${images.length * 100}%` }}
                   >
-                    <motion.div
-                      key={currentImageIndex}
-                      initial={{ opacity: 0, x: 100 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      exit={{ opacity: 0, x: -100 }}
-                      transition={{ duration: 0.35, ease: "easeOut" }}
-                      className="relative w-full h-full"
-                    >
-                      <ProductImage
-                        src={
-                          imgError
-                            ? PRODUCT_IMAGE_FALLBACK
-                            : images[currentImageIndex]
-                        }
-                        alt={product.title}
-                        fill
-                        width={800}
-                        sizes="(max-width: 1024px) 100vw, 800px"
-                        priority
-                        className="object-cover cursor-zoom-in rounded-[inherit]"
-                        onClick={() =>
-                          setFullscreenImage(images[currentImageIndex])
-                        }
-                        onImageError={() => setImgError(true)}
-                      />
-                    </motion.div>
+                    {images.map((image, idx) => (
+                      <div
+                        key={idx}
+                        className="relative w-full h-full flex-shrink-0"
+                      >
+                        <ProductImage
+                          src={
+                            imgError && idx === currentImageIndex
+                              ? PRODUCT_IMAGE_FALLBACK
+                              : image
+                          }
+                          alt={`${product.title} - Image ${idx + 1}`}
+                          fill
+                          width={800}
+                          sizes="(max-width: 1024px) 100vw, 800px"
+                          priority={idx === currentImageIndex}
+                          className="object-cover cursor-zoom-in rounded-[inherit]"
+                          onClick={() => setFullscreenImage(image)}
+                          onImageError={() => {
+                            if (idx === currentImageIndex) setImgError(true);
+                          }}
+                        />
+                      </div>
+                    ))}
                   </motion.div>
                 </div>
 
