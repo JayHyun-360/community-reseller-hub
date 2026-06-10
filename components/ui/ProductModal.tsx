@@ -5,6 +5,7 @@ import { fetchProductLikeCount, toggleFavorite } from "@/lib/favorites";
 import { useRouter, usePathname } from "next/navigation";
 import { Product, Seller } from "@/lib/types";
 import { motion, AnimatePresence } from "motion/react";
+import { useMotionValue, useTransform } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
 import { getPreferredPlatform } from "@/lib/messaging-preference";
 import { ChevronLeft, X } from "lucide-react";
@@ -156,9 +157,8 @@ export function ProductModal({
   const [activeTab, setActiveTab] = useState<"details" | "comments">("details");
   const overlayScrollRef = useRef<HTMLDivElement>(null);
 
-  // Touch swipe tracking for smooth image navigation
-  const touchStartXRef = useRef(0);
-  const touchStartTimeRef = useRef(0);
+  // Framer Motion drag tracking for smooth image navigation
+  const dragX = useMotionValue(0);
 
   const resolvedViewerId =
     viewerUserId !== undefined ? viewerUserId : (viewerUserIdProp ?? null);
@@ -463,59 +463,63 @@ export function ProductModal({
 
             <div className="flex flex-col lg:flex-row">
               <div className="relative w-full lg:w-[52%] flex-shrink-0 overflow-hidden rounded-t-2xl sm:rounded-t-3xl lg:rounded-t-none lg:rounded-l-3xl bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-200/90">
-                <div
-                  className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit]"
-                  onTouchStart={(e) => {
-                    touchStartXRef.current = e.touches[0].clientX;
-                    touchStartTimeRef.current = Date.now();
-                  }}
-                  onTouchEnd={(e) => {
-                    if (!product?.images || product.images.length <= 1) return;
-                    const touchEndX = e.changedTouches[0].clientX;
-                    const timeDiff = Date.now() - touchStartTimeRef.current;
-                    const distance = touchStartXRef.current - touchEndX;
-                    const isSwipe = Math.abs(distance) > 30 && timeDiff < 300;
-
-                    if (isSwipe) {
-                      if (distance > 0) {
-                        // Swiped left → next image
-                        setCurrentImageIndex((i) =>
-                          i < product.images.length - 1 ? i + 1 : 0,
-                        );
-                      } else {
-                        // Swiped right → previous image
-                        setCurrentImageIndex((i) =>
-                          i > 0 ? i - 1 : product.images.length - 1,
-                        );
-                      }
-                    }
-                  }}
-                >
+                <div className="relative w-full h-[36vh] max-h-[300px] sm:h-[42vh] sm:max-h-[360px] lg:h-[65vh] lg:max-h-[65vh] lg:min-h-[360px] overflow-hidden rounded-[inherit]">
                   <motion.div
-                    key={currentImageIndex}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    drag={hasMultipleImages ? "x" : false}
+                    dragElastic={0.2}
+                    dragMomentum={true}
+                    onDragEnd={(event, info) => {
+                      if (!hasMultipleImages) return;
+                      const swipeThreshold = 50;
+                      const swipeVelocityThreshold = 500;
+
+                      // Check if swipe was significant enough based on distance or velocity
+                      if (
+                        Math.abs(info.offset.x) > swipeThreshold ||
+                        Math.abs(info.velocity.x) > swipeVelocityThreshold
+                      ) {
+                        if (info.offset.x > 0) {
+                          // Swiped right → previous image
+                          setCurrentImageIndex((i) =>
+                            i > 0 ? i - 1 : images.length - 1,
+                          );
+                        } else {
+                          // Swiped left → next image
+                          setCurrentImageIndex((i) =>
+                            i < images.length - 1 ? i + 1 : 0,
+                          );
+                        }
+                      }
+                      dragX.set(0);
+                    }}
                     className="relative w-full h-full"
                   >
-                    <ProductImage
-                      src={
-                        imgError
-                          ? PRODUCT_IMAGE_FALLBACK
-                          : images[currentImageIndex]
-                      }
-                      alt={product.title}
-                      fill
-                      width={800}
-                      sizes="(max-width: 1024px) 100vw, 800px"
-                      priority
-                      className="object-cover cursor-zoom-in rounded-[inherit]"
-                      onClick={() =>
-                        setFullscreenImage(images[currentImageIndex])
-                      }
-                      onImageError={() => setImgError(true)}
-                    />
+                    <motion.div
+                      key={currentImageIndex}
+                      initial={{ opacity: 0, x: 100 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -100 }}
+                      transition={{ duration: 0.35, ease: "easeOut" }}
+                      className="relative w-full h-full"
+                    >
+                      <ProductImage
+                        src={
+                          imgError
+                            ? PRODUCT_IMAGE_FALLBACK
+                            : images[currentImageIndex]
+                        }
+                        alt={product.title}
+                        fill
+                        width={800}
+                        sizes="(max-width: 1024px) 100vw, 800px"
+                        priority
+                        className="object-cover cursor-zoom-in rounded-[inherit]"
+                        onClick={() =>
+                          setFullscreenImage(images[currentImageIndex])
+                        }
+                        onImageError={() => setImgError(true)}
+                      />
+                    </motion.div>
                   </motion.div>
                 </div>
 
