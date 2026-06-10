@@ -64,13 +64,9 @@ export function CommentForm({
     e.preventDefault();
     setError(null);
 
-    if (rating === 0) {
-      setError("Please select a rating");
-      return;
-    }
-
-    if (!comment.trim()) {
-      setError("Please write a comment");
+    // Allow either rating or comment (not require both)
+    if (rating === 0 && !comment.trim()) {
+      setError("Please provide a rating or write a comment");
       return;
     }
 
@@ -154,6 +150,18 @@ export function CommentForm({
         </div>
       )}
 
+      {rating > 0 && !comment.trim() && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+          💭 You might want to share your experience with a comment
+        </div>
+      )}
+
+      {comment.trim() && rating === 0 && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700">
+          ⭐ You might want to rate this product
+        </div>
+      )}
+
       <button
         type="submit"
         disabled={isSubmitting}
@@ -162,8 +170,12 @@ export function CommentForm({
         {isSubmitting
           ? "Saving..."
           : existingComment
-            ? "Update comment"
-            : "Post comment"}
+            ? "Update"
+            : rating > 0 && comment.trim()
+              ? "Post rating & comment"
+              : rating > 0
+                ? "Post rating"
+                : "Post comment"}
       </button>
     </form>
   );
