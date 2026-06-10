@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Bell, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { createClient } from "@/lib/supabase/client";
+import type { RealtimeChannel } from "@supabase/supabase-js";
 
 interface NotificationBellProps {
   userId: string;
@@ -14,28 +15,81 @@ export function NotificationBell({ userId }: NotificationBellProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<any[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const channelRef = useRef<RealtimeChannel | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
-  const fetchNotifications = () => {
+  const fetchNotifications = async () => {
     if (userId) {
-      supabase
+      const { data } = await supabase
         .from("notifications")
         .select("*")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
-        .limit(10)
-        .then(({ data }) => {
-          if (data) setNotifications(data);
-        });
+        .limit(10);
+
+      if (data) setNotifications(data);
     }
   };
 
+  // Set up real-time subscription for new notifications
   useEffect(() => {
+    if (!userId) return;
+
     fetchNotifications();
+
+    // Subscribe to new notifications in real-time
+    const channel = supabase
+      .channel(`notifications:${userId}`, {
+        config: { broadcast: { self: true } },
+      })
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${userId}`,
+        },
+        (payload) => {
+          if (payload.eventType === "INSERT") {
+            // Add new notification to the top
+            setNotifications((prev) => [payload.new, ...prev]);
+          } else if (payload.eventType === "UPDATE") {
+            // Update existing notification
+            setNotifications((prev) =>
+              prev.map((n) => (n.id === payload.new.id ? payload.new : n)),
+            );
+          }
+        },
+      );
+
+    channel.subscribe();
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+      }
+    };
   }, [userId]);
 
   const unreadCount = notifications.filter((n) => !n.is_read).length;
+
+  const getNotificationIcon = (type: string) => {
+    switch (type) {
+      case "rating":
+        return "⭐";
+      case "comment":
+        return "💬";
+      case "review":
+        return "⭐💬";
+      case "like":
+        return "❤️";
+      default:
+        return "📢";
+    }
+  };
 
   const handleNotificationClick = async (notif: any) => {
     if (!notif.is_read) {
@@ -43,7 +97,10 @@ export function NotificationBell({ userId }: NotificationBellProps) {
         .from("notifications")
         .update({ is_read: true })
         .eq("id", notif.id);
-      fetchNotifications();
+
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n)),
+      );
     }
     if (notif.product_id) {
       setIsOpen(false);
@@ -86,7 +143,7 @@ export function NotificationBell({ userId }: NotificationBellProps) {
       >
         <Bell className="w-6 h-6" />
         {unreadCount > 0 && (
-          <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white"></div>
+          <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white animate-pulse"></div>
         )}
       </button>
 
@@ -132,15 +189,18 @@ export function NotificationBell({ userId }: NotificationBellProps) {
                         !notif.is_read ? "bg-indigo-50/50" : ""
                       }`}
                     >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="text-lg flex-shrink-0">
+                          {getNotificationIcon(notif.type)}
+                        </div>
+                        <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-zinc-900">
                             {notif.title}
                           </p>
-                          <p className="text-[11px] text-zinc-500 mt-0.5">
+                          <p className="text-[11px] text-zinc-600 mt-0.5 line-clamp-2">
                             {notif.message}
                           </p>
-                          <p className="text-[10px] text-zinc-400 mt-1">
+                          <p className="text-[10px] text-zinc-400 mt-1.5">
                             {formatTime(notif.created_at)}
                           </p>
                         </div>

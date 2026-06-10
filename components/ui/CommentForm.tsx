@@ -79,8 +79,12 @@ export function CommentForm({
         return;
       }
 
-      const endpoint = existingComment ? "/api/comments" : "/api/comments";
-      const method = existingComment ? "PATCH" : "POST";
+      // Use PATCH only if we have an existing comment with a valid ID
+      // Otherwise use POST (handles both new comments and rating-only updates)
+      const hasExistingCommentId =
+        existingComment?.id && existingComment.id !== "";
+      const endpoint = "/api/comments";
+      const method = hasExistingCommentId ? "PATCH" : "POST";
 
       const response = await fetch(endpoint, {
         method,

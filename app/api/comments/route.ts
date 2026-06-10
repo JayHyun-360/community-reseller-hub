@@ -155,6 +155,43 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // If both rating AND comment were submitted together, create a "review" notification
+    // This combines them into a single unified notification instead of two separate ones
+    if (hasValidRating && hasValidComment) {
+      try {
+        const { data: userProfile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("id", user.id)
+          .single();
+
+        const username = userProfile?.username || "Someone";
+        const { data: productData } = await supabase
+          .from("products")
+          .select("title,seller_id")
+          .eq("id", productId)
+          .single();
+
+        if (productData && productData.seller_id !== user.id) {
+          const comment_preview =
+            commentText.length > 80
+              ? commentText.substring(0, 80) + "..."
+              : commentText;
+
+          await supabase.from("notifications").insert({
+            user_id: productData.seller_id,
+            title: "⭐💬 New review on your product",
+            message: `${username} left a ${rating}★ review: "${comment_preview}"`,
+            type: "review",
+            product_id: productId,
+          });
+        }
+      } catch (err) {
+        console.warn("Failed to create review notification:", err);
+        // Don't fail the request if notification creation fails
+      }
+    }
+
     return NextResponse.json(
       { success: true, data: commentResult || { message: "Rating saved" } },
       { status: 200 },
