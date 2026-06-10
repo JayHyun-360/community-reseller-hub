@@ -479,15 +479,15 @@ export function ProductModal({
                         Math.abs(info.velocity.x) > swipeVelocityThreshold
                       ) {
                         if (info.offset.x > 0) {
-                          // Swiped right → previous image
-                          setCurrentImageIndex((i) =>
-                            i > 0 ? i - 1 : images.length - 1,
-                          );
+                          // Swiped right → previous image (no wrap)
+                          if (currentImageIndex > 0) {
+                            setCurrentImageIndex(currentImageIndex - 1);
+                          }
                         } else {
-                          // Swiped left → next image
-                          setCurrentImageIndex((i) =>
-                            i < images.length - 1 ? i + 1 : 0,
-                          );
+                          // Swiped left → next image (no wrap)
+                          if (currentImageIndex < images.length - 1) {
+                            setCurrentImageIndex(currentImageIndex + 1);
+                          }
                         }
                       }
                       dragX.set(0);
@@ -539,22 +539,24 @@ export function ProductModal({
                 {hasMultipleImages && (
                   <>
                     <button
-                      onClick={() =>
-                        setCurrentImageIndex((i) =>
-                          i > 0 ? i - 1 : images.length - 1,
-                        )
-                      }
-                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg"
+                      onClick={() => {
+                        if (currentImageIndex > 0) {
+                          setCurrentImageIndex(currentImageIndex - 1);
+                        }
+                      }}
+                      disabled={currentImageIndex === 0}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed rounded-full shadow-lg transition-opacity"
                     >
                       <span className="text-lg">‹</span>
                     </button>
                     <button
-                      onClick={() =>
-                        setCurrentImageIndex((i) =>
-                          i < images.length - 1 ? i + 1 : 0,
-                        )
-                      }
-                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white rounded-full shadow-lg"
+                      onClick={() => {
+                        if (currentImageIndex < images.length - 1) {
+                          setCurrentImageIndex(currentImageIndex + 1);
+                        }
+                      }}
+                      disabled={currentImageIndex === images.length - 1}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-2 bg-white/90 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed rounded-full shadow-lg transition-opacity"
                     >
                       <span className="text-lg">›</span>
                     </button>
