@@ -501,8 +501,8 @@ export function ProductModal({
                       }
                       dragX.set(0);
                     }}
-                    initial={{ x: -currentImageIndex * 110 + "%" }}
-                    animate={{ x: -currentImageIndex * 110 + "%" }}
+                    initial={{ x: -currentImageIndex * 100 + "%" }}
+                    animate={{ x: -currentImageIndex * 100 + "%" }}
                     transition={{
                       type: "spring",
                       damping: 40,
@@ -511,7 +511,7 @@ export function ProductModal({
                     }}
                     className="flex h-full w-full"
                     style={{
-                      width: `${images.length * 100 + (images.length - 1) * 10}%`,
+                      width: `${images.length * 100}%`,
                       touchAction: "pan-y",
                     }}
                   >
@@ -519,9 +519,6 @@ export function ProductModal({
                       <div
                         key={idx}
                         className="relative flex-1 h-full flex-shrink-0 min-w-0"
-                        style={{
-                          marginRight: idx < images.length - 1 ? "10%" : "0",
-                        }}
                       >
                         <ProductImage
                           src={
