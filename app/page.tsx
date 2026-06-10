@@ -40,7 +40,7 @@ export default function HomePage() {
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
   const searchParams = useSearchParams();
-  const processedUrlRef = useRef<string>("");
+  const lastOpenedProductIdRef = useRef<string | null>(null);
 
   const handleLikeChange = (
     productId: string,
@@ -142,28 +142,28 @@ export default function HomePage() {
   }, []);
 
   // Handle query param to open product from notification clicks
-  // Track the current URL to detect when a NEW navigation has occurred
+  // Only open if this is a different product than the last one we opened
   useEffect(() => {
     const productId = searchParams.get("product");
-    const currentUrl =
-      typeof window !== "undefined" ? window.location.href : "";
 
-    // If there's a product ID AND this is a new URL we haven't processed yet
+    // Only open if: has a product ID, products are loaded, and it's different from what we last opened
     if (
       productId &&
       products.length > 0 &&
-      processedUrlRef.current !== currentUrl
+      lastOpenedProductIdRef.current !== productId
     ) {
       const product = products.find((p) => p.id === productId);
       if (product) {
-        processedUrlRef.current = currentUrl; // Mark this URL as processed
+        lastOpenedProductIdRef.current = productId; // Mark this product as opened
         productModal.open(product);
-        // Clean up URL after opening
-        setTimeout(() => {
-          window.history.replaceState({}, "", "/");
-          processedUrlRef.current = ""; // Reset so any new navigation is detected
-        }, 0);
+        // Clean up URL - remove query param so refresh doesn't reopen
+        window.history.replaceState({}, "", "/");
       }
+    }
+
+    // If no product param in URL, reset the ref to allow opening again on next notification
+    if (!productId) {
+      lastOpenedProductIdRef.current = null;
     }
   }, [searchParams, products, productModal]);
 
