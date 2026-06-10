@@ -17,10 +17,7 @@ import {
   Link2,
   Pencil,
 } from "lucide-react";
-import {
-  ACCOUNT_CONTACTS_PATH,
-  sellerHasContact,
-} from "@/lib/seller-contacts";
+import { ACCOUNT_CONTACTS_PATH, sellerHasContact } from "@/lib/seller-contacts";
 import { applyLikeChange } from "@/lib/handle-like-change";
 import { useProductModalStack } from "@/lib/use-product-modal-stack";
 import { getViewerUserId } from "@/lib/viewer-session";
@@ -39,7 +36,7 @@ export default function StorefrontPage({
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [likedProductIds, setLikedProductIds] = useState<Set<string>>(
-    new Set()
+    new Set(),
   );
   const productModal = useProductModalStack();
   const [loading, setLoading] = useState(true);
@@ -139,7 +136,7 @@ export default function StorefrontPage({
 
       if (favoritesRes.data) {
         setLikedProductIds(
-          new Set(favoritesRes.data.map((f: any) => f.product_id))
+          new Set(favoritesRes.data.map((f: any) => f.product_id)),
         );
       }
 
@@ -160,7 +157,7 @@ export default function StorefrontPage({
             viewCount: p.view_count,
             tags: p.tags || [],
             createdAt: p.created_at,
-          }))
+          })),
         );
       }
 
@@ -171,7 +168,7 @@ export default function StorefrontPage({
             name: c.name,
             emoji: c.emoji,
             productCount: c.product_count,
-          }))
+          })),
         );
       }
 
@@ -287,7 +284,8 @@ export default function StorefrontPage({
 
             {isStoreOwner && (
               <p className="mt-6 text-xs font-bold text-amber-700 bg-amber-50 border border-amber-100 px-4 py-2 rounded-full">
-                You&apos;re viewing your storefront — buyers see contact buttons here
+                You&apos;re viewing your storefront — buyers see contact buttons
+                here
               </p>
             )}
 
@@ -305,7 +303,9 @@ export default function StorefrontPage({
                     }`}
                     onClick={() => router.push(ACCOUNT_CONTACTS_PATH)}
                   >
-                    {storeHasContact ? "Manage contact links" : "Add contact links"}
+                    {storeHasContact
+                      ? "Manage contact links"
+                      : "Add contact links"}
                   </Button>
                   <Button
                     fullWidth
@@ -330,70 +330,84 @@ export default function StorefrontPage({
                 </>
               ) : (
                 <>
-              {seller.messengerUrl && (
-                <Button
-                  fullWidth
-                  size="lg"
-                  leftIcon={<MessageCircle className="w-5 h-5" />}
-                  className="bg-[#0084FF] text-white hover:bg-[#0084FF]/90 rounded-3xl"
-                  onClick={() => window.open(seller.messengerUrl, "_blank")}
-                >
-                  Message on Messenger
-                </Button>
-              )}
-              {seller.whatsappNum && (
-                <div className="flex gap-2 w-full">
-                  <Button
-                    fullWidth
-                    size="lg"
-                    variant="outline"
-                    leftIcon={<WhatsApp className="w-5 h-5 text-[#25D366]" />}
-                    className="rounded-3xl border-zinc-200 text-zinc-600 flex-1"
-                    onClick={() =>
-                      window.open(
-                        `https://wa.me/${seller.whatsappNum}`,
-                        "_blank",
-                      )
-                    }
-                  >
-                    Chat on WhatsApp
-                  </Button>
-                  <Button
-                    size="lg"
-                    variant="outline"
-                    className="rounded-3xl border-zinc-200 text-zinc-600 px-4"
-                    onClick={() => {
-                      navigator.clipboard.writeText(seller.whatsappNum || "");
-                      alert("Number copied!");
-                    }}
-                    title="Copy number"
-                  >
-                    📋
-                  </Button>
-                </div>
-              )}
-              {seller.instagramHandle && (
-                <Button
-                  fullWidth
-                  size="lg"
-                  leftIcon={<Instagram className="w-5 h-5" />}
-                  className="bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F56040] text-white hover:opacity-90 rounded-3xl border-0 shadow-lg"
-                  onClick={() => window.open(`https://instagram.com/${seller.instagramHandle}`, "_blank")}
-                >
-                  Visit Instagram
-                </Button>
-              )}
-              {seller.tiktokHandle && (
-                <Button
-                  fullWidth
-                  size="lg"
-                  leftIcon={<Video className="w-5 h-5 text-white" />}
-                  className="bg-black text-white hover:bg-zinc-900 rounded-3xl shadow-lg border border-zinc-800"
-                  onClick={() => window.open(`https://tiktok.com/@${seller.tiktokHandle}`, "_blank")}
-                >
-                  Watch on TikTok
-                </Button>
-              )}
+                  {seller.messengerUrl && (
+                    <Button
+                      fullWidth
+                      size="lg"
+                      leftIcon={<MessageCircle className="w-5 h-5" />}
+                      className="bg-[#0084FF] text-white hover:bg-[#0084FF]/90 rounded-3xl"
+                      onClick={() => window.open(seller.messengerUrl, "_blank")}
+                    >
+                      Message on Messenger
+                    </Button>
+                  )}
+                  {seller.whatsappNum && (
+                    <div className="flex gap-2 w-full">
+                      <Button
+                        fullWidth
+                        size="lg"
+                        variant="outline"
+                        leftIcon={
+                          <WhatsApp className="w-5 h-5 text-[#25D366]" />
+                        }
+                        className="rounded-3xl border-zinc-200 text-zinc-600 flex-1"
+                        onClick={() =>
+                          window.open(
+                            `https://wa.me/${seller.whatsappNum}`,
+                            "_blank",
+                          )
+                        }
+                      >
+                        Chat on WhatsApp
+                      </Button>
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        className="rounded-3xl border-zinc-200 text-zinc-600 px-4"
+                        onClick={() => {
+                          navigator.clipboard.writeText(
+                            seller.whatsappNum || "",
+                          );
+                          alert("Number copied!");
+                        }}
+                        title="Copy number"
+                      >
+                        📋
+                      </Button>
+                    </div>
+                  )}
+                  {seller.instagramHandle && (
+                    <Button
+                      fullWidth
+                      size="lg"
+                      leftIcon={<Instagram className="w-5 h-5" />}
+                      className="bg-gradient-to-r from-[#833AB4] via-[#FD1D1D] to-[#F56040] text-white hover:opacity-90 rounded-3xl border-0 shadow-lg"
+                      onClick={() =>
+                        window.open(
+                          `https://instagram.com/${seller.instagramHandle}`,
+                          "_blank",
+                        )
+                      }
+                    >
+                      Visit Instagram
+                    </Button>
+                  )}
+                  {seller.tiktokHandle && (
+                    <Button
+                      fullWidth
+                      size="lg"
+                      leftIcon={<Video className="w-5 h-5 text-white" />}
+                      className="bg-black text-white hover:bg-zinc-900 rounded-3xl shadow-lg border border-zinc-800"
+                      onClick={() =>
+                        window.open(
+                          `https://tiktok.com/@${seller.tiktokHandle}`,
+                          "_blank",
+                        )
+                      }
+                    >
+                      Watch on TikTok
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -430,7 +444,7 @@ export default function StorefrontPage({
       <div className="mt-16 px-2 md:px-4">
         <div className="flex items-center justify-between mb-8 px-2 md:px-4">
           <h2 className="text-2xl font-black tracking-tighter text-zinc-900">
-            Inventory
+            Products
           </h2>
         </div>
 

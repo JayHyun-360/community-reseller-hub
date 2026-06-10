@@ -181,7 +181,7 @@ export default function AddProductPage() {
               Add New Product
             </h1>
             <p className="text-zinc-500 font-medium">
-              List a new item in your shop inventory.
+              List a new item in your shop.
             </p>
           </div>
 
