@@ -45,12 +45,9 @@ export function Header({ onMenuClick, unreadCount = 0 }: HeaderProps) {
         <div className="flex items-center gap-4 lg:hidden">
           <button
             onClick={onMenuClick}
-            className="p-2 text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors relative"
+            className="p-2 text-zinc-900 hover:bg-zinc-50 rounded-xl transition-colors"
           >
             <Menu className="w-6 h-6" />
-            {unreadCount > 0 && (
-              <div className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-            )}
           </button>
           <Link href="/" className="flex items-center gap-2 group">
             <div className="w-8 h-8 bg-zinc-900 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 shadow-md">

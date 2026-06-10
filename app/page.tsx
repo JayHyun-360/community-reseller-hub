@@ -153,6 +153,10 @@ export default function HomePage() {
       if (product) {
         openedProductRef.current = productId;
         productModal.open(product);
+        // Clean up URL after opening modal (don't persist query param on refresh)
+        if (typeof window !== "undefined") {
+          window.history.replaceState({}, "", "/");
+        }
       }
     }
   }, [searchParams, products, productModal]);
