@@ -116,7 +116,7 @@ export function CommentForm({
     >
       <div>
         <label className="block text-sm font-semibold text-zinc-900 mb-2">
-          {existingComment ? "Update your rating" : "Rate this product"}
+          {existingComment?.rating ? "Update your rating" : "Rate this product"}
         </label>
         <RatingStars
           rating={rating > 0 ? rating : null}
@@ -129,7 +129,9 @@ export function CommentForm({
 
       <div>
         <label className="block text-sm font-semibold text-zinc-900 mb-2">
-          {existingComment ? "Update your comment" : "Add a comment"}
+          {existingComment?.commentText
+            ? "Update your comment"
+            : "Add a comment"}
         </label>
         <textarea
           value={comment}
