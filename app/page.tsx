@@ -40,8 +40,7 @@ export default function HomePage() {
   const trendingRef = useRef<HTMLDivElement>(null);
   const supabase = createClient();
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const openedProductRef = useRef<string | null>(null);
+  const processedUrlRef = useRef<string>("");
 
   const handleLikeChange = (
     productId: string,
@@ -143,22 +142,30 @@ export default function HomePage() {
   }, []);
 
   // Handle query param to open product from notification clicks
+  // Track the current URL to detect when a NEW navigation has occurred
   useEffect(() => {
     const productId = searchParams.get("product");
+    const currentUrl =
+      typeof window !== "undefined" ? window.location.href : "";
+
+    // If there's a product ID AND this is a new URL we haven't processed yet
     if (
       productId &&
       products.length > 0 &&
-      openedProductRef.current !== productId
+      processedUrlRef.current !== currentUrl
     ) {
       const product = products.find((p) => p.id === productId);
       if (product) {
-        openedProductRef.current = productId;
+        processedUrlRef.current = currentUrl; // Mark this URL as processed
         productModal.open(product);
-        // Clean up URL after opening modal using router.push to update browser URL
-        router.push("/", { scroll: false });
+        // Clean up URL after opening
+        setTimeout(() => {
+          window.history.replaceState({}, "", "/");
+          processedUrlRef.current = ""; // Reset so any new navigation is detected
+        }, 0);
       }
     }
-  }, [searchParams, products, productModal, router]);
+  }, [searchParams, products, productModal]);
 
   const getFilteredProducts = () => {
     switch (selectedCat) {
