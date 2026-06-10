@@ -41,7 +41,7 @@ export default function HomePage() {
   const supabase = createClient();
   const searchParams = useSearchParams();
   const router = useRouter();
-  const hasProcessedInitialRef = useRef(false);
+  const lastProcessedProductIdRef = useRef<string | null>(null);
 
   const handleLikeChange = (
     productId: string,
@@ -142,48 +142,38 @@ export default function HomePage() {
     fetchData();
   }, []);
 
-  // Handle query param to open product from notification clicks - ONLY ONCE
-  // When user clicks notification, it adds ?product=ID to URL
-  // This effect opens the modal ONCE, then cleans the URL
+  // Handle query param to open product from notification clicks
+  // Opens modal when user clicks notification, cleans URL to prevent reopening on refresh
   useEffect(() => {
     const productId = searchParams.get("product");
 
-    // Only run this logic once per mount
-    if (!productId || hasProcessedInitialRef.current || products.length === 0) {
+    // If no product ID in URL, reset tracking so next notification works
+    if (!productId) {
+      lastProcessedProductIdRef.current = null;
+      return;
+    }
+
+    // Only process if: products loaded, different from last processed, and found in list
+    if (
+      products.length === 0 ||
+      lastProcessedProductIdRef.current === productId
+    ) {
       return;
     }
 
     const product = products.find((p) => p.id === productId);
     if (product) {
-      hasProcessedInitialRef.current = true;
+      lastProcessedProductIdRef.current = productId;
+
+      // CRITICAL: Clean URL synchronously FIRST before opening modal
+      // This prevents refresh from showing the modal again
+      window.history.replaceState({}, "", "/");
+
+      // Then open the modal
       productModal.open(product);
-      // Use router.push to properly update state, not replaceState
-      // This ensures searchParams updates correctly
-      router.push("/", { scroll: false });
     }
-  }, [products]); // Only depend on products, not searchParams which causes infinite loops
-
-  const getFilteredProducts = () => {
-    switch (selectedCat) {
-      case "all":
-        return products;
-      case "suggested":
-        if (suggestedCategoryIds.length > 0) {
-          return products.filter((p) =>
-            suggestedCategoryIds.includes(p.categoryId),
-          );
-        }
-        return products.slice(0, 8);
-      case "trending":
-        return [...products]
-          .sort((a, b) => (b.viewCount || 0) - (a.viewCount || 0))
-          .slice(0, 12);
-      default:
-        return products.filter((p) => p.categoryId === selectedCat);
-    }
-  };
-
-  const filteredProducts = getFilteredProducts();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, products]); // Don't include productModal (causes infinite loops)
 
   const sellersById = useMemo(
     () => new Map(sellers.map((s) => [s.id, s])),
