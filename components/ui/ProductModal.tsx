@@ -492,8 +492,8 @@ export function ProductModal({
                       }
                       dragX.set(0);
                     }}
-                    initial={{ x: -currentImageIndex * 106 + "%" }}
-                    animate={{ x: -currentImageIndex * 106 + "%" }}
+                    initial={{ x: -currentImageIndex * 110 + "%" }}
+                    animate={{ x: -currentImageIndex * 110 + "%" }}
                     transition={{
                       type: "spring",
                       damping: 40,
@@ -501,12 +501,14 @@ export function ProductModal({
                       mass: 1,
                     }}
                     className="flex gap-6 h-full"
-                    style={{ width: `${images.length * 106 - 6}%` }}
+                    style={{
+                      width: `${images.length * 100 + (images.length - 1) * 10}%`,
+                    }}
                   >
                     {images.map((image, idx) => (
                       <div
                         key={idx}
-                        className="relative w-full h-full flex-shrink-0"
+                        className="relative flex-1 h-full flex-shrink-0 min-w-0"
                       >
                         <ProductImage
                           src={
